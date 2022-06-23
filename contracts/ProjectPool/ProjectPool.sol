@@ -9,12 +9,14 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract ProjectPool is IERC721Receiver {
     uint256 public constant STAKE_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
-    address public owner;
+    //address public constant INCOME_SHARE_POOL = ;
 
     IPoolToken poolToken;
-    IERC721 nft;
+    IERC20 FUR;
+    IERC721 NFT;
 
     address public factory;
+    address public owner;
     uint128 public releaseTime = 7 days;
 
     struct LockInfo {
@@ -30,8 +32,10 @@ contract ProjectPool is IERC721Receiver {
     function initialize(address _nftAddress, address _tokenAddress) external {
         require(msg.sender == factory, "ProjectPool: Not permitted to call.");
 
-        nft = IERC721(_nftAddress);
         poolToken = IPoolToken(_tokenAddress);
+        // FUR token address, current placeholder: USDC address
+        FUR = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+        NFT = IERC721(_nftAddress);
     }
 
     modifier onlyOwner() {
@@ -42,13 +46,13 @@ contract ProjectPool is IERC721Receiver {
         _;
     }
 
-    modifier stakable(uint256 _id) {
+    modifier toPool(uint256 _id) {
         require(
-            nft.ownerOf(_id) == msg.sender,
+            NFT.ownerOf(_id) == msg.sender,
             "ProjectPool: You are not owner of the NFT."
         );
         require(
-            nft.getApproved(_id) == address(this),
+            NFT.getApproved(_id) == address(this),
             "ProjectPool: NFT not yet approved for transfer."
         );
         _;
@@ -98,27 +102,18 @@ contract ProjectPool is IERC721Receiver {
         _;
     }
 
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes memory
-    ) public pure returns (bytes4) {
-        return this.onERC721Received.selector;
-    }
-
-    function stake(uint256 _id) external stakable(_id) {
-        nft.safeTransferFrom(msg.sender, address(this), _id);
+    function sell(uint256 _id) external toPool(_id) {
+        NFT.safeTransferFrom(msg.sender, address(this), _id);
         poolToken.mint(msg.sender, STAKE_MINT_AMOUNT);
     }
 
-    function unstake(uint256 _id) external unstakable(_id) {
+    function buy(uint256 _id) external unstakable(_id) {
         poolToken.burn(msg.sender, STAKE_MINT_AMOUNT);
-        nft.safeTransferFrom(address(this), msg.sender, _id);
+        NFT.safeTransferFrom(address(this), msg.sender, _id);
     }
 
-    function lock(uint256 _id) external stakable(_id) {
-        nft.safeTransferFrom(msg.sender, address(this), _id);
+    function lock(uint256 _id) external toPool(_id) {
+        NFT.safeTransferFrom(msg.sender, address(this), _id);
 
         lockInfo[_id].locker = msg.sender;
         lockInfo[_id].lockTime = uint128(block.timestamp);
@@ -126,15 +121,24 @@ contract ProjectPool is IERC721Receiver {
         poolToken.mint(msg.sender, LOCK_MINT_AMOUNT / 2);
     }
 
-    function unlock(uint256 _id) external unlockable(_id) {
+    function redeem(uint256 _id) external unlockable(_id) {
         poolToken.burn(msg.sender, LOCK_MINT_AMOUNT);
 
         delete lockInfo[_id];
 
-        nft.safeTransferFrom(address(this), msg.sender, _id);
+        NFT.safeTransferFrom(address(this), msg.sender, _id);
     }
 
     function release(uint256 _id) external onlyOwner {
         delete lockInfo[_id];
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public pure returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }

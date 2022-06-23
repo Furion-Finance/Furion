@@ -7,15 +7,23 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 interface IProjectPool is IERC721Receiver {
     function factory() external view returns (address);
 
-    function mintAmount() external view returns (uint128);
+    function owner() external view returns (address);
 
-    function initialize(address _nftAddress, address _tokenAddress) external;
+    function initialize(
+        address _nftAddress,
+        address _tokenAddress,
+        address _owner
+    ) external;
 
-    function stake(uint256 _id) external;
+    function changeOwner(address _newOwner) external;
 
-    function unstake(uint256 _id) external;
+    function sell(uint256 _id) external;
+
+    function buy(uint256 _id) external;
 
     function lock(uint256 _id) external;
 
-    function unlock(uint256 _id) external;
+    function redeem(uint256 _id) external;
+
+    function release(uint256 _id) external;
 }

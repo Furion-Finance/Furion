@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract ProjectPool is IERC721Receiver {
     uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
-    //address public constant INCOME_SHARE_POOL = ;
 
     IPoolToken poolToken;
     IERC20 FUR;
@@ -28,20 +27,25 @@ contract ProjectPool is IERC721Receiver {
         factory = msg.sender;
     }
 
-    function initialize(address _nftAddress, address _tokenAddress) external {
-        require(msg.sender == factory, "ProjectPool: Not permitted to call.");
-
+    function initialize(
+        address _nftAddress,
+        address _tokenAddress,
+        address _owner
+    ) external onlyFactory {
         poolToken = IPoolToken(_tokenAddress);
         // FUR token address, current placeholder: USDC address
         FUR = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
         NFT = IERC721(_nftAddress);
+        owner = _owner;
     }
 
     modifier onlyOwner() {
-        require(
-            msg.sender == owner,
-            "ProjectPool: You do not have permission."
-        );
+        require(msg.sender == owner, "ProjectPool: Not permitted to call.");
+        _;
+    }
+
+    modifier onlyFactory() {
+        require(msg.sender == factory, "ProjectPool: Not permitted to call.");
         _;
     }
 
@@ -105,6 +109,10 @@ contract ProjectPool is IERC721Receiver {
         return keccak256(abi.encodePacked(address(NFT), _id));
     }
 
+    function changeOwner(address _newOwner) external onlyFactory {
+        owner = _newOwner;
+    }
+
     function sell(uint256 _id) external toPool(_id) {
         NFT.safeTransferFrom(msg.sender, address(this), _id);
         poolToken.mint(msg.sender, SWAP_MINT_AMOUNT);
@@ -112,6 +120,9 @@ contract ProjectPool is IERC721Receiver {
 
     function buy(uint256 _id) external checkBalance(SWAP_MINT_AMOUNT) {
         poolToken.burn(msg.sender, SWAP_MINT_AMOUNT);
+
+        // FUR.transferFrom(msg.sender, owner, fee);
+
         NFT.safeTransferFrom(address(this), msg.sender, _id);
     }
 
@@ -144,6 +155,8 @@ contract ProjectPool is IERC721Receiver {
         bytes32 fId = furionId(_id);
 
         poolToken.burn(msg.sender, LOCK_MINT_AMOUNT);
+
+        // FUR.transferFrom(msg.sender, owner, fee);
 
         delete lockInfo[fId];
 

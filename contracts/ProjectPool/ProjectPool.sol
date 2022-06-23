@@ -17,13 +17,12 @@ contract ProjectPool is IERC721Receiver {
 
     address public factory;
     address public owner;
-    uint128 public releaseTime = 7 days;
 
     struct LockInfo {
         address locker;
-        uint128 lockTime;
+        uint128 releaseTime;
     }
-    mapping(uint256 => LockInfo) lockInfo;
+    mapping(bytes32 => LockInfo) lockInfo;
 
     constructor() {
         factory = msg.sender;
@@ -71,12 +70,14 @@ contract ProjectPool is IERC721Receiver {
     }
 
     modifier unlockable(uint256 _id) {
+        bytes32 fId = furionId(_id);
+
         require(
-            lockInfo[_id].locker == msg.sender,
+            lockInfo[fId].locker == msg.sender,
             "ProjectPool: You did not lock this NFT."
         );
         require(
-            (lockInfo[_id].lockTime + releaseTime) < uint128(block.timestamp),
+            lockInfo[fId].releaseTime > uint128(block.timestamp),
             "ProjectPool: NFT has already been released to public pool."
         );
         require(
@@ -91,15 +92,25 @@ contract ProjectPool is IERC721Receiver {
     }
 
     modifier releasable(uint256 _id) {
+        bytes32 fId = furionId(_id);
+
         require(
-            lockInfo[_id].locker != address(0),
+            lockInfo[fId].locker != address(0),
             "ProjectPool: NFT is not locked."
         );
         require(
-            lockInfo[_id].lockTime + releaseTime > uint128(block.timestamp),
-            ""
+            lockInfo[fId].releaseTime != 0,
+            "ProjectPool: NFT is not eligible for release."
+        );
+        require(
+            lockInfo[fId].releaseTime < uint128(block.timestamp),
+            "ProjectPool: Release time not reached."
         );
         _;
+    }
+
+    function furionId(uint256 _id) public view returns (bytes32) {
+        return keccak256(abi.encodePacked(address(NFT), _id));
     }
 
     function sell(uint256 _id) external toPool(_id) {
@@ -112,25 +123,40 @@ contract ProjectPool is IERC721Receiver {
         NFT.safeTransferFrom(address(this), msg.sender, _id);
     }
 
-    function lock(uint256 _id) external toPool(_id) {
+    /**
+     * @param _lockPeriod Amount of time locked in days
+     */
+    function lock(uint256 _id, uint64 _lockPeriod) external toPool(_id) {
+        bytes32 fId = furionId(_id);
+
         NFT.safeTransferFrom(msg.sender, address(this), _id);
 
-        lockInfo[_id].locker = msg.sender;
-        lockInfo[_id].lockTime = uint128(block.timestamp);
+        lockInfo[fId].locker = msg.sender;
+        lockInfo[fId].releaseTime = uint128(
+            block.timestamp + _lockPeriod * 24 * 60 * 60
+        );
 
-        poolToken.mint(msg.sender, LOCK_MINT_AMOUNT / 2);
+        poolToken.mint(msg.sender, LOCK_MINT_AMOUNT);
     }
 
     function redeem(uint256 _id) external unlockable(_id) {
+        bytes32 fId = furionId(_id);
+
         poolToken.burn(msg.sender, LOCK_MINT_AMOUNT);
 
-        delete lockInfo[_id];
+        delete lockInfo[fId];
 
         NFT.safeTransferFrom(address(this), msg.sender, _id);
     }
 
     function release(uint256 _id) external onlyOwner {
-        delete lockInfo[_id];
+        bytes32 fId = furionId(_id);
+
+        address sendRemainingTo = lockInfo[fId].locker;
+
+        delete lockInfo[fId];
+
+        poolToken.mint(sendRemainingTo, LOCK_MINT_AMOUNT);
     }
 
     function onERC721Received(

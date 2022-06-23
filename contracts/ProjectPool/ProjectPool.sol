@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract ProjectPool is IERC721Receiver {
-    uint256 public constant STAKE_MINT_AMOUNT = 1000 * (10**18);
+    uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
     //address public constant INCOME_SHARE_POOL = ;
 
@@ -57,13 +57,13 @@ contract ProjectPool is IERC721Receiver {
         _;
     }
 
-    modifier unstakable(uint256 _id) {
+    modifier checkBalance(uint256 _amount) {
         require(
-            poolToken.balanceOf(msg.sender) >= STAKE_MINT_AMOUNT,
-            "ProjectPool: Not enough tokens to redeem the NFT."
+            poolToken.balanceOf(msg.sender) >= _amount,
+            "ProjectPool: You don not have enough tokens."
         );
         require(
-            poolToken.allowance(msg.sender, address(this)) >= STAKE_MINT_AMOUNT,
+            poolToken.allowance(msg.sender, address(this)) >= _amount,
             "ProjectPool: Not enough amount of tokens approved."
         );
         _;
@@ -80,14 +80,6 @@ contract ProjectPool is IERC721Receiver {
             lockInfo[fId].releaseTime > uint128(block.timestamp),
             "ProjectPool: NFT has already been released to public pool."
         );
-        require(
-            poolToken.balanceOf(msg.sender) >= LOCK_MINT_AMOUNT,
-            "ProjectPool: Not enough tokens to redeem the NFT."
-        );
-        require(
-            poolToken.allowance(msg.sender, address(this)) >= LOCK_MINT_AMOUNT,
-            "ProjectPool: Not enough amount of tokens approved."
-        );
         _;
     }
 
@@ -100,11 +92,11 @@ contract ProjectPool is IERC721Receiver {
         );
         require(
             lockInfo[fId].releaseTime != 0,
-            "ProjectPool: NFT is not eligible for release."
+            "ProjectPool: NFT is locked forever."
         );
         require(
             lockInfo[fId].releaseTime < uint128(block.timestamp),
-            "ProjectPool: Release time not reached."
+            "ProjectPool: Release time not yet reached."
         );
         _;
     }
@@ -115,11 +107,11 @@ contract ProjectPool is IERC721Receiver {
 
     function sell(uint256 _id) external toPool(_id) {
         NFT.safeTransferFrom(msg.sender, address(this), _id);
-        poolToken.mint(msg.sender, STAKE_MINT_AMOUNT);
+        poolToken.mint(msg.sender, SWAP_MINT_AMOUNT);
     }
 
-    function buy(uint256 _id) external unstakable(_id) {
-        poolToken.burn(msg.sender, STAKE_MINT_AMOUNT);
+    function buy(uint256 _id) external checkBalance(SWAP_MINT_AMOUNT) {
+        poolToken.burn(msg.sender, SWAP_MINT_AMOUNT);
         NFT.safeTransferFrom(address(this), msg.sender, _id);
     }
 
@@ -127,6 +119,11 @@ contract ProjectPool is IERC721Receiver {
      * @param _lockPeriod Amount of time locked in days
      */
     function lock(uint256 _id, uint64 _lockPeriod) external toPool(_id) {
+        require(
+            _lockPeriod >= 30,
+            "ProjectPool: Lock time must be at least 30 days."
+        );
+
         bytes32 fId = furionId(_id);
 
         NFT.safeTransferFrom(msg.sender, address(this), _id);
@@ -139,7 +136,11 @@ contract ProjectPool is IERC721Receiver {
         poolToken.mint(msg.sender, LOCK_MINT_AMOUNT);
     }
 
-    function redeem(uint256 _id) external unlockable(_id) {
+    function redeem(uint256 _id)
+        external
+        unlockable(_id)
+        checkBalance(LOCK_MINT_AMOUNT)
+    {
         bytes32 fId = furionId(_id);
 
         poolToken.burn(msg.sender, LOCK_MINT_AMOUNT);

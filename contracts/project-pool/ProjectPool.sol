@@ -23,6 +23,18 @@ contract ProjectPool is IERC721Receiver {
     }
     mapping(bytes32 => LockInfo) lockInfo;
 
+    event OwnerChanged(address oldOwner, address newOwner);
+    event SoldNFT(bytes32 indexed fId, address indexed seller);
+    event BoughtNFT(bytes32 indexed fId, address indexed buyer);
+    event LockedNFT(
+        bytes32 indexed fId,
+        address indexed locker,
+        uint256 timeOfLock,
+        uint256 periodInDays
+    );
+    event RedeemedNFT(bytes32 indexed fId, address indexed redeemer);
+    event ReleasedNFT(bytes32 indexed fId);
+
     constructor() {
         factory = msg.sender;
     }
@@ -110,12 +122,17 @@ contract ProjectPool is IERC721Receiver {
     }
 
     function changeOwner(address _newOwner) external onlyFactory {
+        address oldOwner = owner;
         owner = _newOwner;
+
+        emit OwnerChanged(oldOwner, _newOwner);
     }
 
     function sell(uint256 _id) external toPool(_id) {
         NFT.safeTransferFrom(msg.sender, address(this), _id);
         poolToken.mint(msg.sender, SWAP_MINT_AMOUNT);
+
+        emit SoldNFT(furionId(_id), msg.sender);
     }
 
     function buy(uint256 _id) external checkBalance(SWAP_MINT_AMOUNT) {
@@ -124,12 +141,14 @@ contract ProjectPool is IERC721Receiver {
         // FUR.transferFrom(msg.sender, owner, fee);
 
         NFT.safeTransferFrom(address(this), msg.sender, _id);
+
+        emit BoughtNFT(furionId(_id), msg.sender);
     }
 
     /**
      * @param _lockPeriod Amount of time locked in days
      */
-    function lock(uint256 _id, uint64 _lockPeriod) external toPool(_id) {
+    function lock(uint256 _id, uint256 _lockPeriod) external toPool(_id) {
         require(
             _lockPeriod >= 30,
             "ProjectPool: Lock time must be at least 30 days."
@@ -145,6 +164,8 @@ contract ProjectPool is IERC721Receiver {
         );
 
         poolToken.mint(msg.sender, LOCK_MINT_AMOUNT);
+
+        emit LockedNFT(fId, msg.sender, block.timestamp, _lockPeriod);
     }
 
     function redeem(uint256 _id)
@@ -161,6 +182,8 @@ contract ProjectPool is IERC721Receiver {
         delete lockInfo[fId];
 
         NFT.safeTransferFrom(address(this), msg.sender, _id);
+
+        emit RedeemedNFT(fId, msg.sender);
     }
 
     function release(uint256 _id) external onlyOwner {
@@ -171,6 +194,8 @@ contract ProjectPool is IERC721Receiver {
         delete lockInfo[fId];
 
         poolToken.mint(sendRemainingTo, LOCK_MINT_AMOUNT);
+
+        emit ReleasedNFT(fId);
     }
 
     function onERC721Received(

@@ -28,7 +28,6 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         uint256 poolIndex,
         address tokenAddress
     );
-    event TokenCreated(address nftAddress, address tokenAddress);
 
     function allPoolsLength() external view returns (uint256 totalPools) {
         totalPools = allPools.length;
@@ -86,6 +85,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
             allPools.length,
             tokenAddress
         );
+
         return poolAddress;
     }
 

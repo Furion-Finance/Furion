@@ -3,9 +3,9 @@
 pragma solidity ^0.8.0;
 
 import "./ProjectPool.sol";
-import "./PoolToken.sol";
+import "../tokens/PoolToken.sol";
 import "./interfaces/IProjectPool.sol";
-import "./interfaces/IPoolToken.sol";
+import "../tokens/interfaces/IPoolToken.sol";
 import "./interfaces/IProjectPoolFactory.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 

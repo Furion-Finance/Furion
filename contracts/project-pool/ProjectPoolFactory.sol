@@ -3,9 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./ProjectPool.sol";
-import "../tokens/PoolToken.sol";
 import "./interfaces/IProjectPool.sol";
-import "../tokens/interfaces/IPoolToken.sol";
 import "./interfaces/IProjectPoolFactory.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -13,11 +11,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     // NFT address to pool address
     mapping(address => address) public getPool;
-    // NFT address to token address
-    mapping(address => address) public getToken;
 
     address[] public allPools;
-    address[] public allTokens;
 
     // Record of all nft addresses for root pool
     // address[] public allNfts;
@@ -25,15 +20,20 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     event PoolCreated(
         address nftAddress,
         address poolAddress,
-        uint256 poolIndex,
-        address tokenAddress
+        uint256 poolIndex
     );
 
+    /**
+     * @dev Get total number of pools
+     */
     function allPoolsLength() external view returns (uint256 totalPools) {
         totalPools = allPools.length;
         return totalPools;
     }
 
+    /**
+     * @dev Change owner/fee receiver for all project pools
+     */
     function transferOwnership(address _newOwner) public override onlyOwner {
         require(
             _newOwner != address(0),
@@ -42,8 +42,8 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
 
         _transferOwnership(_newOwner);
 
-        for (uint256 i = 0; i < allTokens.length; ) {
-            IProjectPool(allTokens[i]).changeOwner(_newOwner);
+        for (uint256 i = 0; i < allPools.length; ) {
+            IProjectPool(allPools[i]).changeOwner(_newOwner);
 
             unchecked {
                 ++i;
@@ -51,71 +51,51 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         }
     }
 
-    function createPool(address _nftAddress)
-        external
-        returns (address poolAddress)
-    {
+    /**
+     * @dev Create pool and add address to array
+     */
+    function createPool(address _nftAddress) external {
         require(_nftAddress != address(0), "ProjectPoolFactory: ZERO_ADDRESS");
         require(
             getPool[_nftAddress] == address(0),
             "ProjectPoolFactory: PAIR_EXISTS"
         );
 
+        (string memory tokenName, string memory tokenSymbol) = _tokenMetadata(
+            _nftAddress
+        );
+
         bytes32 _salt = keccak256(abi.encodePacked(_nftAddress));
 
         // New way to invoke create2 without assembly, paranthesis still needed for empty constructor
-        poolAddress = address(new ProjectPool{salt: _salt}());
-        address tokenAddress = _createPoolToken(
-            _nftAddress,
-            _salt,
-            poolAddress
+        address poolAddress = address(
+            new ProjectPool{salt: _salt}(
+                _nftAddress,
+                owner(),
+                tokenName,
+                tokenSymbol
+            )
         );
 
-        IProjectPool(poolAddress).initialize(
-            _nftAddress,
-            tokenAddress,
-            owner()
-        );
         getPool[_nftAddress] = poolAddress;
         allPools.push(poolAddress);
 
-        emit PoolCreated(
-            _nftAddress,
-            poolAddress,
-            allPools.length,
-            tokenAddress
-        );
-
-        return poolAddress;
+        emit PoolCreated(_nftAddress, poolAddress, allPools.length);
     }
 
-    function _createPoolToken(
-        address _nftAddress,
-        bytes32 _salt,
-        address _poolAddress
-    ) private returns (address tokenAddress) {
-        require(
-            getToken[_nftAddress] == address(0),
-            "ProjectPoolFactory: Token already exists."
-        );
-
+    /**
+     * @dev Get NFT name and symbol for token metadata
+     */
+    function _tokenMetadata(address _nftAddress)
+        private
+        view
+        returns (string memory tokenName, string memory tokenSymbol)
+    {
         string memory nftName = IERC721Metadata(_nftAddress).name();
         string memory nftSymbol = IERC721Metadata(_nftAddress).symbol();
-        string memory tokenName = string.concat("Furion ", nftName);
-        string memory tokenSymbol = string.concat("F-", nftSymbol);
+        tokenName = string.concat("Furion ", nftName);
+        tokenSymbol = string.concat("F-", nftSymbol);
 
-        // New way to invoke create2 without assembly, paranthesis still needed for empty constructor
-        tokenAddress = address(new PoolToken{salt: _salt}());
-
-        IPoolToken(tokenAddress).initialize(
-            _nftAddress,
-            _poolAddress,
-            tokenName,
-            tokenSymbol
-        );
-        getToken[_nftAddress] = tokenAddress;
-        allTokens.push(tokenAddress);
-
-        return tokenAddress;
+        return (tokenName, tokenSymbol);
     }
 }

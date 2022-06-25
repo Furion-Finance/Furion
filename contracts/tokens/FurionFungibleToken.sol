@@ -5,19 +5,35 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract FurionFungibleToken is ERC20 {
-    mapping(address => bool) public pools;
+    address public rootPoolFactory;
 
-    constructor() ERC20("Furion Fungible Token", "FFT") {}
+    mapping(address => bool) public rootPools;
 
-    modifier onlyPools() {
-        require(pools[msg.sender] == true, "FFT: Not permitted to call.");
+    constructor(address _rootPoolFactory)
+        ERC20("Furion Fungible Token", "FFT")
+    {
+        rootPoolFactory = _rootPoolFactory;
     }
 
-    function mint(address _to, uint256 _amount) external onlyPools {
+    modifier onlyRootPools() {
+        require(rootPools[msg.sender] == true, "FFT: Not permitted to call.");
+        _;
+    }
+
+    modifier onlyRootPoolFactory() {
+        require(msg.sender == rootPoolFactory, "FFT: Not permitted to call.");
+        _;
+    }
+
+    function addRootPool(address _poolAddress) external onlyRootPoolFactory {
+        rootPools[_poolAddress] = true;
+    }
+
+    function mint(address _to, uint256 _amount) external onlyRootPools {
         _mint(_to, _amount);
     }
 
-    function burn(address _burnFrom, uint256 _amount) external onlyPools {
+    function burn(address _burnFrom, uint256 _amount) external onlyRootPools {
         _burn(_burnFrom, _amount);
     }
 }

@@ -9,12 +9,6 @@ interface IProjectPool is IERC721Receiver {
 
     function owner() external view returns (address);
 
-    function initialize(
-        address _nftAddress,
-        address _tokenAddress,
-        address _owner
-    ) external;
-
     function changeOwner(address _newOwner) external;
 
     function sell(uint256 _id) external;

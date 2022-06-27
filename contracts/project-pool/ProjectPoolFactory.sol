@@ -11,6 +11,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     // NFT address to pool address
     mapping(address => address) public getPool;
+    // Get NFT address for getting reference price from oracle
+    // Pool address to NFT address
+    mapping(address => address) public getNft;
 
     address[] public allPools;
 

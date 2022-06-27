@@ -3,40 +3,53 @@
 pragma solidity ^0.8.0;
 
 import "../tokens/FurionFungibleToken.sol";
-import "../tokens/interfaces/IFFT.sol";
-import "./interfaces/IRootPoolFactory.sol";
+import "./RootPool.sol";
 import "./interfaces/IRootPool.sol";
+import "./interfaces/IRootPoolFactory.sol";
+import "../project-pool/interfaces/IProjectPoolFactory.sol";
+import "../tokens/interfaces/IFFT.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract RootPoolFactory is IRootPoolFactory, Ownable {
-    // NFT address to pool address
-    mapping(address => address) public getPool;
+    using Counters for Counters.Counter;
 
-    address[] public allPools;
-    // Record of all nft addresses for root pool
-    // address[] public allNfts;
+    IProjectPoolFactory PPF;
 
-    address public FFT;
+    address public fft;
     address public oracle;
 
-    event PoolCreated(
-        address nftAddress,
-        address poolAddress,
-        uint256 poolIndex
-    );
+    // Starts from 1
+    Counters.Counter private poolId;
+    // Pool ID to pool address
+    mapping(uint256 => address) public getPool;
 
-    constructor(address _oracle) {
+    // No use for now
+    // address[] public allPools;
+
+    event PoolCreated(address poolAddress, uint256 id);
+
+    constructor(address _oracle, address _ppFactory) {
         bytes32 _salt = keccak256(abi.encodePacked("FurionFungibleToken"));
-        FFT = address(new FurionFungibleToken{salt: _salt}(address(this)));
+        address fftAddress = address(
+            new FurionFungibleToken{salt: _salt}(address(this))
+        );
 
+        fft = fftAddress;
         oracle = _oracle;
+        PPF = IProjectPoolFactory(_ppFactory);
     }
 
-    function allPoolsLength() external view returns (uint256 totalPools) {
-        totalPools = allPools.length;
-        return totalPools;
+    /**
+     * @dev Get total number of root pools in existence
+     */
+    function allPoolsLength() external view returns (uint256) {
+        return poolId.current();
     }
 
+    /**
+     * @dev Change owner/fee receiver for all project pools
+     */
     function transferOwnership(address _newOwner) public override onlyOwner {
         require(
             _newOwner != address(0),
@@ -45,8 +58,9 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
         _transferOwnership(_newOwner);
 
-        for (uint256 i = 0; i < allPools.length; ) {
-            IRootPool(allPools[i]).changeOwner(_newOwner);
+        // ID starts from 1
+        for (uint256 i = 1; i <= poolId.current(); ) {
+            IRootPool(getPool[i]).changeOwner(_newOwner);
 
             unchecked {
                 ++i;
@@ -54,34 +68,51 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
         }
     }
 
-    /*
-    function createPool(address _nftAddress) external {
-        require(_nftAddress != address(0), "ProjectPoolFactory: ZERO_ADDRESS");
-        require(
-            getPool[_nftAddress] == address(0),
-            "ProjectPoolFactory: PAIR_EXISTS"
-        );
+    /**
+     * @dev Initialize root pool and grant FFT minting and burning permissions
+     *
+     * @param _nftAddress Addresses of nfts to be included in pool
+     */
+    function createPool(address[] memory _nftAddress) external {
+        poolId.increment();
 
-        (string memory tokenName, string memory tokenSymbol) = _tokenMetadata(
-            _nftAddress
-        );
+        address[] memory tokens = _getTokenAddress(_nftAddress);
 
-        bytes32 _salt = keccak256(abi.encodePacked(_nftAddress));
-
-        // New way to invoke create2 without assembly, paranthesis still needed for empty constructor
+        bytes32 _salt = keccak256(abi.encodePacked(tokens));
         address poolAddress = address(
-            new ProjectPool{salt: _salt}(
-                _nftAddress,
-                owner(),
-                tokenName,
-                tokenSymbol
-            )
+            new RootPool{salt: _salt}(fft, oracle, owner(), tokens)
         );
 
-        getPool[_nftAddress] = poolAddress;
-        allPools.push(poolAddress);
+        getPool[poolId.current()] = poolAddress;
+        // allPools.push(poolAddress);
 
-        emit PoolCreated(_nftAddress, poolAddress, allPools.length);
+        // Register pool to FFT contract for minting and burning
+        IFFT(fft).addRootPool(poolAddress);
+
+        emit PoolCreated(poolAddress, poolId.current());
     }
-    */
+
+    /**
+     * @dev Check if NFT is supported and retrieve corresponding pool token address
+     */
+    function _getTokenAddress(address[] memory _nftAddress)
+        private
+        view
+        returns (address[] memory tokens)
+    {
+        tokens = new address[](_nftAddress.length);
+
+        for (uint256 i = 0; i < _nftAddress.length; ) {
+            address tokenAddress = PPF.getPool(_nftAddress[i]);
+            require(tokenAddress != address(0), "RootPool: NFT not supported");
+
+            tokens[i] = _nftAddress[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return tokens;
+    }
 }

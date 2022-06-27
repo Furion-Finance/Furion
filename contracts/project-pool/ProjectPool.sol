@@ -77,9 +77,9 @@ contract ProjectPool is ERC20, IERC721Receiver {
     modifier checkBalance(uint256 _amount) {
         uint256 total;
         if (_amount == SWAP_MINT_AMOUNT) {
-            total = _amount * (1 + swapFeeRate / 100);
+            total = _amount + ((_amount * swapFeeRate) / 100);
         } else if (_amount == LOCK_MINT_AMOUNT) {
-            total = _amount * (1 + lockFeeRate / 100);
+            total = _amount + ((_amount * lockFeeRate) / 100);
         }
 
         require(

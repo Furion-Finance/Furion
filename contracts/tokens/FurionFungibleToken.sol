@@ -25,6 +25,12 @@ contract FurionFungibleToken is ERC20 {
         _;
     }
 
+    function circulatingSupply() public view returns (uint256) {
+        // Total supply - balance of all contracts that locked FFT
+        // return totalSupply() - balanceOf()
+        return totalSupply();
+    }
+
     function addRootPool(address _poolAddress) external onlyRootPoolFactory {
         rootPools[_poolAddress] = true;
     }

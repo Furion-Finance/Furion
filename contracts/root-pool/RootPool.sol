@@ -60,7 +60,7 @@ contract RootPool {
         _;
     }
 
-    // Make sure pool is only for registered F-* token
+    // Check if pool token is registered
     modifier tokenRegistered(address _tokenAddress) {
         require(
             registered[_tokenAddress] == true,
@@ -80,6 +80,46 @@ contract RootPool {
             "RootPool: Not enough amount of tokens approved."
         );
         _;
+    }
+
+    /**
+     * @dev Get reference price of 1 F-* token (in ETH)
+     */
+    function refPricePerToken(address _tokenAddress)
+        public
+        view
+        returns (uint256)
+    {
+        address nft = IProjectPoolFactory(factory).getNft(_tokenAddress);
+
+        // Price of 1000 F-* tokens in terms of ETH
+        uint256 refPrice = Oracle.getNFTPrice(nft, 0);
+
+        return refPrice / 1000;
+    }
+
+    /**
+     * @dev Get total value of all staked F-* tokens in contract (in ETH)
+     */
+    function refPriceSum() public view returns (uint256) {
+        uint256 sum;
+
+        for (uint256 i = 0; i < tokenTypes; ) {
+            address token = getToken[i];
+
+            uint256 refPrice = refPricePerToken(token);
+            // Number of F-* tokens in the contract
+            uint256 balance = IERC20(token).balanceOf(address(this));
+
+            sum += refPrice * balance;
+        }
+
+        return sum;
+    }
+
+    function refPricePerFFT() public view returns (uint256) {
+        uint256 circulatingSupply = FFT.circulatingSupply();
+        return refPriceSum() / circulatingSupply;
     }
 
     /**
@@ -108,7 +148,16 @@ contract RootPool {
         external
         tokenRegistered(_tokenAddress)
         checkBalance(_tokenAddress, _amount)
-    {}
+    {
+        uint256 tokenRefPrice = refPricePerToken(_tokenAddress);
+        uint256 fftRefPrice = refPricePerFFT();
+        // Amount of FFT to get
+        uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
+
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+
+        FFT.mint(msg.sender, mintAmount);
+    }
 
     /**
      * @dev Burn FFT and get F-* tokens
@@ -120,26 +169,14 @@ contract RootPool {
         external
         tokenRegistered(_tokenAddress)
         checkBalance(address(FFT), _amount)
-    {}
+    {
+        uint256 tokenRefPrice = refPricePerToken(_tokenAddress);
+        uint256 fftRefPrice = refPricePerFFT();
+        // Amount of F-* tokens to get back
+        uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
 
-    /**
-     * @dev Get total value of staked F-* tokens in contract (in ETH)
-     */
-    function _totalRefPrice() private view returns (uint256) {
-        uint256 total;
+        FFT.burn(msg.sender, _amount);
 
-        for (uint256 i = 0; i < tokenTypes; ) {
-            address token = getToken[i];
-            address nft = IProjectPoolFactory(factory).getNft(token);
-
-            // Price of 1000 F-* tokens in terms of ETH
-            uint256 refPrice = Oracle.getNFTPrice(nft, 0);
-            // Number of F-* tokens in the contract
-            uint256 balance = IERC20(token).balanceOf(address(this));
-
-            total += (refPrice / 1000) * balance;
-        }
-
-        return total;
+        IERC20(_tokenAddress).transfer(msg.sender, retrieveAmount);
     }
 }

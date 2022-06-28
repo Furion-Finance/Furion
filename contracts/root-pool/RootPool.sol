@@ -5,13 +5,14 @@ pragma solidity ^0.8.0;
 import "../tokens/interfaces/IFFT.sol";
 import "./interfaces/IFurionOracle.sol";
 import "../project-pool/interfaces/IProjectPoolFactory.sol";
-// For F-* token
+// For F-* token and FUR
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // In this contract, pools refer to root pools and tokens refer to project pool
 // tokens (i.e. project pools)
 
 contract RootPool {
+    IERC20 FUR;
     IFFT FFT;
     IFurionOracle Oracle;
 
@@ -33,12 +34,14 @@ contract RootPool {
 
     constructor(
         address _fft,
+        address _fur,
         address _oracle,
         address _owner,
         address[] memory _tokens
     ) {
         factory = msg.sender;
         FFT = IFFT(_fft);
+        FUR = IERC20(_fur);
         Oracle = IFurionOracle(_oracle);
         owner = _owner;
 

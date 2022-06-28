@@ -17,6 +17,7 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
     IProjectPoolFactory PPF;
 
     address public fft;
+    address public fur;
     address public oracle;
 
     // Starts from 1
@@ -29,13 +30,18 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
     event PoolCreated(address poolAddress, uint256 id);
 
-    constructor(address _oracle, address _ppFactory) {
+    constructor(
+        address _fur,
+        address _oracle,
+        address _ppFactory
+    ) {
         bytes32 _salt = keccak256(abi.encodePacked("FurionFungibleToken"));
         address fftAddress = address(
             new FurionFungibleToken{salt: _salt}(address(this))
         );
 
         fft = fftAddress;
+        fur = _fur;
         oracle = _oracle;
         PPF = IProjectPoolFactory(_ppFactory);
     }
@@ -80,7 +86,7 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
         bytes32 _salt = keccak256(abi.encodePacked(tokens));
         address poolAddress = address(
-            new RootPool{salt: _salt}(fft, oracle, owner(), tokens)
+            new RootPool{salt: _salt}(fft, fur, oracle, owner(), tokens)
         );
 
         getPool[poolId.current()] = poolAddress;

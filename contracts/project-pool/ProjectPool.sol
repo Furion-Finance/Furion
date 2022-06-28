@@ -15,6 +15,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
 
     address public factory;
     // Pool admin/fee receiver
+    // Fees in this contract are in the form of F-* tokens
     address public owner;
 
     // 0 - 100

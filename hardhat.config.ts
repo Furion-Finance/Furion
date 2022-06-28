@@ -3,14 +3,15 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
 import "hardhat-gas-reporter";
+import "hardhat-spdx-license-identifier";
 import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
-import "hardhat-spdx-license-identifier";
-//import "hardhat-deploy";
 
+//import "hardhat-deploy";
 import "./tasks/accounts";
+
 //import "./tasks/deploy";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
@@ -80,6 +81,7 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS == "true" ? true : false,
     excludeContracts: [],
     src: "./contracts",
+    coinmarketcap: process.env.CMC_API_KEY,
   },
   networks: {
     hardhat: {
@@ -126,7 +128,7 @@ const config: HardhatUserConfig = {
   spdxLicenseIdentifier: {
     overwrite: true,
     runOnCompile: true,
-  }
+  },
 };
 
 export default config;

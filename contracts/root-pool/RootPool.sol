@@ -18,6 +18,7 @@ contract RootPool {
 
     address public immutable factory;
     // Will be immutable for income sharing vault
+    // Fees in this contract are in the form of FFT
     address public owner;
 
     // Accepted pool tokens for this root pool
@@ -72,14 +73,27 @@ contract RootPool {
         _;
     }
 
+    // Check pool token balance for staking and FFT balance for unstaking
     modifier checkBalance(address _tokenAddress, uint256 _amount) {
+        uint256 totalAmount;
+        uint256 allowanceAmount;
+        // If the checking is for unstaking
+        if (_tokenAddress == address(FFT)) {
+            totalAmount = _amount + (_amount * unstakeFeeRate) / 100;
+            // Only FFT fees needs to be transferred, others are burned
+            allowanceAmount = (_amount * unstakeFeeRate) / 100;
+        } else {
+            totalAmount = _amount;
+            allowanceAmount = _amount;
+        }
+
         require(
-            IERC20(_tokenAddress).balanceOf(msg.sender) >= _amount,
+            IERC20(_tokenAddress).balanceOf(msg.sender) >= totalAmount,
             "RootPool: You don not have enough tokens."
         );
         require(
             IERC20(_tokenAddress).allowance(msg.sender, address(this)) >=
-                _amount,
+                allowanceAmount,
             "RootPool: Not enough amount of tokens approved."
         );
         _;
@@ -152,14 +166,17 @@ contract RootPool {
         tokenRegistered(_tokenAddress)
         checkBalance(_tokenAddress, _amount)
     {
-        uint256 tokenRefPrice = refPricePerToken(_tokenAddress);
-        uint256 fftRefPrice = refPricePerFFT();
-        // Amount of FFT to get
-        uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
-
         IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
 
-        FFT.mint(msg.sender, mintAmount);
+        uint256 tokenRefPrice = refPricePerToken(_tokenAddress);
+        uint256 fftRefPrice = refPricePerFFT();
+        // Amount of FFT to get before fee
+        uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
+        // Amount of fee in FFT
+        uint256 fee = (mintAmount * stakeFeeRate) / 100;
+
+        FFT.mint(msg.sender, mintAmount - fee);
+        FFT.mint(owner, fee);
     }
 
     /**
@@ -177,8 +194,12 @@ contract RootPool {
         uint256 fftRefPrice = refPricePerFFT();
         // Amount of F-* tokens to get back
         uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
+        uint256 fee = (_amount * unstakeFeeRate) / 100;
 
+        // Burn amount of FFT used for exchange
         FFT.burn(msg.sender, _amount);
+        // Transfer fee to fee receiver
+        IERC20(address(FFT)).transferFrom(msg.sender, owner, fee);
 
         IERC20(_tokenAddress).transfer(msg.sender, retrieveAmount);
     }

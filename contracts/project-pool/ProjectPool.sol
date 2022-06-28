@@ -61,7 +61,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
     }
 
     // Check NFT ownership and approval
-    modifier toPool(uint256 _id) {
+    modifier checkNft(uint256 _id) {
         require(
             NFT.ownerOf(_id) == msg.sender,
             "ProjectPool: You are not owner of the NFT."
@@ -165,12 +165,44 @@ contract ProjectPool is ERC20, IERC721Receiver {
 
     /**
      * @dev Sell NFT to pool and get 1000 pool tokens
+     *
+     * @param _mintNow Determines if minting is done immediately or after
+     *        multiple calls
      */
-    function sell(uint256 _id) external toPool(_id) {
+    function sell(uint256 _id, bool _mintNow) public checkNft(_id) {
         NFT.safeTransferFrom(msg.sender, address(this), _id);
-        _mint(msg.sender, SWAP_MINT_AMOUNT);
+
+        if (_mintNow) {
+            _mint(msg.sender, SWAP_MINT_AMOUNT);
+        }
 
         emit SoldNFT(getFurionId(_id), msg.sender);
+    }
+
+    /**
+     *  @dev Sell NFT function with default _mintNow param as true
+     */
+    function sell(uint256 _id) external {
+        sell(_id, true);
+    }
+
+    /**
+     * @dev Sell multiple NFTs of same collection in one tx
+     */
+    function sell(uint256[] calldata _ids) external {
+        // Number of NFTs in list
+        uint256 length = _ids.length;
+
+        for (uint256 i = 0; i < length; ) {
+            // Mint total amount all at once
+            sell(_ids[i], false);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        _mint(msg.sender, SWAP_MINT_AMOUNT * length);
     }
 
     /**
@@ -191,7 +223,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
      *
      * @param _lockPeriod Amount of time locked in days, 0 is forever
      */
-    function lock(uint256 _id, uint256 _lockPeriod) external toPool(_id) {
+    function lock(uint256 _id, uint256 _lockPeriod) external checkNft(_id) {
         require(
             _lockPeriod >= 30,
             "ProjectPool: Lock time must be at least 30 days."

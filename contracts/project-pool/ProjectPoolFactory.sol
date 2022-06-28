@@ -57,7 +57,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     /**
      * @dev Create pool and add address to array
      */
-    function createPool(address _nftAddress) external {
+    function createPool(address _nftAddress) external returns (address) {
         require(_nftAddress != address(0), "ProjectPoolFactory: ZERO_ADDRESS");
         require(
             getPool[_nftAddress] == address(0),
@@ -81,9 +81,12 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         );
 
         getPool[_nftAddress] = poolAddress;
-        allPools.push(poolAddress);
+        getNft[poolAddress] = _nftAddress;
+        //allPools.push(poolAddress);
 
         emit PoolCreated(_nftAddress, poolAddress, allPools.length);
+
+        return poolAddress;
     }
 
     /**

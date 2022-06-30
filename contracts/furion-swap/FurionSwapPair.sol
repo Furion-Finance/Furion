@@ -41,7 +41,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     // FurionSwapFactory contract address
     address public factory;
 
-    // Token addresses in the pool
+    // Token addresses in the pool, here token0 < token1
     address public token0;
     address public token1;
 
@@ -61,18 +61,18 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     event ReserveUpdated(uint256 reserve0, uint256 reserve1);
     event Swap(
         address indexed sender,
-        uint256 amountAIn,
-        uint256 amountBIn,
-        uint256 amountAOut,
-        uint256 amountBOut,
+        uint256 amount0In,
+        uint256 amount1In,
+        uint256 amount0Out,
+        uint256 amount1Out,
         address indexed to
     );
 
-    event Mint(address indexed sender, uint256 amountA, uint256 amountB);
+    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(
         address indexed sender,
-        uint256 amountA,
-        uint256 amountB,
+        uint256 amount0,
+        uint256 amount1,
         address indexed to
     );
 
@@ -86,19 +86,18 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
 
     /**
      * @notice Initialize the contract status after the deployment by factory
-     * @param _token0 Token0 address
-     * @param _token1 Token1 address
+     * @param _tokenA TokenA address
+     * @param _tokenB TokenB address
      */
     function initialize(
-        address _token0,
-        address _token1
+        address _tokenA,
+        address _tokenB
     ) external {
         require(
             msg.sender == factory,
             "can only be initialized by the factory contract"
         );
-        token0 = _token0;
-        token1 = _token1;
+        (token0, token1) = _tokenA < _tokenB ? (_tokenA, _tokenB) : (_tokenB, _tokenA);
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -116,8 +115,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         view
         returns (uint112 _reserve0, uint112 _reserve1)
     {
-        _reserve0 = reserve0;
-        _reserve1 = reserve1;
+        (_reserve0, _reserve1) = (reserve0, reserve1);
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -128,17 +126,17 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
      * @notice Mint LP Token to liquidity providers
      *         Called when adding liquidity.
      * @param _to The user address
-     * @return _liquidity The LP token amount
+     * @return liquidity The LP token amount
      */
     function mint(address _to)
         external
         nonReentrant
-        returns (uint256 _liquidity)
+        returns (uint256 liquidity)
     {
         (uint112 _reserve0, uint112 _reserve1) = getReserves(); // gas savings
 
-        uint256 balance0 = IERC20(token0).balanceOf(address(this)); // policy token balance after deposit
-        uint256 balance1 = IERC20(token1).balanceOf(address(this)); // stablecoin balance after deposit
+        uint256 balance0 = IERC20(token0).balanceOf(address(this)); // token0 balance after deposit
+        uint256 balance1 = IERC20(token1).balanceOf(address(this)); // token1 balance after deposit
 
         uint256 amount0 = balance0 - _reserve0; // just deposit
         uint256 amount1 = balance1 - _reserve1;
@@ -147,18 +145,18 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
 
         if (_totalSupply == 0) {
             // No liquidity = First add liquidity
-            _liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
+            liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
             // Keep minimum liquidity to this contract
             _mint(factory, MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            _liquidity = min(
+            liquidity = min(
                 (amount0 * _totalSupply) / _reserve0,
                 (amount1 * _totalSupply) / _reserve1
             );
         }
 
-        require(_liquidity > 0, "insufficient liquidity minted");
-        _mint(_to, _liquidity);
+        require(liquidity > 0, "insufficient liquidity minted");
+        _mint(_to, liquidity);
 
         _update(balance0, balance1);
 
@@ -168,13 +166,13 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     /**
      * @notice Burn LP tokens give back the original tokens
      * @param _to User address
-     * @return _amount0 Amount of token0 to be sent back
-     * @return _amount1 Amount of token1 to be sent back
+     * @return amount0 Amount of token0 to be sent back
+     * @return amount1 Amount of token1 to be sent back
      */
     function burn(address _to)
         external
         nonReentrant
-        returns (uint256 _amount0, uint256 _amount1)
+        returns (uint256 amount0, uint256 amount1)
     {
         address _token0 = token0;
         address _token1 = token1;
@@ -187,23 +185,23 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         uint256 _totalSupply = totalSupply(); // gas savings
 
         // How many tokens to be sent back
-        _amount0 = (liquidity * balance0) / _totalSupply;
-        _amount1 = (liquidity * balance1) / _totalSupply;
+        amount0 = (liquidity * balance0) / _totalSupply;
+        amount1 = (liquidity * balance1) / _totalSupply;
 
-        require(_amount0 > 0 && _amount1 > 0, "Insufficient liquidity burned");
+        require(amount0 > 0 && amount1 > 0, "Insufficient liquidity burned");
 
         // Currently all the liquidity in the pool was just sent by the user, so burn all
         _burn(address(this), liquidity);
 
         // Transfer tokens out and update the balance
-        IERC20(_token0).safeTransfer(_to, _amount0);
-        IERC20(_token1).safeTransfer(_to, _amount1);
+        IERC20(_token0).safeTransfer(_to, amount0);
+        IERC20(_token1).safeTransfer(_to, amount1);
         balance0 = IERC20(_token0).balanceOf(address(this));
         balance1 = IERC20(_token1).balanceOf(address(this));
 
         _update(balance0, balance1);
 
-        emit Burn(msg.sender, _amount0, _amount1, _to);
+        emit Burn(msg.sender, amount0, amount1, _to);
     }
 
     /**
@@ -219,7 +217,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     ) external nonReentrant {
         require(
             _amount0Out > 0 || _amount1Out > 0,
-            "Output amount need to be > 0"
+            "Output amount need to be positive"
         );
 
         (uint112 _reserve0, uint112 _reserve1) = getReserves(); // gas savings

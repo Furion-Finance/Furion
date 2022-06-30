@@ -4,13 +4,6 @@ pragma solidity ^0.8.10;
 
 interface IFurionSwapFactory {
 
-    event PairCreated(
-        address indexed token0,
-        address indexed token1,
-        address pair,
-        uint allPairsLength
-    );
-
     function getPair(address _token0, address _token1)
         external
         view
@@ -21,7 +14,8 @@ interface IFurionSwapFactory {
         view
         returns (bool);
 
-    function createPair(address _token0, address _token1) external returns (address _pair);
+    function createPair(address _token0, address _token1, uint256 _deadline,
+        uint256 _feeRate) external returns (address _pair);
 
     function allPairs(uint) external view returns (address _pair);
     function allPairsLength() external view returns (uint);

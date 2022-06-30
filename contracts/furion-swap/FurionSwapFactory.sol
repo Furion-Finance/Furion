@@ -3,8 +3,9 @@
 pragma solidity ^0.8.10;
 
 import "./interfaces/IFurionSwapFactory.sol";
-import ".FurionSwapPair.sol";
+import "./FurionSwapPair.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /*
 //===================================//
@@ -25,14 +26,16 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 
 
-contract FurionSwapFactory {
+contract FurionSwapFactory is IFurionSwapFactory {
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Variables **************************************** //
     // ---------------------------------------------------------------------------------------- //
 
+    address private _owner;
+
     // token0 Address => token1 Address => Pool Address
-    mapping(address => mapping(address => address)) override getPair;
-    mapping(address => mapping(address => bool)) override isFurionPairs;
+    mapping(address => mapping(address => address)) public override getPair;
+    mapping(address => mapping(address => bool)) public override isFurionPairs;
 
 
     // Store all the pairs' addresses
@@ -47,7 +50,6 @@ contract FurionSwapFactory {
     // ---------------------------------------------------------------------------------------- //
     // *************************************** Events ***************************************** //
     // ---------------------------------------------------------------------------------------- //
-
     event PairCreated(
         address indexed token0,
         address indexed token1,
@@ -67,7 +69,8 @@ contract FurionSwapFactory {
     // ************************************* Constructor ************************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    constructor(address _incomeMaker) public {
+    constructor(address _incomeMaker) {
+        _owner = msg.sender;
         incomeMaker = _incomeMaker;
         // 1% of swap fee is distributed to income maker contract
         // Can be set later
@@ -75,10 +78,29 @@ contract FurionSwapFactory {
     }
 
     // ---------------------------------------------------------------------------------------- //
+    // ************************************** Modifiers *************************************** //
+    // ---------------------------------------------------------------------------------------- //
+
+    /**
+     * @notice Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == msg.sender, "Ownable: caller is not the owner");
+        _;
+    }
+
+    // ---------------------------------------------------------------------------------------- //
     // ************************************ View Functions ************************************ //
     // ---------------------------------------------------------------------------------------- //
 
-    function allPairsLength() external override view returns (uint) {
+    /**
+     * @notice Returns the address of the current owner.
+     */
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    function allPairsLength() external view returns (uint) {
         return allPairs.length;
     }
 
@@ -110,7 +132,12 @@ contract FurionSwapFactory {
     // ************************************* Main Functions *********************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    function createPair(address _tokenA, address _tokenB) external override returns (address _pair) {
+    function createPair(
+        address _tokenA,
+        address _tokenB,
+        uint256 _deadline,
+        uint256 _feeRate
+    ) external override returns (address _pair) {
 
         require(_tokenA != _tokenB, "FurionSwap: IDENTICAL_ADDRESSES");
 
@@ -122,16 +149,16 @@ contract FurionSwapFactory {
         bytes memory bytecode = type(FurionSwapPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
-            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
+            _pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        FurionSwapPair(pair).initialize(token0, token1);
+        FurionSwapPair(_pair).initialize(token0, token1, _deadline, _feeRate);
 
         // populate mapping in the reverse direction
-        getPair[token0][token1] = pair;
-        getPair[token1][token0] = pair;
+        getPair[token0][token1] = _pair;
+        getPair[token1][token0] = _pair;
 
-        allPairs.push(pair);
+        allPairs.push(_pair);
 
-        emit PairCreated(token0, token1, pair, allPairs.length);
+        emit PairCreated(token0, token1, _pair, allPairs.length);
     }
 }

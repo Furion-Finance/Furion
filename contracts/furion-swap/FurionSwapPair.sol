@@ -96,8 +96,11 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
      *      Does not apply to income maker contract
      */
     modifier beforeDeadline() {
-        if (msg.sender != IFurionSwapFactory(factory).incomeMaker()) {
-            require(block.timestamp <= deadline, "Can not swap after deadline");
+        // deadline set to be non-positive will make it to be infinity large
+        if(deadline > 0){
+            if (msg.sender != IFurionSwapFactory(factory).incomeMaker()) {
+                require(block.timestamp <= deadline, "Can not swap after deadline");
+            }
         }
         _;
     }

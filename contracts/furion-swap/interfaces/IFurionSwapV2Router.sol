@@ -3,8 +3,8 @@
 pragma solidity ^0.8.10;
 
 interface IFurionSwapV2Router {
-    function factory() external pure returns (address);
-    function WETH() external pure returns (address);
+    function factory() external view returns (address);
+    function WETH() external view returns (address);
 
     function addLiquidity(
         address _tokenA,
@@ -90,10 +90,4 @@ interface IFurionSwapV2Router {
         address _to,
         uint _deadline
     ) external payable returns (uint[] memory amounts);
-
-    function getAmountOut(uint _amountIn, uint _reserveIn, uint _reserveOut) external pure returns (uint _amountOut);
-    function getAmountIn(uint _amountOut, uint _reserveIn, uint _reserveOut) external pure returns (uint _amountIn);
-
-    function getAmountsOut(uint _amountIn, address[] calldata _path) external view returns (uint[] memory _amounts);
-    function getAmountsIn(uint _amountOut, address[] calldata _path) external view returns (uint[] memory _amounts);
 }

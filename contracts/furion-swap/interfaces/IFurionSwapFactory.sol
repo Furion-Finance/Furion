@@ -14,8 +14,7 @@ interface IFurionSwapFactory {
         view
         returns (bool);
 
-    function createPair(address _token0, address _token1, uint256 _deadline,
-        uint256 _feeRate) external returns (address _pair);
+    function createPair(address _token0, address _token1) external returns (address _pair);
 
     function allPairs(uint) external view returns (address _pair);
     function allPairsLength() external view returns (uint);

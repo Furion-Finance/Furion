@@ -134,9 +134,7 @@ contract FurionSwapFactory is IFurionSwapFactory {
 
     function createPair(
         address _tokenA,
-        address _tokenB,
-        uint256 _deadline,
-        uint256 _feeRate
+        address _tokenB
     ) external override returns (address _pair) {
 
         require(_tokenA != _tokenB, "FurionSwap: IDENTICAL_ADDRESSES");
@@ -151,7 +149,7 @@ contract FurionSwapFactory is IFurionSwapFactory {
         assembly {
             _pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        FurionSwapPair(_pair).initialize(token0, token1, _deadline, _feeRate);
+        FurionSwapPair(_pair).initialize(token0, token1);
 
         // populate mapping in the reverse direction
         getPair[token0][token1] = _pair;

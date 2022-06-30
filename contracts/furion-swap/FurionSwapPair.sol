@@ -48,14 +48,8 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     uint112 private reserve0;
     uint112 private reserve1;
 
-    // Used for modifiers
-    bool public unlocked = true;
-
-    // Every pool will have a deadline
-    uint256 public deadline;
-
     // Fee Rate, given to LP holders (0 ~ 1000)
-    uint256 public feeRate;
+    uint256 public feeRate = 3;
 
     // reserve0 * reserve1
     uint256 public kLast;
@@ -87,54 +81,24 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     }
 
     // ---------------------------------------------------------------------------------------- //
-    // ************************************** Modifiers *************************************** //
-    // ---------------------------------------------------------------------------------------- //
-
-    /**
-     * @notice Can not swap after the deadline
-     * @dev Each pool will have a deadline and it was set when deployed
-     *      Does not apply to income maker contract
-     */
-    modifier beforeDeadline() {
-        // deadline set to be non-positive will make it to be infinity large
-        if(deadline > 0){
-            if (msg.sender != IFurionSwapFactory(factory).incomeMaker()) {
-                require(block.timestamp <= deadline, "Can not swap after deadline");
-            }
-        }
-        _;
-    }
-
-    // ---------------------------------------------------------------------------------------- //
     // ************************************ Init Functions ************************************ //
     // ---------------------------------------------------------------------------------------- //
 
     /**
      * @notice Initialize the contract status after the deployment by factory
-     * @param _token0 Token0 address (policy token address)
-     * @param _token1 Token1 address (stablecoin address)
-     * @param _deadline Deadline for this pool
-     * @param _feeRate Fee rate to LP holders (1000 <=> 100%)
+     * @param _token0 Token0 address
+     * @param _token1 Token1 address
      */
     function initialize(
         address _token0,
-        address _token1,
-        uint256 _deadline,
-        uint256 _feeRate
+        address _token1
     ) external {
         require(
             msg.sender == factory,
             "can only be initialized by the factory contract"
         );
-        require(_feeRate <= 1000, "feeRate over 1.0");
-
         token0 = _token0;
         token1 = _token1;
-
-        // deadline for the whole pool after which no swap will be allowed
-        deadline = _deadline;
-
-        feeRate = _feeRate;
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -252,7 +216,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         uint256 _amount0Out,
         uint256 _amount1Out,
         address _to
-    ) external beforeDeadline nonReentrant {
+    ) external nonReentrant {
         require(
             _amount0Out > 0 || _amount1Out > 0,
             "Output amount need to be > 0"

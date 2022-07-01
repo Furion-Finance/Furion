@@ -2,6 +2,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
+import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import "hardhat-spdx-license-identifier";
 import { HardhatUserConfig } from "hardhat/config";

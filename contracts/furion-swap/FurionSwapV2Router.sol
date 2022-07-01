@@ -188,6 +188,85 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         emit LiquidityAdded(pair, amountToken, amountETH, liquidity);
     }
 
+    /**
+     * @notice Remove liquidity from the pool
+     * @param _tokenA Address of token A
+     * @param _tokenB Address of token B
+     * @param _liquidity The lp token amount to be removed
+     * @param _amountAMin Minimum amount of tokenA given out
+     * @param _amountBMin Minimum amount of tokenB given out
+     * @param _to User address
+     * @param _deadline Deadline of this transaction
+     * @return amount0 Amount of token0 given out
+     * @return amount1 Amount of token1 given out, here amount0 & 1 is ordered
+     */
+    function removeLiquidity(
+        address _tokenA,
+        address _tokenB,
+        uint256 _liquidity,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
+        address _to,
+        uint256 _deadline
+    )
+        public
+        beforeDeadline(_deadline)
+        returns (uint256 amount0, uint256 amount1)
+    {
+        address pair = IFurionSwapFactory(factory).getPair(
+            _tokenA,
+            _tokenB
+        );
+
+        IFurionSwapPair(pair).safeTransferFrom(msg.sender, pair, _liquidity); // send liquidity to pair
+
+        // token0 < token1, corresponding amoount
+        (amount0, amount1) = IFurionSwapPair(pair).burn(_to);
+
+        (uint256 amount0Min, uint256 amount1Min) = _tokenA < _tokenB ? 
+        (_amountAMin, _amountBMin) : (_amountBMin, _amountAMin);
+
+        require(amount0 >= amount0Min, "Insufficient amount for token0");
+        require(amount1 >= amount1Min, "Insufficient amount for token1");
+
+        emit LiquidityRemoved(pair, amount0, amount1, _liquidity);
+    }
+
+    /**
+     * @notice Remove liquidity from the pool, one token is ETH
+     * @param _token Address of the other token
+     * @param _liquidity The lp token amount to be removed
+     * @param _amountTokenMin Minimum amount of token given out
+     * @param _amountETHMin Minimum amount of ETH given out
+     * @param _to User address
+     * @param _deadline Deadline of this transaction
+     * @return amountToken Amount of token given out
+     * @return amountETH Amount of ETH given out
+     */
+    function removeLiquidityETH(
+        address _token,
+        uint256 _liquidity,
+        uint256 _amountTokenMin,
+        uint256 _amountETHMin,
+        address _to,
+        uint _deadline
+    ) public beforeDeadline(_deadline) returns (uint amountToken, uint amountETH) {
+        (amountToken, amountETH) = removeLiquidity(
+            _token,
+            WETH,
+            _liquidity,
+            _amountTokenMin,
+            _amountETHMin,
+            address(this),
+            _deadline
+        );
+
+        // firstly make tokens inside the contract then transfer out
+        _transferHelper(_token, address(this), _to, amountToken);
+
+        IWETH(WETH).withdraw(amountETH);
+        _safeTransferETH(_to, amountETH);
+    }
 
     // ---------------------------------------------------------------------------------------- //
     // *********************************** Helper Functions *********************************** //
@@ -230,15 +309,15 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address _tokenOut,
         uint256 _feeRate
     ) public view returns (uint256 amountOut) {
-        (uint256 reserveA, uint256 reserveB) = getReserves(
+        (uint256 reserve0, uint256 reserve1) = getReserves(
             _tokenIn,
             _tokenOut
         );
 
         // Get the right order
         (uint256 reserveIn, uint256 reserveOut) = _tokenIn < _tokenOut
-            ? (reserveA, reserveB)
-            : (reserveB, reserveA);
+            ? (reserve0, reserve1)
+            : (reserve1, reserve0);
 
         require(_amountIn > 0, "insufficient input amount");
         require(reserveIn > 0 && reserveOut > 0, "insufficient liquidity");
@@ -263,15 +342,15 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address _tokenOut,
         uint256 _feeRate
     ) public view returns (uint256 amountIn) {
-        (uint256 reserveA, uint256 reserveB) = getReserves(
+        (uint256 reserve0, uint256 reserve1) = getReserves(
             _tokenIn,
             _tokenOut
         );
 
         // Get the right order
         (uint256 reserveIn, uint256 reserveOut) = _tokenIn < _tokenOut
-            ? (reserveA, reserveB)
-            : (reserveB, reserveA);
+            ? (reserve0, reserve1)
+            : (reserve1, reserve0);
 
         require(_amountOut > 0, "insufficient output amount");
         require(reserveIn > 0 && reserveOut > 0, "insufficient liquidity");

@@ -2,15 +2,16 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-contract FurionFungibleToken is ERC20 {
+contract FurionFungibleToken is ERC20Permit {
     address public rootPoolFactory;
 
     mapping(address => bool) public rootPools;
 
     constructor(address _rootPoolFactory)
-        ERC20("Furion Fungible Token", "FFT")
+        ERC20Permit("FurionFungibleToken")
+        ERC20("FurionFungibleToken", "FFT")
     {
         rootPoolFactory = _rootPoolFactory;
     }

@@ -12,8 +12,8 @@ import { Signers } from "../types";
 
 // Initial NFT balances: (id)
 // admin: three NFT (0, 1, 2), one NFT1 (0)
-// bob: one NFT (3), one NFT1 (1)
-// alice: one NFT (4), one NFT1 (2)
+// bob: two NFT (3, 4), one NFT1 (1)
+// alice: one NFT (5), one NFT1 (2)
 
 describe("Project Pools", function () {
   // Convert to smallest unit (10^18)
@@ -41,6 +41,7 @@ describe("Project Pools", function () {
             this.signers.admin.address,
             this.signers.admin.address,
             this.signers.admin.address,
+            this.signers.bob.address,
             this.signers.bob.address,
             this.signers.alice.address,
           ],
@@ -110,6 +111,7 @@ describe("Project Pools", function () {
             this.signers.admin.address,
             this.signers.admin.address,
             this.signers.bob.address,
+            this.signers.bob.address,
             this.signers.alice.address,
           ],
         ])
@@ -123,7 +125,7 @@ describe("Project Pools", function () {
       this.pool = <ProjectPool>await ethers.getContractAt("ProjectPool", poolAddress);
     });
 
-    it("should sell NFT", async function () {
+    xit("should sell NFT", async function () {
       // Approve NFT spending
       await this.nft.connect(this.signers.admin).approve(this.pool.address, 0);
       // Sell NFT event emission, total gas: 120624
@@ -135,7 +137,7 @@ describe("Project Pools", function () {
       expect(await this.pool.balanceOf(this.signers.admin.address)).to.equal(su("1000"));
     });
 
-    it("should sell multiple NFTs in one tx", async function () {
+    xit("should sell multiple NFTs in one tx", async function () {
       // Approve NFT spending
       await this.nft.connect(this.signers.admin).approve(this.pool.address, 0);
       await this.nft.connect(this.signers.admin).approve(this.pool.address, 1);
@@ -147,6 +149,40 @@ describe("Project Pools", function () {
       expect(await this.nft.balanceOf(this.pool.address)).to.equal(3);
       // F-* token balance increase
       expect(await this.pool.balanceOf(this.signers.admin.address)).to.equal(su("3000"));
+    });
+
+    it("should buy NFT", async function () {
+      // Sell two NFTs, gets 2000 pool tokens
+      await this.nft.connect(this.signers.admin).approve(this.pool.address, 0);
+      await this.nft.connect(this.signers.admin).approve(this.pool.address, 1);
+      await this.pool.connect(this.signers.admin)["sell(uint256[])"]([0, 1]);
+      // Transfer tokens to Bob
+      await this.pool.connect(this.signers.admin).transfer(this.signers.bob.address, su("2000"));
+      // Bob buys one NFT with 1010 (1% fee) tokens, check event emission
+      await expect(this.pool.connect(this.signers.bob)["buy(uint256)"](0)).to.emit(this.pool, "BoughtNFT");
+      // 2000 - 1000 (cost) - 10 (fee) = 990
+      expect(await this.pool.balanceOf(this.signers.bob.address)).to.equal(su("990"));
+      // Admin is fee reveiver
+      expect(await this.pool.balanceOf(this.signers.admin.address)).to.equal(su("10"));
+      expect(await this.nft.ownerOf(0)).to.equal(this.signers.bob.address);
+    });
+
+    it("should buy multiple NFTs in one tx", async function () {
+      // Sell three NFTs, gets 2000 pool tokens
+      await this.nft.connect(this.signers.admin).approve(this.pool.address, 0);
+      await this.nft.connect(this.signers.admin).approve(this.pool.address, 1);
+      await this.nft.connect(this.signers.admin).approve(this.pool.address, 2);
+      await this.pool.connect(this.signers.admin)["sell(uint256[])"]([0, 1, 2]);
+      // Transfer tokens to Bob
+      await this.pool.connect(this.signers.admin).transfer(this.signers.bob.address, su("3000"));
+      // Bob buys two NFTs with 2020 (1% fee) tokens
+      await this.pool.connect(this.signers.bob)["buy(uint256[])"]([0, 1]);
+      // 3000 - 2000 (cost) - 20 (fee) = 980
+      expect(await this.pool.balanceOf(this.signers.bob.address)).to.equal(su("980"));
+      // Admin is fee reveiver
+      expect(await this.pool.balanceOf(this.signers.admin.address)).to.equal(su("20"));
+      expect(await this.nft.ownerOf(0)).to.equal(this.signers.bob.address);
+      expect(await this.nft.ownerOf(1)).to.equal(this.signers.bob.address);
     });
   });
 });

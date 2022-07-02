@@ -2,11 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@prb/math/contracts/PRBMathUD60x18.sol";
 
-contract ProjectPool is ERC20, IERC721Receiver {
+contract ProjectPool is ERC20Permit, IERC721Receiver {
     uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
 
@@ -45,7 +46,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
         address _owner,
         string memory _tokenName,
         string memory _tokenSymbol
-    ) ERC20(_tokenName, _tokenSymbol) {
+    ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
         NFT = IERC721(_nftAddress);
         owner = _owner;
@@ -58,39 +59,6 @@ contract ProjectPool is ERC20, IERC721Receiver {
 
     modifier onlyFactory() {
         require(msg.sender == factory, "ProjectPool: Not permitted to call.");
-        _;
-    }
-
-    // Check NFT ownership and approval
-    modifier checkNft(uint256 _id) {
-        require(
-            NFT.ownerOf(_id) == msg.sender,
-            "ProjectPool: You are not owner of the NFT."
-        );
-        require(
-            NFT.getApproved(_id) == address(this),
-            "ProjectPool: NFT not yet approved for transfer."
-        );
-        _;
-    }
-
-    // Check caller pool token balance and approval
-    modifier checkBalance(uint256 _amount) {
-        uint256 total;
-        if (_amount == SWAP_MINT_AMOUNT) {
-            total = _amount + ((_amount * swapFeeRate) / 100);
-        } else if (_amount == LOCK_MINT_AMOUNT) {
-            total = _amount + ((_amount * lockFeeRate) / 100);
-        }
-
-        require(
-            balanceOf(msg.sender) >= total,
-            "ProjectPool: You don not have enough tokens."
-        );
-        require(
-            allowance(msg.sender, address(this)) >= total,
-            "ProjectPool: Not enough amount of tokens approved."
-        );
         _;
     }
 
@@ -165,26 +133,10 @@ contract ProjectPool is ERC20, IERC721Receiver {
     }
 
     /**
-     * @dev Sell NFT to pool and get 1000 pool tokens
-     *
-     * @param _mintNow Determines if minting is done immediately or after
-     *        multiple calls
-     */
-    function sell(uint256 _id, bool _mintNow) public checkNft(_id) {
-        NFT.safeTransferFrom(msg.sender, address(this), _id);
-
-        if (_mintNow) {
-            _mint(msg.sender, SWAP_MINT_AMOUNT);
-        }
-
-        emit SoldNFT(getFurionId(_id), msg.sender);
-    }
-
-    /**
-     *  @dev Sell NFT function with default _mintNow param as true
+     * @dev Sell single NFT and mint tokens immediately
      */
     function sell(uint256 _id) external {
-        sell(_id, true);
+        _sell(_id, true);
     }
 
     /**
@@ -196,7 +148,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
 
         for (uint256 i = 0; i < length; ) {
             // Mint total amount all at once
-            sell(_ids[i], false);
+            _sell(_ids[i], false);
 
             unchecked {
                 ++i;
@@ -207,16 +159,32 @@ contract ProjectPool is ERC20, IERC721Receiver {
     }
 
     /**
-     * @dev Buy NFT from pool by paying (1000 + fee) pool tokens
+     * @dev Buy single NFT and burn tokens immediately
      */
-    function buy(uint256 _id) external checkBalance(SWAP_MINT_AMOUNT) {
-        uint256 fee = (SWAP_MINT_AMOUNT * swapFeeRate) / 100;
-        _burn(msg.sender, SWAP_MINT_AMOUNT);
-        transferFrom(msg.sender, owner, fee);
+    function buy(uint256 _id) external {
+        _buy(_id, true);
+    }
 
-        NFT.safeTransferFrom(address(this), msg.sender, _id);
+    /**
+     * @dev Buy multiple NFTs of same collection in one tx
+     */
+    function buy(uint256[] calldata _ids) external {
+        // Number of NFTs to buy
+        uint256 length = _ids.length;
 
-        emit BoughtNFT(getFurionId(_id), msg.sender);
+        uint256 burnTotal = SWAP_MINT_AMOUNT * length;
+        uint256 feeTotal = (burnTotal * swapFeeRate) / 100;
+        _burn(msg.sender, burnTotal);
+        transfer(owner, feeTotal);
+
+        for (uint256 i = 0; i < length; ) {
+            // Mint total amount all at once
+            _buy(_ids[i], false);
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /**
@@ -224,7 +192,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
      *
      * @param _lockPeriod Amount of time locked in days, 0 is forever
      */
-    function lock(uint256 _id, uint256 _lockPeriod) external checkNft(_id) {
+    function lock(uint256 _id, uint256 _lockPeriod) external {
         require(
             _lockPeriod >= 30,
             "ProjectPool: Lock time must be at least 30 days."
@@ -247,11 +215,7 @@ contract ProjectPool is ERC20, IERC721Receiver {
     /**
      * @dev Redeem locked NFT by paying (500 + fee) pool tokens and clear lock info
      */
-    function redeem(uint256 _id)
-        external
-        unlockable(_id)
-        checkBalance(LOCK_MINT_AMOUNT)
-    {
+    function redeem(uint256 _id) external unlockable(_id) {
         bytes32 fId = getFurionId(_id);
 
         _burn(msg.sender, LOCK_MINT_AMOUNT);
@@ -288,5 +252,52 @@ contract ProjectPool is ERC20, IERC721Receiver {
         bytes memory
     ) public pure returns (bytes4) {
         return this.onERC721Received.selector;
+    }
+
+    /**
+     * @dev Sell NFT to pool and get 1000 pool tokens
+     *
+     * @param _updateNow Determines if minting is done immediately or after
+     *        multiple calls (batched)
+     */
+    function _sell(uint256 _id, bool _updateNow) private {
+        NFT.safeTransferFrom(msg.sender, address(this), _id);
+
+        if (_updateNow) {
+            _mint(msg.sender, SWAP_MINT_AMOUNT);
+        }
+
+        emit SoldNFT(getFurionId(_id), msg.sender);
+    }
+
+    /**
+     * @dev Buy NFT from pool by paying (1000 + fee) pool tokens
+     *
+     * @param _updateNow Determines if burning is done immediately or skipped
+     *        because of batch purchase
+     */
+    function _buy(uint256 _id, bool _updateNow) private {
+        if (_updateNow) {
+            _burn(msg.sender, SWAP_MINT_AMOUNT);
+
+            uint256 fee = (SWAP_MINT_AMOUNT * swapFeeRate) / 100;
+            transfer(owner, fee);
+        }
+
+        NFT.safeTransferFrom(address(this), msg.sender, _id);
+
+        emit BoughtNFT(getFurionId(_id), msg.sender);
+    }
+
+    function _calMonths(uint256 _secPassed)
+        internal
+        pure
+        returns (uint256 result)
+    {
+        // Number of seconds passed in 30 days
+        uint256 secsPerMonth = 30 * 24 * 3600;
+        result = PRBMathUD60x18.ceil(
+            PRBMathUD60x18.div(_secPassed, secsPerMonth)
+        );
     }
 }

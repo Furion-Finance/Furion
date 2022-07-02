@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
+
 // OpenZeppelin Contracts v4.4.0 (utils/math/SafeCast.sol)
 
 pragma solidity ^0.8.0;

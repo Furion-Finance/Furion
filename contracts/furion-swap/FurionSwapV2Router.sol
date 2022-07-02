@@ -209,7 +209,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address _to,
         uint _deadline
     )
-        public
+        public override
         beforeDeadline(_deadline)
         returns (uint amount0, uint amount1)
     {
@@ -250,7 +250,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         uint _amountETHMin,
         address _to,
         uint _deadline
-    ) public beforeDeadline(_deadline) returns (uint amountToken, uint amountETH) {
+    ) external beforeDeadline(_deadline) returns (uint amountToken, uint amountETH) {
         (amountToken, amountETH) = removeLiquidity(
             _token,
             WETH,
@@ -341,7 +341,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address[] calldata _path,
         address _to,
         uint _deadline
-    ) public override payable beforeDeadline(_deadline)
+    ) external override payable beforeDeadline(_deadline)
         returns (uint[] memory amounts)
     {
         require(_path[0] == WETH, "FurionSwapV2Router: INVALID_PATH");
@@ -371,7 +371,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address[] calldata _path,
         address _to,
         uint _deadline
-    ) public override beforeDeadline(_deadline)
+    ) external override beforeDeadline(_deadline)
         returns (uint[] memory amounts)
     {
         require(_path[_path.length - 1] == WETH, "FurionSwapV2Router: INVALID_PATH");
@@ -404,7 +404,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address[] calldata _path,
         address _to,
         uint _deadline
-    ) public override beforeDeadline(_deadline)
+    ) external override beforeDeadline(_deadline)
         returns (uint[] memory amounts)
     {
         require(_path[_path.length - 1] == WETH, "FurionSwapV2Router: INVALID_PATH");
@@ -436,7 +436,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address[] calldata _path,
         address _to,
         uint _deadline
-    ) public override payable beforeDeadline(_deadline)
+    ) external override payable beforeDeadline(_deadline)
         returns (uint[] memory amounts)
     {
         require(_path[0] == WETH, "FurionSwapV2Router: INVALID_PATH");

@@ -8,6 +8,8 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 import "hardhat-spdx-license-identifier";
+import "@nomiclabs/hardhat-ethers";
+
 //import "hardhat-deploy";
 
 import "./tasks/accounts";
@@ -120,7 +122,7 @@ const config: HardhatUserConfig = {
     },
   },
   typechain: {
-    outDir: "src/types",
+    outDir: "./typechain",
     target: "ethers-v5",
   },
   spdxLicenseIdentifier: {

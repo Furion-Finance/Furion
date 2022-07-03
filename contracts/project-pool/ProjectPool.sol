@@ -14,7 +14,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     //IERC20 FUR;
     IERC721 NFT;
 
-    address public factory;
+    address public immutable factory;
     // Pool admin/fee receiver
     // Fees in this contract are in the form of F-* tokens
     address public owner;
@@ -63,8 +63,8 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     }
 
     // Check if caller is NFT locker,
-    //       if withdrawal is  within release time
-    modifier unlockable(uint256 _id) {
+    //       if withdrawal is within release time
+    modifier redeemable(uint256 _id) {
         bytes32 fId = getFurionId(_id);
 
         require(
@@ -79,7 +79,6 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     }
 
     // Check if NFT is locked,
-    //       if NFT is locked forever,
     //       if releaseTime has passed
     modifier releasable(uint256 _id) {
         bytes32 fId = getFurionId(_id);
@@ -87,10 +86,6 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
         require(
             lockInfo[fId].locker != address(0),
             "ProjectPool: NFT is not locked."
-        );
-        require(
-            lockInfo[fId].releaseTime != 0,
-            "ProjectPool: NFT is locked forever."
         );
         require(
             lockInfo[fId].releaseTime < uint96(block.timestamp),
@@ -133,7 +128,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Sell single NFT and mint tokens immediately
+     * @dev Sell single NFT and mint 1000 tokens immediately
      */
     function sell(uint256 _id) external {
         _sell(_id, true);
@@ -159,7 +154,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Buy single NFT and burn tokens immediately
+     * @dev Buy single NFT and burn 1000 tokens immediately
      */
     function buy(uint256 _id) external {
         _buy(_id, true);
@@ -190,38 +185,50 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Lock NFT to pool and get 500 pool tokens
      *
-     * @param _lockPeriod Amount of time locked in days, 0 is forever
+     * @param _lockCycle 30 days is one cycle, pay fee for future cycles at
+     *        the moment of locking
      */
-    function lock(uint256 _id, uint256 _lockPeriod) external {
-        require(
-            _lockPeriod >= 30,
-            "ProjectPool: Lock time must be at least 30 days."
-        );
+    function lock(uint256 _id, uint256 _lockCycle) external {
+        require(_lockCycle != 0, "ProjectPool: Invalid lock cycle");
 
         bytes32 fId = getFurionId(_id);
 
         NFT.safeTransferFrom(msg.sender, address(this), _id);
 
+        uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFeeRate) / 100;
+        transfer(owner, fee);
+
         lockInfo[fId].locker = msg.sender;
         lockInfo[fId].releaseTime = uint96(
-            block.timestamp + _lockPeriod * 24 * 60 * 60
+            block.timestamp + _lockCycle * 30 * 24 * 60 * 60
         );
 
-        _mint(msg.sender, LOCK_MINT_AMOUNT);
+        if (fee < LOCK_MINT_AMOUNT) {
+            _mint(msg.sender, LOCK_MINT_AMOUNT - fee);
+        }
 
-        emit LockedNFT(fId, msg.sender, block.timestamp, _lockPeriod);
+        emit LockedNFT(fId, msg.sender, block.timestamp, _lockCycle * 30);
     }
 
     /**
-     * @dev Redeem locked NFT by paying (500 + fee) pool tokens and clear lock info
+     * @dev EXTENDS release time by one cycle
      */
-    function redeem(uint256 _id) external unlockable(_id) {
+    function payFee(uint256 _id) external redeemable(_id) {
+        bytes32 fId = getFurionId(_id);
+
+        uint256 fee = (LOCK_MINT_AMOUNT * lockFeeRate) / 100;
+        transfer(owner, fee);
+
+        lockInfo[fId].releaseTime += 30 * 24 * 60 * 60;
+    }
+
+    /**
+     * @dev Redeem locked NFT by paying 500 tokens
+     */
+    function redeem(uint256 _id) external redeemable(_id) {
         bytes32 fId = getFurionId(_id);
 
         _burn(msg.sender, LOCK_MINT_AMOUNT);
-
-        // Undecided fee collection method for NFT redemption
-        // transferFrom(msg.sender, owner, fee);
 
         delete lockInfo[fId];
 
@@ -233,7 +240,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Release NFT for swapping and mint remaining 500 pool tokens to locker
      */
-    function release(uint256 _id) external onlyOwner {
+    function release(uint256 _id) external onlyOwner releasable(_id) {
         bytes32 fId = getFurionId(_id);
 
         address sendRemainingTo = lockInfo[fId].locker;
@@ -287,17 +294,5 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
         NFT.safeTransferFrom(address(this), msg.sender, _id);
 
         emit BoughtNFT(getFurionId(_id), msg.sender);
-    }
-
-    function _calMonths(uint256 _secPassed)
-        internal
-        pure
-        returns (uint256 result)
-    {
-        // Number of seconds passed in 30 days
-        uint256 secsPerMonth = 30 * 24 * 3600;
-        result = PRBMathUD60x18.ceil(
-            PRBMathUD60x18.div(_secPassed, secsPerMonth)
-        );
     }
 }

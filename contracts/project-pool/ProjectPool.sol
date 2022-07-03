@@ -196,16 +196,18 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
         NFT.safeTransferFrom(msg.sender, address(this), _id);
 
         uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFeeRate) / 100;
-        transfer(owner, fee);
+
+        if (fee > LOCK_MINT_AMOUNT) {
+            transfer(owner, fee - LOCK_MINT_AMOUNT);
+        } else {
+            _mint(msg.sender, LOCK_MINT_AMOUNT - fee);
+            _mint(owner, fee);
+        }
 
         lockInfo[fId].locker = msg.sender;
         lockInfo[fId].releaseTime = uint96(
             block.timestamp + _lockCycle * 30 * 24 * 60 * 60
         );
-
-        if (fee < LOCK_MINT_AMOUNT) {
-            _mint(msg.sender, LOCK_MINT_AMOUNT - fee);
-        }
 
         emit LockedNFT(fId, msg.sender, block.timestamp, _lockCycle * 30);
     }

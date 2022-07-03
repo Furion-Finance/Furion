@@ -3,11 +3,8 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type { PromiseOrValue } from "../../../../common";
-import type {
-  WETH9,
-  WETH9Interface,
-} from "../../../../contracts/tokens/WETH.sol/WETH9";
+import type { PromiseOrValue } from "../../../common";
+import type { WETH9, WETH9Interface } from "../../../contracts/tokens/WETH9";
 import type { Provider, TransactionRequest } from "@ethersproject/providers";
 import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 

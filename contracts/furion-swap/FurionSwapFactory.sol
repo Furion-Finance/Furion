@@ -142,7 +142,7 @@ contract FurionSwapFactory is IFurionSwapFactory {
         (address token0, address token1) = _tokenA < _tokenB ? (_tokenA, _tokenB) : (_tokenB, _tokenA);
 
         require(token0 != address(0), "FurionSwap: ZERO_ADDRESS");
-        require(getPair[token0][token1] == address(0), "UniswapV2: PAIR_EXISTS"); // single check is sufficient
+        require(getPair[token0][token1] == address(0), "FurionSwap: PAIR_EXISTS"); // single check is sufficient
 
         bytes memory bytecode = type(FurionSwapPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));

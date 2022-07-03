@@ -13,14 +13,14 @@ import {
 } from "../../typechain";
 
 describe("Furion Token", function () {
-    let FurionToken: FurionToken__factory, furion: FurionToken;
-    let owner: SignerWithAddress, user1: SignerWithAddress, users: SignerWithAddress[];
+    let furionToken: FurionToken__factory, furion: FurionToken;
+    let dev: SignerWithAddress, user1: SignerWithAddress, users: SignerWithAddress[];
 
     beforeEach(async function () {
-        [owner, user1, ...users] = await ethers.getSigners();
+        [dev, user1, ...users] = await ethers.getSigners();
 
-        FurionToken = await ethers.getContractFactory("FurionToken");
-        furion = await FurionToken.deploy();
+        furionToken = await ethers.getContractFactory("FurionToken");
+        furion = await furionToken.deploy();
         await furion.deployed();
     })
 
@@ -30,7 +30,7 @@ describe("Furion Token", function () {
     });
 
     it("should have the correct owner", async function() {
-        expect(await furion.owner()).to.equal(owner.address);
+        expect(await furion.owner()).to.equal(dev.address);
     })
 
     it("should have a hard cap of 1 billion", async function(){
@@ -53,16 +53,16 @@ describe("Furion Token", function () {
 
     it("should work well with addBurner and burnFurion", async function () {
         let mintAmount = '100', burnAmount = '10';
-        await furion.mintFurion(owner.address, mintAmount);
-        expect(await furion.balanceOf(owner.address)).to.equal(mintAmount);
+        await furion.mintFurion(dev.address, mintAmount);
+        expect(await furion.balanceOf(dev.address)).to.equal(mintAmount);
 
         expect(await furion.isBurner(user1.address)).to.false;
-        await expect(furion.connect(user1).burnFurion(owner.address, burnAmount)).to.revertedWith("Invalid burner");
+        await expect(furion.connect(user1).burnFurion(dev.address, burnAmount)).to.revertedWith("Invalid burner");
 
         await furion.addBurner(user1.address);
         expect(await furion.isBurner(user1.address)).to.true;
 
-        await furion.connect(user1).burnFurion(owner.address, burnAmount);
+        await furion.connect(user1).burnFurion(dev.address, burnAmount);
         expect(await furion.totalSupply()).to.equal('90');
     })
 

@@ -40,10 +40,16 @@ export type { SafePRBMathTester } from "./contracts/libraries/SafePRBMathTester"
 export { SafePRBMathTester__factory } from "./factories/contracts/libraries/SafePRBMathTester__factory";
 export type { StringsUtilsTester } from "./contracts/libraries/StringsUtilsTester";
 export { StringsUtilsTester__factory } from "./factories/contracts/libraries/StringsUtilsTester__factory";
+export type { MockERC20 } from "./contracts/mock/MockERC20";
+export { MockERC20__factory } from "./factories/contracts/mock/MockERC20__factory";
+export type { MockUSD } from "./contracts/mock/MockUSD";
+export { MockUSD__factory } from "./factories/contracts/mock/MockUSD__factory";
 export type { FurionToken } from "./contracts/tokens/FurionToken";
 export { FurionToken__factory } from "./factories/contracts/tokens/FurionToken__factory";
 export type { IFurionToken } from "./contracts/tokens/interfaces/IFurionToken";
 export { IFurionToken__factory } from "./factories/contracts/tokens/interfaces/IFurionToken__factory";
+export type { WETH9 } from "./contracts/tokens/WETH.sol/WETH9";
+export { WETH9__factory } from "./factories/contracts/tokens/WETH.sol/WETH9__factory";
 export type { ERC20PermitWithMultipleMinters } from "./contracts/utils/ERC20PermitWithMultipleMinters";
 export { ERC20PermitWithMultipleMinters__factory } from "./factories/contracts/utils/ERC20PermitWithMultipleMinters__factory";
 export type { IERC20Decimals } from "./contracts/utils/interfaces/IERC20Decimals";

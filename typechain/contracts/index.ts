@@ -5,12 +5,15 @@
 /* eslint-disable */
 import type * as furionSwap from "./furion-swap";
 import type * as libraries from "./libraries";
+import type * as mock from "./mock";
 import type * as tokens from "./tokens";
 import type * as utils from "./utils";
 
 export type { furionSwap };
 
 export type { libraries };
+
+export type { mock };
 
 export type { tokens };
 

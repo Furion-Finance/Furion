@@ -73,6 +73,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.StringsUtilsTester__factory>;
     getContractFactory(
+      name: "MockERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockERC20__factory>;
+    getContractFactory(
+      name: "MockUSD",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockUSD__factory>;
+    getContractFactory(
       name: "FurionToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FurionToken__factory>;
@@ -80,6 +88,14 @@ declare module "hardhat/types/runtime" {
       name: "IFurionToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IFurionToken__factory>;
+    getContractFactory(
+      name: "IWETH",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWETH__factory>;
+    getContractFactory(
+      name: "WETH9",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.WETH9__factory>;
     getContractFactory(
       name: "ERC20PermitWithMultipleMinters",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -181,6 +197,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.StringsUtilsTester>;
     getContractAt(
+      name: "MockERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockERC20>;
+    getContractAt(
+      name: "MockUSD",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockUSD>;
+    getContractAt(
       name: "FurionToken",
       address: string,
       signer?: ethers.Signer
@@ -190,6 +216,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IFurionToken>;
+    getContractAt(
+      name: "IWETH",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWETH>;
+    getContractAt(
+      name: "WETH9",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.WETH9>;
     getContractAt(
       name: "ERC20PermitWithMultipleMinters",
       address: string,

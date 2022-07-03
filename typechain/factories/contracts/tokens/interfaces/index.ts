@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export { IFurionToken__factory } from "./IFurionToken__factory";
+export { IWETH__factory } from "./IWETH__factory";

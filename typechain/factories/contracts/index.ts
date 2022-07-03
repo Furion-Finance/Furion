@@ -3,6 +3,7 @@
 /* eslint-disable */
 export * as furionSwap from "./furion-swap";
 export * as libraries from "./libraries";
+export * as mock from "./mock";
 export * as tokens from "./tokens";
 export * as utils from "./utils";
 export { Greeter__factory } from "./Greeter__factory";

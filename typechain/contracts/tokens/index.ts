@@ -3,7 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type * as wethSol from "./WETH.sol";
 import type * as interfaces from "./interfaces";
+
+export type { wethSol };
 
 export type { interfaces };
 export type { FurionToken } from "./FurionToken";

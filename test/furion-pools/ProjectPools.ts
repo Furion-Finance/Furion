@@ -193,7 +193,7 @@ describe("Project Pools", function () {
       });
     });
 
-    context("Locking", async function () {
+    xcontext("Locking", async function () {
       it("should lock NFT", async function () {
         await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
         // Lock NFT for 1 cycle (30 days), check event emission
@@ -236,6 +236,59 @@ describe("Project Pools", function () {
         await ethers.provider.send("evm_mine", [timestamp]);
         // Extend release time should fail
         await expect(this.pool.connect(this.signers.bob).payFee(3)).to.be.revertedWith(
+          "ProjectPool: NFT has already been released to public pool.",
+        );
+      });
+    });
+
+    context("Redeeming", async function () {
+      it("should redeem NFT within release time", async function () {
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 4);
+        // Lock NFTs for 1 cycle (30 days), get 970 tokens
+        await this.pool.connect(this.signers.bob).lock(3, 1);
+        await this.pool.connect(this.signers.bob).lock(4, 1);
+        const blockNum: number = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNum);
+        const txTime: number = block.timestamp;
+        // 7 days after locking
+        const timestamp: number = txTime + 7 * 24 * 3600;
+        await ethers.provider.send("evm_mine", [timestamp]);
+        // Redeem NFT, check event emission
+        await expect(this.pool.connect(this.signers.bob).redeem(3)).to.emit(this.pool, "RedeemedNFT");
+        expect(await this.nft.ownerOf(3)).to.equal(this.signers.bob.address);
+        // 970 - 500 = 470
+        expect(await this.pool.balanceOf(this.signers.bob.address)).to.equal(su("470"));
+      });
+
+      it("should not redeem NFT if caller is not locker", async function () {
+        // Lock NFTs for 1 cycle (30 days), get 970 tokens
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
+        await this.pool.connect(this.signers.bob).lock(3, 1);
+        const blockNum: number = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNum);
+        const txTime: number = block.timestamp;
+        // 7 days after locking
+        const timestamp: number = txTime + 7 * 24 * 3600;
+        await ethers.provider.send("evm_mine", [timestamp]);
+        // Redeem NFT should fail
+        await expect(this.pool.connect(this.signers.admin).redeem(3)).to.be.revertedWith(
+          "ProjectPool: You did not lock this NFT.",
+        );
+      });
+
+      it("should not redeem NFT after release time", async function () {
+        // Lock NFTs for 1 cycle (30 days), get 970 tokens
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
+        await this.pool.connect(this.signers.bob).lock(3, 1);
+        const blockNum: number = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNum);
+        const txTime: number = block.timestamp;
+        // 31 days after locking
+        const timestamp: number = txTime + 31 * 24 * 3600;
+        await ethers.provider.send("evm_mine", [timestamp]);
+        // Redeem NFT should fail
+        await expect(this.pool.connect(this.signers.bob).redeem(3)).to.be.revertedWith(
           "ProjectPool: NFT has already been released to public pool.",
         );
       });

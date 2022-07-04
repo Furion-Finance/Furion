@@ -133,8 +133,8 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
             _tokenB
         );
 
-        _transferHelper(_tokenA, msg.sender, pair, amountA);
-        _transferHelper(_tokenB, msg.sender, pair, amountB);
+        _transferFromHelper(_tokenA, msg.sender, pair, amountA);
+        _transferFromHelper(_tokenB, msg.sender, pair, amountB);
 
         liquidity = IFurionSwapPair(pair).mint(_to);
 
@@ -176,7 +176,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
             WETH
         );
 
-        _transferHelper(_token, msg.sender, pair, amountToken);
+        _transferFromHelper(_token, msg.sender, pair, amountToken);
         IWETH(WETH).deposit{value: amountETH}();
         assert(IWETH(WETH).transfer(pair, amountETH));
 
@@ -262,7 +262,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         );
 
         // firstly make tokens inside the contract then transfer out
-        _transferHelper(_token, address(this), _to, amountToken);
+        _transferHelper(_token, _to, amountToken);
 
         IWETH(WETH).withdraw(amountETH);
         _safeTransferETH(_to, amountETH);
@@ -288,7 +288,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
 
         require(amounts[amounts.length - 1] >= _amountOutMin, "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
 
-        _transferHelper(
+        _transferFromHelper(
             _path[0],
             msg.sender,
             IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
@@ -318,7 +318,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
 
         require(amounts[0] <= _amountInMax, "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
 
-        _transferHelper(
+        _transferFromHelper(
             _path[0],
             msg.sender,
             IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
@@ -378,7 +378,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         amounts = getAmountsIn(_amountOut, _path);
         require(amounts[0] <= _amountInMax, "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
 
-        _transferHelper(
+        _transferFromHelper(
             _path[0],
             msg.sender,
             IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
@@ -411,7 +411,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         amounts = getAmountsOut(_amountIn, _path);
         require(amounts[amounts.length - 1] >= _amountOutMin, "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
 
-        _transferHelper(
+        _transferFromHelper(
             _path[0],
             msg.sender,
             IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
@@ -672,13 +672,33 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @param _to Pair address to receive the token
      * @param _amount Transfer amount
      */
-    function _transferHelper(
+    function _transferFromHelper(
         address _token,
         address _from,
         address _to,
         uint _amount
     ) internal {
+        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
+        // (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(0x23b872dd, _from, _to, _amount));
+        // require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: TRANSFER_FROM_FAILED");
         IERC20(_token).safeTransferFrom(_from, _to, _amount);
+    }
+
+    /**
+     * @notice Finish the erc20 transfer operation
+     * @param _token ERC20 token address
+     * @param _to Address to receive the token
+     * @param _amount Transfer amount
+     */
+    function _transferHelper(
+        address _token,
+        address _to,
+        uint _amount
+    ) internal {
+        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
+        // (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(0x23b872dd, _from, _to, _amount));
+        // require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: TRANSFER_FROM_FAILED");
+        IERC20(_token).safeTransfer(_to, _amount);
     }
 
     /**
@@ -700,7 +720,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
     function _swap(uint[] memory _amounts, address[] memory _path, address _to) private {
         for (uint i; i < _path.length - 1; i++) {
             // get token pair for each seperate swap
-            (address input, address output) = (_path[i], _path[i + 1]);
+            (address input, address output) = (_path[i], _path[i+1]);
             address token0 = input < output ? input : output;
 
             // get tokenOutAmount for each swap

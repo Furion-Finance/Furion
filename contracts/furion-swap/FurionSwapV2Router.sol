@@ -589,7 +589,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         amounts[amounts.length - 1] = _amountOut;
 
         for (uint i = _path.length - 1; i > 0; i--) {
-            amounts[i+1] = getAmountOut(amounts[i], _path[i-1], _path[i]);
+            amounts[i-1] = getAmountIn(amounts[i], _path[i-1], _path[i]);
         }
     }
 

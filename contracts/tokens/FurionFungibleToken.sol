@@ -9,11 +9,13 @@ contract FurionFungibleToken is ERC20Permit {
 
     mapping(address => bool) public rootPools;
 
-    constructor(address _rootPoolFactory)
+    address public owner;
+
+    constructor()
         ERC20Permit("FurionFungibleToken")
         ERC20("FurionFungibleToken", "FFT")
     {
-        rootPoolFactory = _rootPoolFactory;
+        owner = msg.sender;
     }
 
     modifier onlyRootPools() {
@@ -26,10 +28,22 @@ contract FurionFungibleToken is ERC20Permit {
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "FFT: Not owner.");
+        _;
+    }
+
     function circulatingSupply() public view returns (uint256) {
         // Total supply - balance of all contracts that locked FFT
         // return totalSupply() - balanceOf()
         return totalSupply();
+    }
+
+    /**
+     * @dev set factory after deployment
+     */
+    function setRootPoolFactory(address _rootPoolFactory) external onlyOwner {
+        rootPoolFactory = _rootPoolFactory;
     }
 
     function addRootPool(address _poolAddress) external onlyRootPoolFactory {

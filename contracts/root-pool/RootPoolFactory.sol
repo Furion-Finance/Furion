@@ -31,18 +31,21 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
     event PoolCreated(address poolAddress, uint256 id);
 
     constructor(
-        address _fur,
-        address _oracle,
+        //address _fur,
+        //address _oracle,
+        address _fft,
         address _ppFactory
     ) {
+        /*
         bytes32 _salt = keccak256(abi.encodePacked("FurionFungibleToken"));
         address fftAddress = address(
             new FurionFungibleToken{salt: _salt}(address(this))
         );
+        */
 
-        fft = fftAddress;
-        fur = _fur;
-        oracle = _oracle;
+        fft = _fft;
+        //fur = _fur;
+        //oracle = _oracle;
         PPF = IProjectPoolFactory(_ppFactory);
     }
 

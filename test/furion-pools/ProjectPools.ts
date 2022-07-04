@@ -193,7 +193,7 @@ describe("Project Pools", function () {
       });
     });
 
-    xcontext("Locking", async function () {
+    context("Locking", async function () {
       it("should lock NFT", async function () {
         await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
         // Lock NFT for 1 cycle (30 days), check event emission
@@ -290,6 +290,62 @@ describe("Project Pools", function () {
         // Redeem NFT should fail
         await expect(this.pool.connect(this.signers.bob).redeem(3)).to.be.revertedWith(
           "ProjectPool: NFT has already been released to public pool.",
+        );
+      });
+    });
+
+    // Admin is owner, only admin can release NFTs
+    context("Releasing", async function () {
+      it("should release NFT that has passed release time", async function () {
+        // Bob locks NFT for 1 cycle (30 days)
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
+        await this.pool.connect(this.signers.bob).lock(3, 1);
+        const blockNum: number = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNum);
+        const timeOfLock: number = block.timestamp;
+        // 31 days after locking
+        const timestamp: number = timeOfLock + 31 * 24 * 3600;
+        await ethers.provider.send("evm_mine", [timestamp]);
+        // Admin releases Bob's NFT, making it available for buying, check event emission
+        await expect(this.pool.connect(this.signers.admin).release(3)).to.emit(this.pool, "ReleasedNFT");
+        // Admin sells own NFTs and gets 2000 tokens
+        await this.nft.connect(this.signers.admin).approve(this.pool.address, 0);
+        await this.nft.connect(this.signers.admin).approve(this.pool.address, 1);
+        await this.pool.connect(this.signers.admin)["sell(uint256[])"]([0, 1]);
+        // Admin buys the released NFT
+        await this.pool.connect(this.signers.admin)["buy(uint256)"](3);
+        expect(await this.nft.ownerOf(3)).to.equal(this.signers.admin.address);
+      });
+
+      it("should not allow anyone other than owner to release NFT", async function () {
+        // Bob locks NFT for 1 cycle (30 days)
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
+        await this.pool.connect(this.signers.bob).lock(3, 1);
+        const blockNum: number = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNum);
+        const timeOfLock: number = block.timestamp;
+        // 31 days after locking
+        const timestamp: number = timeOfLock + 31 * 24 * 3600;
+        await ethers.provider.send("evm_mine", [timestamp]);
+        // Alice tries to release Bob's NFT, should fail
+        await expect(this.pool.connect(this.signers.alice).release(3)).to.be.revertedWith(
+          "ProjectPool: Not permitted to call.",
+        );
+      });
+
+      it("should not release NFT that has not passed release time", async function () {
+        // Bob locks NFT for 1 cycle (30 days)
+        await this.nft.connect(this.signers.bob).approve(this.pool.address, 3);
+        await this.pool.connect(this.signers.bob).lock(3, 1);
+        const blockNum: number = await ethers.provider.getBlockNumber();
+        const block = await ethers.provider.getBlock(blockNum);
+        const timeOfLock: number = block.timestamp;
+        // 7 days after locking
+        const timestamp: number = timeOfLock + 7 * 24 * 3600;
+        await ethers.provider.send("evm_mine", [timestamp]);
+        // Admin tries to release Bob's NFT, should fail
+        await expect(this.pool.connect(this.signers.admin).release(3)).to.be.revertedWith(
+          "ProjectPool: Release time not yet reached.",
         );
       });
     });

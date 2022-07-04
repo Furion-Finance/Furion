@@ -102,6 +102,15 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     }
 
     /**
+     * @dev Release time getter for testing
+     */
+    function getReleaseTime(uint256 _id) public view returns (uint96) {
+        bytes32 fId = getFurionId(_id);
+
+        return lockInfo[fId].releaseTime;
+    }
+
+    /**
      * @dev Change fee rate for buying NFT after governance voting
      */
     function setBuyFeeRate(uint128 _rate) external onlyOwner {

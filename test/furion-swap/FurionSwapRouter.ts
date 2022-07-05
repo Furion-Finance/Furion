@@ -258,7 +258,7 @@ describe("Furion Swap V2 Router", function(){
         })
     });
 
-    describe("Swap tokens(ERC20 token without WETH)", function(){
+    describe("Swap tokens(ERC20 token, not for WETH)", function(){
         beforeEach(async function(){
             // mint tokens for two users, and approve tokens towards Router
             await erc.mint(dev.address, toWei("1000"));
@@ -306,6 +306,207 @@ describe("Furion Swap V2 Router", function(){
 
             expect(await erc.balanceOf(user1.address)).to.equal(toWei("1000").sub(amountIn));
             
+        });
+
+        it("should be able to swap exact tokens for tokens", async function () {
+            await expect(router.connect(user1).swapExactTokensForTokens(
+                toWei("100"),
+                stablecoinToWei("100"),
+                [erc.address, usd.address],
+                user1.address,
+                now + txDelay
+            )).to.revertedWith("FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
+
+            await router.connect(user1).swapExactTokensForTokens(
+                toWei("100"),
+                stablecoinToWei("1"),
+                [erc.address, usd.address],
+                user1.address,
+                now + txDelay
+            );
+
+            expect(await erc.balanceOf(user1.address)).to.equal(toWei("900"));
+
+            const amountOut = getAmountOut(toWei("100"), toWei("1000"), stablecoinToWei("1000"), 3);
+
+            expect(await usd.balanceOf(user1.address)).to.equal(stablecoinToWei("1000").add(amountOut));
+
+        });
+    });
+
+    describe("Swap tokens with ETH or for ETH", function () {
+        beforeEach(async function () {
+            // mint tokens for two users, and approve tokens towards Router
+            await erc.mint(dev.address, toWei("1000"));
+            await erc.mint(user1.address, toWei("1000"));
+
+
+            await erc.approve(router.address, toWei("1000"));
+            await erc.connect(user1).approve(router.address, toWei("1000"));
+
+            await router.addLiquidityETH(
+                    erc.address,
+                    toWei("1000"),
+                    toWei("80"),
+                    toWei("80"),
+                    dev.address,
+                    now + txDelay,
+                    { value: toWei("1000") }
+                )
+        });
+
+        it("should be able to swap tokens for exact ETH", async function () {
+            let initialValue: BigNumber, finalValue: BigNumber;
+
+            initialValue = await ethers.provider.getBalance(user1.address);
+
+            await expect(router.connect(user1).swapTokensForExactETH(
+                toWei("10"),
+                toWei("1"),
+                [erc.address, usd.address],
+                user1.address,
+                now + txDelay
+            )).to.revertedWith("FurionSwapV2Router: INVALID_PATH");
+
+            await expect(router.connect(user1).swapTokensForExactETH(
+                toWei("10"),
+                toWei("1"),
+                [erc.address, weth.address],
+                user1.address,
+                now + txDelay
+            )).to.revertedWith("FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
+
+            await router.connect(user1).swapTokensForExactETH(
+                toWei("10"),
+                toWei("1000"),
+                [erc.address, weth.address],
+                user1.address,
+                now + txDelay
+            );
+            
+            finalValue = await ethers.provider.getBalance(user1.address);
+            expect(finalValue.sub(initialValue)).to.above(toWei("9.999"));
+            expect(finalValue.sub(initialValue)).to.below(toWei("10"));
+
+            const amountIn = getAmountIn(toWei("10"), toWei("1000"), toWei("1000"), 3);
+
+            expect(await erc.balanceOf(user1.address)).to.equal(toWei("1000").sub(amountIn));
+
+        });
+
+        it("should be able to swap exact tokens for ETH", async function () {
+            let initialValue: BigNumber, finalValue: BigNumber;
+
+            initialValue = await ethers.provider.getBalance(user1.address);
+
+            await expect(router.connect(user1).swapExactTokensForETH(
+                toWei("100"),
+                toWei("1"),
+                [erc.address, usd.address],
+                user1.address,
+                now + txDelay
+            )).to.revertedWith("FurionSwapV2Router: INVALID_PATH");
+
+            await expect(router.connect(user1).swapExactTokensForETH(
+                toWei("100"),
+                toWei("100"),
+                [erc.address, weth.address],
+                user1.address,
+                now + txDelay
+            )).to.revertedWith("FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
+
+            await router.connect(user1).swapExactTokensForETH(
+                toWei("100"),
+                toWei("1"),
+                [erc.address, weth.address],
+                user1.address,
+                now + txDelay
+            );
+
+            finalValue = await ethers.provider.getBalance(user1.address);
+            const amountOut = getAmountOut(toWei("100"), toWei("1000"), toWei("1000"), 3);
+
+            expect(finalValue.sub(initialValue)).to.above(amountOut.sub(toWei("0.1")));
+            expect(finalValue.sub(initialValue)).to.below(amountOut);
+
+            expect(await erc.balanceOf(user1.address)).to.equal(toWei("900"));
+        });
+
+        it("should be able to swap ETH for exact tokens", async function () {
+            let initialValue: BigNumber, finalValue: BigNumber;
+
+            initialValue = await ethers.provider.getBalance(user1.address);
+
+            await expect(router.connect(user1).swapETHForExactTokens(
+                toWei("10"),
+                [usd.address, weth.address],
+                user1.address,
+                now + txDelay,
+                {value: toWei("10")}
+            )).to.revertedWith("FurionSwapV2Router: INVALID_PATH");
+
+            await expect(router.connect(user1).swapETHForExactTokens(
+                toWei("10"),
+                [weth.address, erc.address],
+                user1.address,
+                now + txDelay,
+                {value: toWei("10")}
+            )).to.revertedWith("FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
+
+            await router.connect(user1).swapETHForExactTokens(
+                toWei("10"),
+                [ weth.address, erc.address],
+                user1.address,
+                now + txDelay,
+                { value: toWei("1000"), }
+            );
+
+            const amountIn = getAmountIn(toWei("10"), toWei("1000"), toWei("1000"), 3);
+
+            finalValue = await ethers.provider.getBalance(user1.address);
+            expect(initialValue.sub(finalValue)).to.below(amountIn.add(toWei("0.1")));
+            expect(initialValue.sub(finalValue)).to.above(amountIn);
+
+            expect(await erc.balanceOf(user1.address)).to.equal(toWei("1010"));
+
+        });
+
+        it("should be able to swap exact ETH for tokens", async function () {
+            let initialValue: BigNumber, finalValue: BigNumber;
+
+            initialValue = await ethers.provider.getBalance(user1.address);
+
+            await expect(router.connect(user1).swapExactETHForTokens(
+                toWei("10"),
+                [usd.address, erc.address],
+                user1.address,
+                now + txDelay,
+                {value: toWei("10")}
+            )).to.revertedWith("FurionSwapV2Router: INVALID_PATH");
+
+            await expect(router.connect(user1).swapExactETHForTokens(
+                toWei("10"),
+                [weth.address, erc.address],
+                user1.address,
+                now + txDelay,
+                {value: toWei("10")}
+            )).to.revertedWith("FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
+
+            await router.connect(user1).swapExactETHForTokens(
+                toWei("1"),
+                [weth.address, erc.address],
+                user1.address,
+                now + txDelay,
+                {value: toWei("10")}
+            );
+
+            finalValue = await ethers.provider.getBalance(user1.address);
+            const amountOut = getAmountOut(toWei("10"), toWei("1000"), toWei("1000"), 3);
+
+            expect(initialValue.sub(finalValue)).to.above(toWei("10"));
+            expect(finalValue.sub(initialValue)).to.below(toWei("10.1"));
+
+            expect(await erc.balanceOf(user1.address)).to.equal(toWei("1000").add(amountOut));
         });
     })
 })

@@ -141,6 +141,9 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         uint256 amount0 = balance0 - _reserve0; // just deposit
         uint256 amount1 = balance1 - _reserve1;
 
+        // Distribute part of the fee to income maker
+        bool feeOn = _mintFee(_reserve0, _reserve1);
+
         uint256 _totalSupply = totalSupply(); // gas savings
 
         if (_totalSupply == 0) {
@@ -159,6 +162,8 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         _mint(_to, liquidity);
 
         _update(balance0, balance1);
+
+        if (feeOn) kLast = reserve0 * reserve1;
 
         emit Mint(msg.sender, amount0, amount1);
     }
@@ -182,6 +187,8 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
 
         uint256 liquidity = balanceOf(address(this));
 
+        bool feeOn = _mintFee(reserve0, reserve1);
+
         uint256 _totalSupply = totalSupply(); // gas savings
 
         // How many tokens to be sent back
@@ -200,6 +207,8 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         balance1 = IERC20(_token1).balanceOf(address(this));
 
         _update(balance0, balance1);
+
+        if (feeOn) kLast = reserve0 * reserve1;
 
         emit Burn(msg.sender, amount0, amount1, _to);
     }
@@ -299,6 +308,54 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         reserve1 = uint(balance1);
 
         emit ReserveUpdated(reserve0, reserve1);
+    }
+
+    /**
+     * @notice Collect the income sharing from trading pair
+     * @param _reserve0 Reserve of token0
+     * @param _reserve1 Reserve of token1
+     */
+    function _mintFee(uint _reserve0, uint _reserve1)
+        private
+        returns (bool feeOn)
+    {
+        address incomeMaker = IFurionSwapFactory(factory).incomeMaker();
+
+        // If incomeMaker is not zero address, fee is on
+        feeOn = incomeMaker != address(0);
+
+        uint256 _k = kLast;
+
+        if (feeOn) {
+            if (_k != 0) {
+                uint256 rootK = Math.sqrt(_reserve0 * _reserve1);
+                uint256 rootKLast = Math.sqrt(_k);
+
+                if (rootK > rootKLast) {
+                    uint256 numerator = totalSupply() *
+                        (rootK - rootKLast) *
+                        10;
+
+                    // (1 / φ) - 1
+                    // Proportion got from factory is based on 100
+                    // Use 1000/proportion to make it divided (donominator and numerator both * 10)
+                    // p = 40 (2/5) => 1000/40 = 25
+                    uint256 incomeMakerProportion = IFurionSwapFactory(factory)
+                        .incomeMakerProportion();
+                    uint256 denominator = rootK *
+                        (1000 / incomeMakerProportion - 10) +
+                        rootKLast *
+                        10;
+
+                    uint256 liquidity = numerator / denominator;
+
+                    // Mint the liquidity to income maker contract
+                    if (liquidity > 0) _mint(incomeMaker, liquidity);
+                }
+            }
+        } else if (_k != 0) {
+            kLast = 0;
+        }
     }
 
     /**

@@ -590,6 +590,10 @@ describe("Furion Swap V2 Router", function(){
 
             expect(100 * 100 / (200 - 0.3) - diff).to.below(0.01);
             expect(100 * 100 / (200 - 0.3) - diff).to.above(-0.01);
+
+            const income = await pair1.balanceOf(factory.address);
+            // console.log("Income generated:", income)
+            expect(income).to.above(toWei('0'));
         })
     })
 })

@@ -11,5 +11,7 @@ interface IRootPoolFactory {
 
     function allPoolsLength() external view returns (uint256);
 
-    function createPool(address[] memory _nftAddress) external;
+    function createPool(address[] memory _tokens)
+        external
+        returns (address poolAddress);
 }

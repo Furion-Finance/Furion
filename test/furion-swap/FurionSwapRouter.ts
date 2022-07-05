@@ -31,6 +31,7 @@ import {
 
 import {
     formatStablecoin,
+    formatTokenAmount,
     getLatestBlockTimestamp,
     stablecoinToWei,
     toBN,
@@ -508,5 +509,87 @@ describe("Furion Swap V2 Router", function(){
 
             expect(await erc.balanceOf(user1.address)).to.equal(toWei("1000").add(amountOut));
         });
+    });
+
+    describe("Transaction fees", function(){
+        it("should work well for ERC20 token pairs", async function(){
+            await erc.mint(dev.address, toWei("1000"));
+            await usd.mint(dev.address, stablecoinToWei("1000"));
+
+            await erc.approve(router.address, toWei("1000"));
+            await usd.approve(router.address, stablecoinToWei("1000"));
+
+            now = await getLatestBlockTimestamp(ethers.provider);
+
+            await router.addLiquidity(
+                erc.address,
+                usd.address,
+                toWei("100"),
+                stablecoinToWei("100"),
+                toWei("80"),
+                stablecoinToWei("80"),
+                dev.address,
+                now + txDelay
+            )
+
+            await pair1.approve(router.address, toWei("100000"));
+
+            await erc.mint(user1.address, toWei("1000"));
+            await erc.connect(user1).approve(router.address, toWei("1000"));
+            await router.connect(user1).swapExactTokensForTokens(
+                toWei("100"),
+                stablecoinToWei("1"),
+                [erc.address, usd.address],
+                user1.address,
+                now + txDelay
+            );
+
+            let reserves = await pair1.getReserves();
+            let ercReserve: string, usdReserve: string;
+            if(erc.address < usd.address){
+                ercReserve = reserves[0].toString();
+                usdReserve = reserves[1].toString();
+            }else{
+                ercReserve = reserves[1].toString();
+                usdReserve = reserves[0].toString();
+            }
+            // console.log(
+            //     "      reserves in pool,",
+            //     formatTokenAmount(ercReserve),
+            //     formatStablecoin(usdReserve)
+            // );
+
+            await router.removeLiquidity(
+                erc.address,
+                usd.address,
+                await pair1.balanceOf(dev.address),
+                toWei('1'),
+                stablecoinToWei('1'),
+                dev.address,
+                now + txDelay
+            );
+
+            let newReserves = await pair1.getReserves();
+            let newErcReserve: string, newUsdReserve: string;
+            if (erc.address < usd.address) {
+                newErcReserve = newReserves[0].toString();
+                newUsdReserve = newReserves[1].toString();
+            } else {
+                newErcReserve = newReserves[1].toString();
+                newUsdReserve = newReserves[0].toString();
+            }
+            // console.log(
+            //     "      reserves in pool,",
+            //     formatTokenAmount(newErcReserve),
+            //     formatStablecoin(newUsdReserve)
+            // );
+
+            const diff = parseFloat(formatStablecoin(usdReserve)) - parseFloat(formatStablecoin(newUsdReserve));
+
+            // console.log("Reserve diff", diff);
+
+            expect(100 * 100 / (200 - 0.3) - diff).to.below(0.01);
+            expect(100 * 100 / (200 - 0.3) - diff).to.above(-0.01);
+        })
     })
 })

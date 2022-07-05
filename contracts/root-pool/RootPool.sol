@@ -22,10 +22,10 @@ contract RootPool {
     address public owner;
 
     // Accepted pool tokens for this root pool
-    mapping(address => bool) registered;
+    mapping(address => bool) public registered;
     // Access all tokens for calculating sum of F-* reference price
     // ID to token address
-    mapping(uint256 => address) getToken;
+    mapping(uint256 => address) private getToken;
 
     // 0 - 100
     uint64 public stakeFeeRate = 1;
@@ -69,32 +69,6 @@ contract RootPool {
         require(
             registered[_tokenAddress] == true,
             "RootPool: Token not accepted in this pool."
-        );
-        _;
-    }
-
-    // Check pool token balance for staking and FFT balance for unstaking
-    modifier checkBalance(address _tokenAddress, uint256 _amount) {
-        uint256 totalAmount;
-        uint256 allowanceAmount;
-        // If the checking is for unstaking
-        if (_tokenAddress == address(FFT)) {
-            totalAmount = _amount + (_amount * unstakeFeeRate) / 100;
-            // Only FFT fees needs to be transferred, others are burned
-            allowanceAmount = (_amount * unstakeFeeRate) / 100;
-        } else {
-            totalAmount = _amount;
-            allowanceAmount = _amount;
-        }
-
-        require(
-            IERC20(_tokenAddress).balanceOf(msg.sender) >= totalAmount,
-            "RootPool: You don not have enough tokens."
-        );
-        require(
-            IERC20(_tokenAddress).allowance(msg.sender, address(this)) >=
-                allowanceAmount,
-            "RootPool: Not enough amount of tokens approved."
         );
         _;
     }
@@ -164,7 +138,6 @@ contract RootPool {
     function stake(address _tokenAddress, uint256 _amount)
         external
         tokenRegistered(_tokenAddress)
-        checkBalance(_tokenAddress, _amount)
     {
         IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
 
@@ -188,7 +161,6 @@ contract RootPool {
     function unstake(address _tokenAddress, uint256 _amount)
         external
         tokenRegistered(_tokenAddress)
-        checkBalance(address(FFT), _amount)
     {
         uint256 tokenRefPrice = refPricePerToken(_tokenAddress);
         uint256 fftRefPrice = refPricePerFFT();

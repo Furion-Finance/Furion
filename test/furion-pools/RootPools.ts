@@ -10,7 +10,6 @@ import type { RootPool } from "../../src/types/contracts/root-pool/RootPool";
 import type { RootPoolFactory } from "../../src/types/contracts/root-pool/RootPoolFactory";
 import type { NFTest } from "../../src/types/contracts/test-only/NFTest";
 import type { NFTest1 } from "../../src/types/contracts/test-only/NFTest1";
-import type { FurionFungibleToken } from "../../src/types/contracts/tokens/FurionFungibleToken";
 import { Signers } from "../types";
 
 // Initial NFT balances: (id)
@@ -63,86 +62,75 @@ describe("Root Pools", function () {
       const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
       this.ppf = <ProjectPoolFactory>await waffle.deployContract(this.signers.admin, ppfArtifact, []);
 
-      // Deploy FFT
-      const fftArtifact: Artifact = await artifacts.readArtifact("FurionFungibleToken");
-      this.fft = <FurionFungibleToken>await waffle.deployContract(this.signers.admin, fftArtifact, []);
-
       // Deploy root pool factory
       const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-      this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, [this.fft.address]);
-
-      // Set root pool factory for FFT
-      await this.fft.setRootPoolFactory(this.rpf.address);
+      this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, []);
 
       // Create project pools
-      const poolAddress = await this.ppf.callStatic.createPool(this.nft.address);
+      const projectPool = await this.ppf.callStatic.createPool(this.nft.address);
       await this.ppf.createPool(this.nft.address);
-      const pool1Address = await this.ppf.callStatic.createPool(this.nft1.address);
+      const projectPool1 = await this.ppf.callStatic.createPool(this.nft1.address);
       await this.ppf.createPool(this.nft1.address);
-      this.pp = <ProjectPool>await ethers.getContractAt("ProjectPool", poolAddress);
-      this.pp1 = <ProjectPool>await ethers.getContractAt("ProjectPool", pool1Address);
+      this.pp = <ProjectPool>await ethers.getContractAt("ProjectPool", projectPool);
+      this.pp1 = <ProjectPool>await ethers.getContractAt("ProjectPool", projectPool1);
     });
 
     context("PoolCreation", async function () {
       it("should create root pool with single token and register token", async function () {
-        const poolAddress = await this.rpf.callStatic.createPool([this.pp.address]);
+        const rootPool = await this.rpf.callStatic.createPool([this.pp.address]);
         // Check event emission
         await expect(this.rpf.createPool([this.pp.address])).to.emit(this.rpf, "PoolCreated");
         // Check state change on factory contract
-        expect(await this.rpf.getPool(1)).to.equal(poolAddress);
+        expect(await this.rpf.getPool(1)).to.equal(rootPool);
 
         // Connect to deployed root pool contract
-        this.rp = <RootPool>await ethers.getContractAt("RootPool", poolAddress);
+        this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
 
         // Check registtration
         expect(await this.rp.registered(this.pp.address)).to.equal(true);
-        expect(await this.fft.rootPools(this.rp.address)).to.equal(true);
       });
 
       it("should create root pools with multiple tokens and register token", async function () {
-        const poolAddress = await this.rpf.callStatic.createPool([this.pp.address, this.pp1.address]);
+        const rootPool = await this.rpf.callStatic.createPool([this.pp.address, this.pp1.address]);
         await this.rpf.createPool([this.pp.address, this.pp1.address]);
         // Check state change on factory contract
-        expect(await this.rpf.getPool(1)).to.equal(poolAddress);
+        expect(await this.rpf.getPool(1)).to.equal(rootPool);
 
         // Connect to deployed root pool contract
-        this.rp = <RootPool>await ethers.getContractAt("RootPool", poolAddress);
+        this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
 
         // Check registtration
         expect(await this.rp.registered(this.pp.address)).to.equal(true);
         expect(await this.rp.registered(this.pp1.address)).to.equal(true);
-        expect(await this.fft.rootPools(this.rp.address)).to.equal(true);
       });
 
       it("should create different pools", async function () {
-        const poolAddress = await this.rpf.callStatic.createPool([this.pp.address]);
+        const rootPool = await this.rpf.callStatic.createPool([this.pp.address]);
         await this.rpf.createPool([this.pp.address]);
-        const pool1Address = await this.rpf.callStatic.createPool([this.pp.address, this.pp1.address]);
+        const rootPool1 = await this.rpf.callStatic.createPool([this.pp.address, this.pp1.address]);
         await this.rpf.createPool([this.pp.address, this.pp1.address]);
         // Check state change on factory contract
-        expect(await this.rpf.getPool(1)).to.equal(poolAddress);
-        expect(await this.rpf.getPool(2)).to.equal(pool1Address);
+        expect(await this.rpf.getPool(1)).to.equal(rootPool);
+        expect(await this.rpf.getPool(2)).to.equal(rootPool1);
 
         // Connect to root pools
-        this.rp = <RootPool>await ethers.getContractAt("RootPool", poolAddress);
-        this.rp1 = <RootPool>await ethers.getContractAt("RootPool", pool1Address);
+        this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
+        this.rp1 = <RootPool>await ethers.getContractAt("RootPool", rootPool1);
 
         // Check registration
         expect(await this.rp.registered(this.pp.address)).to.equal(true);
         expect(await this.rp1.registered(this.pp.address)).to.equal(true);
         expect(await this.rp1.registered(this.pp1.address)).to.equal(true);
-        expect(await this.fft.rootPools(this.rp.address)).to.equal(true);
-        expect(await this.fft.rootPools(this.rp1.address)).to.equal(true);
       });
 
+      /*
       it("should not create two same pools with same token list", async function () {
         await this.rpf.createPool([this.pp.address]);
         await expect(this.rpf.createPool([this.pp.address])).to.be.revertedWith(
           "RootPoolFactory: Root pool for these NFTs already exists.",
         );
       });
+      */
     });
-
-    context("", async function () {});
   });
 });

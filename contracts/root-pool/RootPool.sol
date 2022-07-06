@@ -2,22 +2,21 @@
 
 pragma solidity ^0.8.0;
 
-import "../tokens/interfaces/IFFT.sol";
 import "./interfaces/IFurionOracle.sol";
 import "../project-pool/interfaces/IProjectPoolFactory.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 // For F-* token and FUR
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // In this contract, pools refer to root pools and tokens refer to project pool
 // tokens (i.e. project pools)
 
-contract RootPool {
+contract RootPool is ERC20Permit {
     uint256 public constant MULTIPLIER = 1e18;
     // For testing only
     uint256 constant nftPrice = 10 ether;
 
     IERC20 FUR;
-    IFFT FFT;
     IFurionOracle Oracle;
 
     address public immutable factory;
@@ -38,14 +37,14 @@ contract RootPool {
     uint128 public tokenTypes;
 
     constructor(
-        address _fft,
         address _fur,
         address _oracle,
         address _owner,
-        address[] memory _tokens
-    ) {
+        address[] memory _tokens,
+        string memory _tokenName,
+        string memory _tokenSymbol
+    ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
-        FFT = IFFT(_fft);
         FUR = IERC20(_fur);
         Oracle = IFurionOracle(_oracle);
         owner = _owner;
@@ -75,6 +74,12 @@ contract RootPool {
             "RootPool: Token not accepted in this pool."
         );
         _;
+    }
+
+    function circulatingSupply() public view returns (uint256) {
+        // Total supply - balance of all contracts that locked FFT
+        // return totalSupply() - balanceOf()
+        return totalSupply();
     }
 
     /**
@@ -113,8 +118,8 @@ contract RootPool {
         // Amount of fee in FFT
         uint256 fee = (mintAmount * stakeFeeRate) / 100;
 
-        FFT.mint(msg.sender, mintAmount - fee);
-        FFT.mint(owner, fee);
+        _mint(msg.sender, mintAmount - fee);
+        _mint(owner, fee);
     }
 
     /**
@@ -135,9 +140,9 @@ contract RootPool {
         uint256 fee = (_amount * unstakeFeeRate) / 100;
 
         // Burn amount of FFT used for exchange
-        FFT.burn(msg.sender, _amount);
+        _burn(msg.sender, _amount);
         // Transfer fee to fee receiver
-        IERC20(address(FFT)).transferFrom(msg.sender, owner, fee);
+        transferFrom(msg.sender, owner, fee);
 
         IERC20(_tokenAddress).transfer(msg.sender, retrieveAmount);
     }
@@ -192,13 +197,13 @@ contract RootPool {
      * @return Price of 1 FFT enlarged by MULTIPLIER
      */
     function _refPricePerFFT() private view returns (uint256) {
-        uint256 circulatingSupply = FFT.circulatingSupply();
+        uint256 _circulatingSupply = circulatingSupply();
 
         // For first mint
-        if (circulatingSupply == 0) {
+        if (_circulatingSupply == 0) {
             return 0.01 ether * MULTIPLIER;
         } else {
-            return _refPriceSum() / circulatingSupply;
+            return _refPriceSum() / _circulatingSupply;
         }
     }
 }

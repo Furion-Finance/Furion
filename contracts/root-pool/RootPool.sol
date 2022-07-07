@@ -14,7 +14,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract RootPool is ERC20Permit {
     uint256 public constant MULTIPLIER = 1e18;
     // For testing only
-    uint256 constant nftPrice = 10 ether;
+    uint256 constant NFT_PRICE = 15 ether;
+    // For testing only, simulate NFT price growth
+    uint256 constant NFT_PRICE_1 = 18 ether;
 
     IERC20 FUR;
     IFurionOracle Oracle;
@@ -103,20 +105,22 @@ contract RootPool is ERC20Permit {
      *
      * @param _tokenAddress Address of F-* token to stake
      * @param _amount Amount of F-* tokens to stake
+     * @param _price for testing only, 0 uses NFT_PRICE, 1 uses NFT_PRICE_1
      */
-    function stake(address _tokenAddress, uint256 _amount)
-        external
-        tokenRegistered(_tokenAddress)
-    {
-        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
-
+    function stake(
+        address _tokenAddress,
+        uint256 _amount,
+        uint256 _price
+    ) external tokenRegistered(_tokenAddress) {
         // Both are enlarged by MULTIPLIER which cancels out in mint amount calculation
-        uint256 tokenRefPrice = _refPricePerToken(_tokenAddress);
-        uint256 fftRefPrice = _refPricePerFFT();
+        uint256 tokenRefPrice = _refPricePerToken(_tokenAddress, _price);
+        uint256 fftRefPrice = _refPricePerFFT(_price);
         // Amount of FFT to get before fee
         uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
         // Amount of fee in FFT
         uint256 fee = (mintAmount * stakeFeeRate) / 100;
+
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
 
         _mint(msg.sender, mintAmount - fee);
         _mint(owner, fee);
@@ -128,13 +132,14 @@ contract RootPool is ERC20Permit {
      * @param _tokenAddress Address of F-* token to get
      * @param _amount Amount of FFT to burn
      */
-    function unstake(address _tokenAddress, uint256 _amount)
-        external
-        tokenRegistered(_tokenAddress)
-    {
+    function unstake(
+        address _tokenAddress,
+        uint256 _amount,
+        uint256 _price
+    ) external tokenRegistered(_tokenAddress) {
         // Both are enlarged by MULTIPLIER which cancels out in retrieve amount calculation
-        uint256 tokenRefPrice = _refPricePerToken(_tokenAddress);
-        uint256 fftRefPrice = _refPricePerFFT();
+        uint256 tokenRefPrice = _refPricePerToken(_tokenAddress, _price);
+        uint256 fftRefPrice = _refPricePerFFT(_price);
         // Amount of F-* tokens to get back
         uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
         uint256 fee = (_amount * unstakeFeeRate) / 100;
@@ -152,7 +157,7 @@ contract RootPool is ERC20Permit {
      *
      * @return Reference price enlarged by MULTIPLIER
      */
-    function _refPricePerToken(address _tokenAddress)
+    function _refPricePerToken(address _tokenAddress, uint256 _price)
         private
         view
         returns (uint256)
@@ -164,28 +169,37 @@ contract RootPool is ERC20Permit {
         uint256 refPrice = Oracle.getNFTPrice(nft, 0);
         */
 
-        uint256 refPrice = nftPrice;
+        uint256 refPrice;
+        if (_price == 0) {
+            refPrice = NFT_PRICE;
+        } else if (_price == 1) {
+            refPrice = NFT_PRICE_1;
+        }
 
         // (refPrice / (1000 * 1e18)) * MULTIPLIER = (refPrice / 1000) * (MULTIPLIER / MULTIPLIER)
         return refPrice / 1000;
     }
 
     /**
-     * @dev Get total value of all staked F-* tokens in contract (in ETH)
+     * @dev Get total value of all staked F-* tokens in this pool (in ETH)
      *
-     * @return Total value of F-* tokens enlarged by MULTIPLIER
+     * @return Total value enlarged by MULTIPLIER
      */
-    function _refPriceSum() private view returns (uint256) {
+    function _refPriceSum(uint256 _price) private view returns (uint256) {
         uint256 sum;
 
         for (uint256 i = 0; i < tokenTypes; ) {
             address token = getToken[i];
 
-            uint256 refPrice = _refPricePerToken(token);
+            uint256 refPrice = _refPricePerToken(token, _price);
             // Number of F-* tokens in the contract
             uint256 balance = IERC20(token).balanceOf(address(this));
 
             sum += refPrice * balance;
+
+            unchecked {
+                ++i;
+            }
         }
 
         return sum;
@@ -196,14 +210,14 @@ contract RootPool is ERC20Permit {
      *
      * @return Price of 1 FFT enlarged by MULTIPLIER
      */
-    function _refPricePerFFT() private view returns (uint256) {
+    function _refPricePerFFT(uint256 _price) private view returns (uint256) {
         uint256 _circulatingSupply = circulatingSupply();
 
         // For first mint
         if (_circulatingSupply == 0) {
-            return 0.01 ether * MULTIPLIER;
+            return 0.01 ether;
         } else {
-            return _refPriceSum() / _circulatingSupply;
+            return _refPriceSum(_price) / _circulatingSupply;
         }
     }
 }

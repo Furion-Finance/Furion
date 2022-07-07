@@ -140,14 +140,16 @@ contract RootPool is ERC20Permit {
         // Both are enlarged by MULTIPLIER which cancels out in retrieve amount calculation
         uint256 tokenRefPrice = _refPricePerToken(_tokenAddress, _price);
         uint256 fftRefPrice = _refPricePerFFT(_price);
-        // Amount of F-* tokens to get back
-        uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
-        uint256 fee = (_amount * unstakeFeeRate) / 100;
 
-        // Burn amount of FFT used for exchange
-        _burn(msg.sender, _amount);
+        uint256 fee = (_amount * unstakeFeeRate) / 100;
+        // Amount of F-* tokens to get back
+        uint256 retrieveAmount = ((_amount - fee) * fftRefPrice) /
+            tokenRefPrice;
+
         // Transfer fee to fee receiver
-        transferFrom(msg.sender, owner, fee);
+        transfer(owner, fee);
+        // Burn amount of FFT used for exchange
+        _burn(msg.sender, _amount - fee);
 
         IERC20(_tokenAddress).transfer(msg.sender, retrieveAmount);
     }

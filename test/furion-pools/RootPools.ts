@@ -33,7 +33,7 @@ describe("Root Pools", function () {
     this.signers.alice = signers[2];
   });
 
-  xdescribe("RootPoolFactory", function () {
+  describe("RootPoolFactory", function () {
     // Deploy clean ProjectPoolFactory and NFTest contract
     beforeEach(async function () {
       // Deploy NFTs
@@ -205,11 +205,14 @@ describe("Root Pools", function () {
         // Bob stakes 1000 F-NFT first
         await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
         await this.rp.connect(this.signers.bob).stake(this.pp.address, su("1000"), 0);
+
         // Bob gets ((15 / 1000) * 1000) / 0.01 * 0.99 (1% fee) = 1485 FFT1, based on the assumption that
         // the NFT now is worth 15 ETH and FFT has a ref price of 0.01 ETH for the first stake
         expect(await this.rp.balanceOf(this.signers.bob.address)).to.equal(su("1485"));
+
         // Bob stakes remaining 1000 F-NFT, when price of NFT increases to 18 ETH
         await this.rp.connect(this.signers.bob).stake(this.pp.address, su("1000"), 1);
+
         // FFT ref price = sum / circulating supply = ((18 / 1000) * 1000) / 1500 = 0.012 ETH
         // Bob gets ((18 / 1000) * 1000) / 0.012 * 0.99 (1% fee) = 1485 FFT1
         expect(await this.rp.balanceOf(this.signers.bob.address)).to.equal(su("2970"));
@@ -217,10 +220,50 @@ describe("Root Pools", function () {
         expect(await this.pp.balanceOf(this.rp.address)).to.equal(su("2000"));
       });
 
-      it("should not allow staking of non-registered tokens", async function () {
+      it("should not allow staking of unregistered tokens", async function () {
         // Bob tries to stake F-NFT1 which is not registered to the root pool
         await this.pp1.connect(this.signers.bob).approve(this.rp.address, su("1000"));
         await expect(this.rp.connect(this.signers.bob).stake(this.pp1.address, su("1000"), 0)).to.be.revertedWith(
+          "RootPool: Token not accepted in this pool.",
+        );
+      });
+    });
+
+    context("Unstaking", async function () {
+      it("should unstake with correct calculations given no NFT price changes", async function () {
+        // Bob stakes all F-NFT, gets 2970 FFT1
+        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
+        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+
+        // Bob unstakes with 2970 FFT1
+        await this.rp.connect(this.signers.bob).unstake(this.pp.address, su("2970"), 0);
+        // Bob gets 2970 * 0.97 (3% fee) * (30 / 3000) / 0.015 = 1920.6 F-NFT
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("1920.6"));
+        // Admin (fee receiver) gets 30 + 2970 * 0.03 = 119.1 FFT1 in total
+        expect(await this.rp.balanceOf(this.signers.admin.address)).to.equal(su("119.1"));
+      });
+
+      it("should unstake with correct calculations given NFT price changes", async function () {
+        // Bob stakes all F-NFT, gets 2970 FFT1
+        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
+        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+
+        // Bob unstakes with 2970 FFT1
+        await this.rp.connect(this.signers.bob).unstake(this.pp.address, su("2970"), 1);
+        // Price of NFT increases to 18 ETH
+        // Bob gets 2970 * 0.97 (3% fee) * (36 / 3000) / 0.018 = 1920.6 F-NFT
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("1920.6"));
+        // Admin (fee receiver) gets 30 + 2970 * 0.03 = 119.1 FFT1 in total
+        expect(await this.rp.balanceOf(this.signers.admin.address)).to.equal(su("119.1"));
+      });
+
+      it("should not allow unstaking of unregistered tokens", async function () {
+        // Bob stakes all F-NFT, gets 2970 FFT1
+        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
+        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+
+        // Bob tries to unstake with 2970 FFT1 to get F-NFT1 which is unregistered
+        await expect(this.rp.connect(this.signers.bob).unstake(this.pp1.address, su("2970"), 0)).to.be.revertedWith(
           "RootPool: Token not accepted in this pool.",
         );
       });

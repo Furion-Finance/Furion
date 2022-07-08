@@ -6,6 +6,7 @@ import type { ProjectPool } from "../src/types/contracts/project-pool/ProjectPoo
 import type { ProjectPoolFactory } from "../src/types/contracts/project-pool/ProjectPoolFactory";
 import type { RootPool } from "../src/types/contracts/root-pool/RootPool";
 import type { RootPoolFactory } from "../src/types/contracts/root-pool/RootPoolFactory";
+import type { FurionTokenTest } from "../src/types/contracts/test-only/FurionTokenTest";
 import type { NFTest } from "../src/types/contracts/test-only/NFTest";
 import type { NFTest1 } from "../src/types/contracts/test-only/NFTest1";
 import type { FurionToken } from "../src/types/contracts/tokens/FurionToken";
@@ -22,6 +23,7 @@ declare module "mocha" {
     rp1: RootPool;
     checker: Checker;
     fur: FurionToken;
+    furT: FurionTokenTest;
     loadFixture: <T>(fixture: Fixture<T>) => Promise<T>;
     signers: Signers;
   }

@@ -6,8 +6,8 @@ import type { Artifact } from "hardhat/types";
 import type { Checker } from "../../src/types/contracts/Checker";
 import type { ProjectPoolFactory } from "../../src/types/contracts/project-pool/ProjectPoolFactory";
 import type { RootPoolFactory } from "../../src/types/contracts/root-pool/RootPoolFactory";
+import type { FurionTokenTest } from "../../src/types/contracts/test-only/FurionTokenTest";
 import type { NFTest } from "../../src/types/contracts/test-only/NFTest";
-import type { FurionToken } from "../../src/types/contracts/tokens/FurionToken";
 import { Signers } from "../types";
 
 describe("Checker", async function () {
@@ -26,8 +26,12 @@ describe("Checker", async function () {
     this.nft = <NFTest>await waffle.deployContract(this.signers.admin, nftArtifact, [[this.signers.admin.address]]);
 
     // Deploy FUR
-    const furArtifact: Artifact = await artifacts.readArtifact("FurionToken");
-    this.fur = <FurionToken>await waffle.deployContract(this.signers.admin, furArtifact, []);
+    const furTArtifact: Artifact = await artifacts.readArtifact("FurionTokenTest");
+    this.furT = <FurionTokenTest>(
+      await waffle.deployContract(this.signers.admin, furTArtifact, [
+        [this.signers.admin.address, this.signers.bob.address, this.signers.alice.address],
+      ])
+    );
 
     // Deploy checker
     const checkerArtifact: Artifact = await artifacts.readArtifact("Checker");
@@ -35,7 +39,9 @@ describe("Checker", async function () {
 
     // Deploy project pool factory
     const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
-    this.ppf = <ProjectPoolFactory>await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address]);
+    this.ppf = <ProjectPoolFactory>(
+      await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address, this.furT.address])
+    );
 
     // Deploy root pool factory
     const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
@@ -60,11 +66,11 @@ describe("Checker", async function () {
     await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
     await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
 
-    await expect(this.checker.connect(this.signers.bob).addToken(this.fur.address)).to.be.revertedWith(
+    await expect(this.checker.connect(this.signers.bob).addToken(this.furT.address)).to.be.revertedWith(
       "Checker: Not permitted to call.",
     );
-    await this.checker.connect(this.signers.admin).addToken(this.fur.address);
-    expect(await this.checker.isFurionToken(this.fur.address)).to.equal(true);
+    await this.checker.connect(this.signers.admin).addToken(this.furT.address);
+    expect(await this.checker.isFurionToken(this.furT.address)).to.equal(true);
 
     const pp = await this.ppf.callStatic.createPool(this.nft.address);
     await this.ppf.createPool(this.nft.address);

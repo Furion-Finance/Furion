@@ -17,6 +17,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     mapping(address => address) public getNft;
 
     address public checker;
+    address public fur;
     address[] public allPools;
 
     // Record of all nft addresses for root pool
@@ -28,8 +29,9 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         uint256 poolIndex
     );
 
-    constructor(address _checker) {
+    constructor(address _checker, address _fur) {
         checker = _checker;
+        fur = _fur;
     }
 
     /**
@@ -84,6 +86,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         poolAddress = address(
             new ProjectPool{salt: _salt}(
                 _nftAddress,
+                fur,
                 owner(),
                 tokenName,
                 tokenSymbol

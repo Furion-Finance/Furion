@@ -5,14 +5,14 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@prb/math/contracts/PRBMathUD60x18.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract ProjectPool is ERC20Permit, IERC721Receiver {
     uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
 
-    //IERC20 FUR;
     IERC721 NFT;
+    IERC20 FUR;
 
     address public immutable factory;
     // Pool admin/fee receiver
@@ -43,12 +43,14 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
 
     constructor(
         address _nftAddress,
+        address _fur,
         address _owner,
         string memory _tokenName,
         string memory _tokenSymbol
     ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
         NFT = IERC721(_nftAddress);
+        FUR = IERC20(_fur);
         owner = _owner;
     }
 
@@ -177,9 +179,9 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
         uint256 length = _ids.length;
 
         uint256 burnTotal = SWAP_MINT_AMOUNT * length;
-        uint256 feeTotal = (burnTotal * swapFeeRate) / 100;
+        uint256 feeTotal = 100 ether * length;
         _burn(msg.sender, burnTotal);
-        transfer(owner, feeTotal);
+        FUR.transferFrom(msg.sender, owner, feeTotal);
 
         for (uint256 i = 0; i < length; ) {
             // Mint total amount all at once
@@ -204,14 +206,18 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
 
         NFT.safeTransferFrom(msg.sender, address(this), _id);
 
-        uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFeeRate) / 100;
+        // uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFeeRate) / 100;
+        uint256 fee = 150 ether * _lockCycle;
+        _mint(msg.sender, LOCK_MINT_AMOUNT);
 
+        /*
         if (fee > LOCK_MINT_AMOUNT) {
             transfer(owner, fee - LOCK_MINT_AMOUNT);
         } else {
             _mint(msg.sender, LOCK_MINT_AMOUNT - fee);
             _mint(owner, fee);
         }
+        */
 
         lockInfo[fId].locker = msg.sender;
         lockInfo[fId].releaseTime = uint96(
@@ -227,8 +233,11 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     function payFee(uint256 _id) external redeemable(_id) {
         bytes32 fId = getFurionId(_id);
 
+        /*
         uint256 fee = (LOCK_MINT_AMOUNT * lockFeeRate) / 100;
         transfer(owner, fee);
+        */
+        FUR.transferFrom(msg.sender, owner, 150 ether);
 
         lockInfo[fId].releaseTime += 30 * 24 * 60 * 60;
     }
@@ -298,8 +307,11 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
         if (_updateNow) {
             _burn(msg.sender, SWAP_MINT_AMOUNT);
 
+            /*
             uint256 fee = (SWAP_MINT_AMOUNT * swapFeeRate) / 100;
             transfer(owner, fee);
+            */
+            FUR.transferFrom(msg.sender, owner, 100 ether);
         }
 
         NFT.safeTransferFrom(address(this), msg.sender, _id);

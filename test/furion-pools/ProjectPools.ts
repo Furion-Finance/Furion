@@ -144,6 +144,13 @@ describe("Project Pools", function () {
             this.signers.bob.address,
             this.signers.bob.address,
             this.signers.alice.address,
+            this.signers.admin.address,
+            this.signers.admin.address,
+            this.signers.admin.address,
+            this.signers.admin.address,
+            this.signers.admin.address,
+            this.signers.admin.address,
+            this.signers.admin.address,
           ],
         ])
       );
@@ -180,8 +187,7 @@ describe("Project Pools", function () {
         // Sell NFT event emission, total gas: 120624
         await expect(this.pp.connect(this.signers.admin)["sell(uint256)"](0)).to.emit(this.pp, "SoldNFT");
         // NFT transferred to pool contract
-        expect(await this.nft.balanceOf(this.signers.admin.address)).to.equal(2);
-        expect(await this.nft.balanceOf(this.pp.address)).to.equal(1);
+        expect(await this.nft.ownerOf(0)).to.equal(this.pp.address);
         // F-* token balance increase
         expect(await this.pp.balanceOf(this.signers.admin.address)).to.equal(su("1000"));
       });
@@ -194,10 +200,27 @@ describe("Project Pools", function () {
         // Batch selling, total gas: 156014
         await this.pp.connect(this.signers.admin)["sell(uint256[])"]([0, 1, 2]);
         // NFT transferred to pool contract
-        expect(await this.nft.balanceOf(this.signers.admin.address)).to.equal(0);
         expect(await this.nft.balanceOf(this.pp.address)).to.equal(3);
         // F-* token balance increase
         expect(await this.pp.balanceOf(this.signers.admin.address)).to.equal(su("3000"));
+      });
+
+      it("should not allow selling of more than 9 NFTs in one tx", async function () {
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 0);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 1);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 2);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 6);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 7);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 8);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 9);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 10);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 11);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 12);
+
+        // Admin tries to sell 10 NFTs in one tx
+        await expect(
+          this.pp.connect(this.signers.admin)["sell(uint256[])"]([0, 1, 2, 6, 7, 8, 9, 10, 11, 12]),
+        ).to.be.revertedWith("ProjectPool: Can only sell 9 NFTs at once");
       });
     });
 
@@ -240,6 +263,31 @@ describe("Project Pools", function () {
         expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
         // Admin is fee reveiver, 1000 + 200 = 1200 FUR
         expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1200"));
+      });
+
+      it("should not allow buying of more than 9 NFTs in one tx", async function () {
+        // Admin sells 10 NFTs separately, gets 10000 F-NFT
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 0);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 1);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 2);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 6);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 7);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 8);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 9);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 10);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 11);
+        await this.nft.connect(this.signers.admin).approve(this.pp.address, 12);
+
+        await this.pp.connect(this.signers.admin)["sell(uint256[])"]([0, 1, 2, 6, 7, 8, 9, 10, 11]);
+        await this.pp.connect(this.signers.admin)["sell(uint256)"](12);
+
+        // Admin transfers 10000 tokens to Bob
+        await this.pp.connect(this.signers.admin).transfer(this.signers.bob.address, su("10000"));
+        // Bob tries to buy 10 NFTs with 10000 tokens in one tx should fail
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("1000"));
+        await expect(
+          this.pp.connect(this.signers.bob)["buy(uint256[])"]([0, 1, 2, 6, 7, 8, 9, 10, 11, 12]),
+        ).to.be.revertedWith("ProjectPool: Can only buy 9 NFTs at once");
       });
     });
 

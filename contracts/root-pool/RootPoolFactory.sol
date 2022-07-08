@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./RootPool.sol";
 import "./interfaces/IRootPool.sol";
 import "./interfaces/IRootPoolFactory.sol";
+import "../IChecker.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -15,6 +16,7 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
     address public fur;
     address public oracle;
+    address public checker;
 
     // Starts from 1
     Counters.Counter private poolId;
@@ -27,15 +29,15 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
     event PoolCreated(address poolAddress, uint256 id);
 
-    /*
     constructor(
-        address _fur,
-        address _oracle,
+        //address _fur,
+        //address _oracle,
+        address _checker
     ) {
-        fur = _fur;
-        oracle = _oracle;
+        //fur = _fur;
+        //oracle = _oracle;
+        checker = _checker;
     }
-    */
 
     /**
      * @dev Get total number of root pools in existence
@@ -74,6 +76,7 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
         external
         returns (address poolAddress)
     {
+        require(checker != address(0), "RootPoolFactory: Checker not set.");
         poolId.increment();
 
         // Act as identifier for pools to ensure no duplications
@@ -99,6 +102,7 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
         getPool[poolId.current()] = poolAddress;
         // Only tracks token list at the time of creation, useless
         //alreadyExist[_salt] = true;
+        IChecker(checker).addToken(poolAddress);
 
         emit PoolCreated(poolAddress, poolId.current());
     }

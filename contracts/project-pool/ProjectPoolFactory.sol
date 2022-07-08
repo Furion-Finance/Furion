@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./ProjectPool.sol";
 import "./interfaces/IProjectPool.sol";
 import "./interfaces/IProjectPoolFactory.sol";
+import "../IChecker.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -15,6 +16,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     // Pool address to NFT address
     mapping(address => address) public getNft;
 
+    address public checker;
     address[] public allPools;
 
     // Record of all nft addresses for root pool
@@ -25,6 +27,10 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         address poolAddress,
         uint256 poolIndex
     );
+
+    constructor(address _checker) {
+        checker = _checker;
+    }
 
     /**
      * @dev Get total number of pools
@@ -57,7 +63,11 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     /**
      * @dev Create pool and add address to array
      */
-    function createPool(address _nftAddress) external returns (address) {
+    function createPool(address _nftAddress)
+        external
+        returns (address poolAddress)
+    {
+        require(checker != address(0), "ProjectPoolFactory: Checker not set.");
         require(_nftAddress != address(0), "ProjectPoolFactory: ZERO_ADDRESS");
         require(
             getPool[_nftAddress] == address(0),
@@ -71,7 +81,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         bytes32 _salt = keccak256(abi.encodePacked(_nftAddress));
 
         // New way to invoke create2 without assembly, paranthesis still needed for empty constructor
-        address poolAddress = address(
+        poolAddress = address(
             new ProjectPool{salt: _salt}(
                 _nftAddress,
                 owner(),
@@ -83,10 +93,9 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         getPool[_nftAddress] = poolAddress;
         getNft[poolAddress] = _nftAddress;
         //allPools.push(poolAddress);
+        IChecker(checker).addToken(poolAddress);
 
         emit PoolCreated(_nftAddress, poolAddress, allPools.length);
-
-        return poolAddress;
     }
 
     /**

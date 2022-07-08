@@ -11,5 +11,7 @@ interface IProjectPoolFactory {
 
     function allPoolsLength() external view returns (uint256 totalPools);
 
-    function createPool(address _nftAddress) external returns (address);
+    function createPool(address _nftAddress)
+        external
+        returns (address poolAddress);
 }

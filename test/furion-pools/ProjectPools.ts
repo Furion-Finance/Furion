@@ -7,6 +7,7 @@ import type { Artifact } from "hardhat/types";
 import type { Checker } from "../../src/types/contracts/Checker";
 import type { ProjectPool } from "../../src/types/contracts/project-pool/ProjectPool";
 import type { ProjectPoolFactory } from "../../src/types/contracts/project-pool/ProjectPoolFactory";
+import type { FurionTokenTest } from "../../src/types/contracts/test-only/FurionTokenTest";
 import type { NFTest } from "../../src/types/contracts/test-only/NFTest";
 import type { NFTest1 } from "../../src/types/contracts/test-only/NFTest1";
 import { Signers } from "../types";
@@ -15,6 +16,11 @@ import { Signers } from "../types";
 // admin: three NFT (0, 1, 2), one NFT1 (0)
 // bob: two NFT (3, 4), one NFT1 (1)
 // alice: one NFT (5), one NFT1 (2)
+
+// Initial FUR balance:
+// admin: 1000
+// bob: 1000
+// alice: 1000
 
 describe("Project Pools", function () {
   // Convert to smallest unit (10^18)
@@ -56,13 +62,24 @@ describe("Project Pools", function () {
         ])
       );
 
+      // Deploy FUR
+      const furTArtifact: Artifact = await artifacts.readArtifact("FurionTokenTest");
+      this.furT = <FurionTokenTest>(
+        await waffle.deployContract(this.signers.admin, furTArtifact, [
+          [this.signers.admin.address, this.signers.bob.address, this.signers.alice.address],
+        ])
+      );
+      expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1000"));
+      expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("1000"));
+      expect(await this.furT.balanceOf(this.signers.alice.address)).to.equal(su("1000"));
+
       // Deploy checker
       const checkerArtifact: Artifact = await artifacts.readArtifact("Checker");
       this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
 
       const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
       this.ppf = <ProjectPoolFactory>(
-        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address])
+        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address, this.furT.address])
       );
 
       // Set factory
@@ -131,13 +148,21 @@ describe("Project Pools", function () {
         ])
       );
 
+      // Deploy FUR
+      const furTArtifact: Artifact = await artifacts.readArtifact("FurionTokenTest");
+      this.furT = <FurionTokenTest>(
+        await waffle.deployContract(this.signers.admin, furTArtifact, [
+          [this.signers.admin.address, this.signers.bob.address, this.signers.alice.address],
+        ])
+      );
+
       // Deploy checker
       const checkerArtifact: Artifact = await artifacts.readArtifact("Checker");
       this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
 
       const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
       this.ppf = <ProjectPoolFactory>(
-        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address])
+        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address, this.furT.address])
       );
 
       // Set factory
@@ -178,44 +203,51 @@ describe("Project Pools", function () {
 
     context("Buying", async function () {
       it("should buy NFT", async function () {
-        // Sell two NFTs, gets 2000 pool tokens
+        // Admin sells two NFTs, gets 2000 pool tokens
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 0);
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 1);
         await this.pp.connect(this.signers.admin)["sell(uint256[])"]([0, 1]);
-        // Transfer tokens to Bob
+        // Admin transfers 2000 tokens to Bob
         await this.pp.connect(this.signers.admin).transfer(this.signers.bob.address, su("2000"));
-        // Bob buys one NFT with 1010 (1% fee) tokens, check event emission
+        // Bob buys one NFT with 1000 tokens, check event emission
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("100"));
         await expect(this.pp.connect(this.signers.bob)["buy(uint256)"](0)).to.emit(this.pp, "BoughtNFT");
-        // 2000 - 1000 (cost) - 10 (fee) = 990
-        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("990"));
-        // Admin is fee reveiver
-        expect(await this.pp.balanceOf(this.signers.admin.address)).to.equal(su("10"));
         expect(await this.nft.ownerOf(0)).to.equal(this.signers.bob.address);
+        // F-NFT: 2000 - 1000 = 1000
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("1000"));
+        // FUR: 1000 - 100 = 900
+        expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("900"));
+        // Admin is fee reveiver, 1000 + 100 = 1100 FUR
+        expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1100"));
       });
 
       it("should buy multiple NFTs in one tx", async function () {
-        // Sell three NFTs, gets 2000 pool tokens
+        // Admin sells three NFTs, gets 3000 pool tokens
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 0);
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 1);
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 2);
         await this.pp.connect(this.signers.admin)["sell(uint256[])"]([0, 1, 2]);
-        // Transfer tokens to Bob
+        // Admin transfers 3000 tokens to Bob
         await this.pp.connect(this.signers.admin).transfer(this.signers.bob.address, su("3000"));
-        // Bob buys two NFTs with 2020 (1% fee) tokens
+        // Bob buys the two NFTs with 2000 tokens
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("200"));
         await this.pp.connect(this.signers.bob)["buy(uint256[])"]([0, 1]);
-        // 3000 - 2000 (cost) - 20 (fee) = 980
-        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("980"));
-        // Admin is fee reveiver
-        expect(await this.pp.balanceOf(this.signers.admin.address)).to.equal(su("20"));
         expect(await this.nft.ownerOf(0)).to.equal(this.signers.bob.address);
         expect(await this.nft.ownerOf(1)).to.equal(this.signers.bob.address);
+        // F-NFT: 3000 - 2000 = 1000
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("1000"));
+        // FUR: 1000 - 100 * 2 = 800
+        expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
+        // Admin is fee reveiver, 1000 + 200 = 1200 FUR
+        expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1200"));
       });
     });
 
     context("Locking", async function () {
       it("should lock NFT", async function () {
-        await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
         // Lock NFT for 1 cycle (30 days), check event emission
+        await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await expect(this.pp.connect(this.signers.bob).lock(3, 1)).to.emit(this.pp, "LockedNFT");
         expect(await this.nft.ownerOf(3)).to.equal(this.pp.address);
         // Check release time
@@ -224,21 +256,30 @@ describe("Project Pools", function () {
         const timeOfLock: number = block.timestamp;
         const releaseTime: number = timeOfLock + 30 * 24 * 3600;
         expect(await this.pp.getReleaseTime(3)).to.equal(releaseTime);
-        // 500 - 15 (3% fee) = 485
-        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("485"));
-        // Admin is fee receiver
-        expect(await this.pp.balanceOf(this.signers.admin.address)).to.equal(su("15"));
+        // Gets 500 F-NFT
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("500"));
+        // Pays 150 FUR as fee, 1000 - 150 = 850 FUR
+        expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("850"));
+        // Admin is fee receiver, 1000 + 150 = 1150 FUR
+        expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1150"));
       });
 
       it("should extend NFT release time by paying before original release time", async function () {
         // Lock NFT for 1 cycle (30 days)
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const timeOfLock: number = block.timestamp;
         // Extend by one cycle (30 days)
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).payFee(3);
+        // Pays 150 * 2 = 300 FUR as fees in total, 1000 - 300 = 700 FUR
+        expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("700"));
+        // Admin is fee receiver, 1000 + 300 = 1300 FUR
+        expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1300"));
+        // Check extension
         const releaseTime: number = timeOfLock + 2 * 30 * 24 * 3600;
         expect(await this.pp.getReleaseTime(3)).to.equal(releaseTime);
       });
@@ -246,7 +287,9 @@ describe("Project Pools", function () {
       it("should not allow extending of release time if original release time has passed", async function () {
         // Lock NFT for 1 cycle (30 days)
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
+
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const timeOfLock: number = block.timestamp;
@@ -254,6 +297,7 @@ describe("Project Pools", function () {
         const timestamp: number = timeOfLock + 31 * 24 * 3600;
         await ethers.provider.send("evm_mine", [timestamp]);
         // Extend release time should fail
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await expect(this.pp.connect(this.signers.bob).payFee(3)).to.be.revertedWith(
           "ProjectPool: NFT has already been released to public pool.",
         );
@@ -262,34 +306,32 @@ describe("Project Pools", function () {
 
     context("Redeeming", async function () {
       it("should redeem NFT within release time", async function () {
+        // Bob locks two NFTs for 1 cycle (30 days), get 1000 tokens
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 4);
-        // Lock NFTs for 1 cycle (30 days), get 970 tokens
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("300"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
         await this.pp.connect(this.signers.bob).lock(4, 1);
+
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const txTime: number = block.timestamp;
         // 7 days after locking
         const timestamp: number = txTime + 7 * 24 * 3600;
         await ethers.provider.send("evm_mine", [timestamp]);
-        // Redeem NFT, check event emission
+        // Bob redeems 1 NFT, check event emission
         await expect(this.pp.connect(this.signers.bob).redeem(3)).to.emit(this.pp, "RedeemedNFT");
         expect(await this.nft.ownerOf(3)).to.equal(this.signers.bob.address);
-        // 970 - 500 = 470
-        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("470"));
+        expect(await this.nft.ownerOf(4)).to.equal(this.pp.address);
+        // 1000 - 500 = 500
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("500"));
       });
 
       it("should not redeem NFT if caller is not locker", async function () {
-        // Lock NFTs for 1 cycle (30 days), get 970 tokens
+        // Bob locks NFT for 1 cycle (30 days), get 500 tokens
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
-        const blockNum: number = await ethers.provider.getBlockNumber();
-        const block = await ethers.provider.getBlock(blockNum);
-        const txTime: number = block.timestamp;
-        // 7 days after locking
-        const timestamp: number = txTime + 7 * 24 * 3600;
-        await ethers.provider.send("evm_mine", [timestamp]);
         // Redeem NFT should fail
         await expect(this.pp.connect(this.signers.admin).redeem(3)).to.be.revertedWith(
           "ProjectPool: You did not lock this NFT.",
@@ -297,16 +339,18 @@ describe("Project Pools", function () {
       });
 
       it("should not redeem NFT after release time", async function () {
-        // Lock NFTs for 1 cycle (30 days), get 970 tokens
+        // Bob locks NFT for 1 cycle (30 days), get 500 tokens
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
+
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const txTime: number = block.timestamp;
         // 31 days after locking
         const timestamp: number = txTime + 31 * 24 * 3600;
         await ethers.provider.send("evm_mine", [timestamp]);
-        // Redeem NFT should fail
+        // Admin tries to redeem NFT should fail
         await expect(this.pp.connect(this.signers.bob).redeem(3)).to.be.revertedWith(
           "ProjectPool: NFT has already been released to public pool.",
         );
@@ -318,7 +362,9 @@ describe("Project Pools", function () {
       it("should release NFT that has passed release time", async function () {
         // Bob locks NFT for 1 cycle (30 days)
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
+
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const timeOfLock: number = block.timestamp;
@@ -327,11 +373,14 @@ describe("Project Pools", function () {
         await ethers.provider.send("evm_mine", [timestamp]);
         // Admin releases Bob's NFT, making it available for buying, check event emission
         await expect(this.pp.connect(this.signers.admin).release(3)).to.emit(this.pp, "ReleasedNFT");
+        // Bob gets remaining 500 F-NFT
+        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("1000"));
         // Admin sells own NFTs and gets 2000 tokens
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 0);
         await this.nft.connect(this.signers.admin).approve(this.pp.address, 1);
         await this.pp.connect(this.signers.admin)["sell(uint256[])"]([0, 1]);
-        // Admin buys the released NFT
+        // Admin buys the released NFT owned by Bob originally
+        await this.furT.connect(this.signers.admin).approve(this.pp.address, su("100"));
         await this.pp.connect(this.signers.admin)["buy(uint256)"](3);
         expect(await this.nft.ownerOf(3)).to.equal(this.signers.admin.address);
       });
@@ -339,7 +388,9 @@ describe("Project Pools", function () {
       it("should not allow anyone other than owner to release NFT", async function () {
         // Bob locks NFT for 1 cycle (30 days)
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
+
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const timeOfLock: number = block.timestamp;
@@ -355,7 +406,9 @@ describe("Project Pools", function () {
       it("should not release NFT that has not passed release time", async function () {
         // Bob locks NFT for 1 cycle (30 days)
         await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
+        await this.furT.connect(this.signers.bob).approve(this.pp.address, su("150"));
         await this.pp.connect(this.signers.bob).lock(3, 1);
+
         const blockNum: number = await ethers.provider.getBlockNumber();
         const block = await ethers.provider.getBlock(blockNum);
         const timeOfLock: number = block.timestamp;

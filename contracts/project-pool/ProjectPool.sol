@@ -151,6 +151,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     function sell(uint256[] calldata _ids) external {
         // Number of NFTs in list
         uint256 length = _ids.length;
+        require(length <= 9, "ProjectPool: Can only sell 9 NFTs at once");
 
         for (uint256 i = 0; i < length; ) {
             // Mint total amount all at once
@@ -177,6 +178,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     function buy(uint256[] calldata _ids) external {
         // Number of NFTs to buy
         uint256 length = _ids.length;
+        require(length <= 9, "ProjectPool: Can only buy 9 NFTs at once");
 
         uint256 burnTotal = SWAP_MINT_AMOUNT * length;
         uint256 feeTotal = 100 ether * length;
@@ -208,6 +210,8 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
 
         // uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFeeRate) / 100;
         uint256 fee = 150 ether * _lockCycle;
+        FUR.transferFrom(msg.sender, owner, fee);
+
         _mint(msg.sender, LOCK_MINT_AMOUNT);
 
         /*

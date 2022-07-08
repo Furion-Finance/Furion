@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { artifacts, ethers, waffle } from "hardhat";
 import type { Artifact } from "hardhat/types";
 
+import type { Checker } from "../../src/types/contracts/Checker";
 import type { ProjectPool } from "../../src/types/contracts/project-pool/ProjectPool";
 import type { ProjectPoolFactory } from "../../src/types/contracts/project-pool/ProjectPoolFactory";
 import type { RootPool } from "../../src/types/contracts/root-pool/RootPool";
@@ -58,13 +59,23 @@ describe("Root Pools", function () {
         ])
       );
 
+      // Deploy checker
+      const checkerArtifact: Artifact = await artifacts.readArtifact("Checker");
+      this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
+
       // Deploy project pool factory
       const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
-      this.ppf = <ProjectPoolFactory>await waffle.deployContract(this.signers.admin, ppfArtifact, []);
+      this.ppf = <ProjectPoolFactory>(
+        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address])
+      );
 
       // Deploy root pool factory
       const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-      this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, []);
+      this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address]);
+
+      // Set factories
+      await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
+      await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
 
       // Create project pools
       const projectPool = await this.ppf.callStatic.createPool(this.nft.address);
@@ -158,13 +169,23 @@ describe("Root Pools", function () {
         ])
       );
 
+      // Deploy checker
+      const checkerArtifact: Artifact = await artifacts.readArtifact("Checker");
+      this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
+
       // Deploy project pool factory
       const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
-      this.ppf = <ProjectPoolFactory>await waffle.deployContract(this.signers.admin, ppfArtifact, []);
+      this.ppf = <ProjectPoolFactory>(
+        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address])
+      );
 
       // Deploy root pool factory
       const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-      this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, []);
+      this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address]);
+
+      // Set factories
+      await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
+      await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
 
       // Create project pools
       const projectPool = await this.ppf.callStatic.createPool(this.nft.address);

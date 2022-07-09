@@ -26,6 +26,8 @@ import {Math} from "../libraries/Math.sol";
  * @notice This contract is for Furion tokens and Furion LPTokens mining on Furion
  * @dev    The pool id starts from 1 rather than 0
  *         The FUR reward is calculated by timestamp rather than block number
+ *         Farming rate will be reset daily according to their TVL in previous date
+ *         Only top five pools + another random one will be rewarded
  */
 
 contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
@@ -40,7 +42,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     string public constant name = "Furion Farming Pool";
 
     // The reward token is Furion
-    IFurionToken public Furion;
+    IFurionToken public furion;
 
     // SCALE/Precision used for calculating rewards
     uint256 public constant SCALE = 1e12;
@@ -52,7 +54,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     uint256 public startTimestamp;
 
     struct PoolInfo {
-        address lpToken; // Furion token or LPToken address
+        address lpToken; // LPToken address to farm FUR
         uint256 basicFurionPerSecond; // Basic Reward speed
         uint256 lastRewardTimestamp; // Last reward timestamp
         uint256 accFurionPerShare; // Accumulated Furion per share
@@ -60,7 +62,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
 
     PoolInfo[] public poolList;
 
-    // furion token or lptoken address => poolId
+    // lptoken address => poolId
     mapping(address => uint256) public poolMapping;
 
     // poolId => is farming or not
@@ -86,11 +88,12 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         uint256 poolId,
         uint256 pendingReward
     );
+
+
     event NewPoolAdded(
         address lpToken,
         uint256 basicFurionPerSecond
     );
-
     event FarmingPoolStarted(uint256 poolId, uint256 timestamp);
     event FarmingPoolStopped(uint256 poolId, uint256 timestamp);
     event FurionRewardChanged(
@@ -107,11 +110,12 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     // ---------------------------------------------------------------------------------------- //
 
     constructor(address _furion) OwnableWithoutContext(msg.sender) {
-        Furion = IFurionToken(_furion);
+        furion = IFurionToken(_furion);
 
         // Start from 1
         _nextPoolId = 1;
 
+        // add one empty pool to make array index align with poolId
         poolList.push(
             PoolInfo({
                 lpToken: address(0),
@@ -130,7 +134,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
      * @notice The address can not be zero
      */
     modifier notZeroAddress(address _address) {
-        require(_address != address(0), "Zero address");
+        require(_address != address(0), "FARMING_POOL: ZERO_ADDRESS");
         _;
     }
 
@@ -138,7 +142,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
      * @notice The pool is still in farming
      */
     modifier stillFarming(uint256 _poolId) {
-        require(isFarming[_poolId], "Pool is not farming");
+        require(isFarming[_poolId], "FARMING_POOL: POOL_NOT_FARMING");
         _;
     }
 
@@ -160,7 +164,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         bool _withUpdate
     ) public notZeroAddress(_lpToken) onlyOwner whenNotPaused {
         // Check if already exists, if the poolId is 0, that means not in the pool
-        require(!_alreadyInPool(_lpToken), "Already in the pool");
+        require(!_alreadyInPool(_lpToken), "FARMING_POOL: ALREADY_IN_POOL");
 
         if (_withUpdate) {
             massUpdatePools();
@@ -200,7 +204,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         bool _withUpdate
     ) public onlyOwner whenNotPaused {
         // Ensure there already exists this pool
-        require(poolList[_poolId].lastRewardTimestamp != 0, "Pool not exists");
+        require(poolList[_poolId].lastRewardTimestamp != 0, "FARMING_POOL: POOL_NOT_EXIST");
 
         if (_withUpdate) massUpdatePools();
         else updatePool(_poolId);
@@ -224,6 +228,29 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     }
 
     /**
+     * @notice Update the FurionPerSecond for a bundle of pools (used for daily updating farming rate)
+     * @param _poolId Id collection of the farming pool
+     * @param _basicFurionPerSecond New basic reward amount per second
+     * @param _withUpdate Whether update all pools
+     */
+    function setFurionReward(
+        uint256[] calldata _poolId,
+        uint256[] calldata _basicFurionPerSecond,
+        bool _withUpdate
+    ) public onlyOwner whenNotPaused{
+        uint256 length = _poolId.length;
+        require(length <= 9, "FARMING_POOL: MORE_THAN_NINE");
+
+        for (uint256 i = 0; i < length; ) {
+            setFurionReward(_poolId[i], _basicFurionPerSecond[i], _withUpdate);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
      * @notice Stake LP token into the farming pool
      * @dev Can only stake to the pools that are still farming
      * @param _poolId Id of the farming pool
@@ -235,7 +262,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         whenNotPaused
         stillFarming(_poolId)
     {
-        require(_amount > 0, "Can not stake zero");
+        require(_amount > 0, "FARMING_POOL: STAKE_ZERO");
 
         PoolInfo storage pool = poolList[_poolId];
         UserInfo storage user = userInfo[_poolId][msg.sender];
@@ -281,12 +308,12 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         nonReentrant
         whenNotPaused
     {
-        require(_amount > 0, "Zero amount");
+        require(_amount > 0, "FARMING_POOL: WITHDRAW_ZERO");
 
         PoolInfo storage pool = poolList[_poolId];
         UserInfo storage user = userInfo[_poolId][msg.sender];
 
-        require(user.stakingBalance >= _amount, "Not enough stakingBalance");
+        require(user.stakingBalance >= _amount, "FARMING_POOL: NO_ENOUGH_STAKING_BALANCE");
 
         // Update if the pool is still farming
         // Users can withdraw even after the pool stopped
@@ -330,7 +357,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
 
         uint256 pendingReward = user.stakingBalance * pool.accFurionPerShare / SCALE - user.rewardDebt;
 
-        require(pendingReward > 0, "No pending reward");
+        require(pendingReward > 0, "FARMING_POOL: NO_PENDING_REWARD");
 
         // Update the reward debt
         user.rewardDebt = user.stakingBalance * pool.accFurionPerShare /
@@ -367,7 +394,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         pool.accFurionPerShare += (basicReward * SCALE) / lpSupply;
 
         // Don't forget to set the farming pool as minter
-        Furion.mintFurion(address(this), basicReward);
+        furion.mintFurion(address(this), basicReward);
 
         pool.lastRewardTimestamp = block.timestamp;
 
@@ -416,12 +443,12 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         UserInfo memory user = userInfo[_poolId][_user];
 
         // Total lp token balance
-        uint256 lp_balance = IERC20(poolInfo.lpToken).balanceOf(address(this));
+        uint256 lpBalance = IERC20(poolInfo.lpToken).balanceOf(address(this));
 
         // Accumulated shares to be calculated
         uint256 accFurionPerShare = poolInfo.accFurionPerShare;
 
-        if (lp_balance == 0) return 0;
+        if (lpBalance == 0) return 0;
         else {
             // If the pool is still farming, update the info
             if (isFarming[_poolId]) {
@@ -431,7 +458,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
                 uint256 basicReward = poolInfo.basicFurionPerSecond * timePassed;
                 // Update accFurionPerShare
                 // LPToken may have different decimals
-                accFurionPerShare += (basicReward * SCALE) / lp_balance;
+                accFurionPerShare += (basicReward * SCALE) / lpBalance;
             }
 
             // If the pool has stopped, not update the info
@@ -490,7 +517,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         // Can only be set before any pool is added
         require(
             _nextPoolId == 1,
-            "Can not set start timestamp after adding a pool"
+            "ALREADY_HAVING_POOLS"
         );
 
         startTimestamp = _startTimestamp;
@@ -518,7 +545,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Safe Furion transfer (check if the pool has enough Furion token)
+     * @notice Safe Furion transfer (check if the pool has enough Furion token, if not, transfer balance)
      * @param _to User's address
      * @param _amount Amount to transfer
      */
@@ -526,14 +553,14 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         internal
         returns (uint256)
     {
-        uint256 poolFurionBalance = Furion.balanceOf(address(this));
-        require(poolFurionBalance > 0, "No Furion token in the pool");
+        uint256 poolFurionBalance = furion.balanceOf(address(this));
+        require(poolFurionBalance > 0, "FARMING_POOL: NO_FUR_IN_POOL");
 
         if (_amount > poolFurionBalance) {
-            Furion.safeTransfer(_to, poolFurionBalance);
+            furion.safeTransfer(_to, poolFurionBalance);
             return (poolFurionBalance);
         } else {
-            Furion.safeTransfer(_to, _amount);
+            furion.safeTransfer(_to, _amount);
             return _amount;
         }
     }

@@ -10,6 +10,8 @@ export type { openzeppelin };
 
 export type { contracts };
 export * as factories from "./factories";
+export type { Pausable } from "./@openzeppelin/contracts/security/Pausable";
+export { Pausable__factory } from "./factories/@openzeppelin/contracts/security/Pausable__factory";
 export type { ERC20 } from "./@openzeppelin/contracts/token/ERC20/ERC20";
 export { ERC20__factory } from "./factories/@openzeppelin/contracts/token/ERC20/ERC20__factory";
 export type { ERC20Permit } from "./@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol/ERC20Permit";
@@ -20,6 +22,10 @@ export type { IERC20Metadata } from "./@openzeppelin/contracts/token/ERC20/exten
 export { IERC20Metadata__factory } from "./factories/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata__factory";
 export type { IERC20 } from "./@openzeppelin/contracts/token/ERC20/IERC20";
 export { IERC20__factory } from "./factories/@openzeppelin/contracts/token/ERC20/IERC20__factory";
+export type { FarmingPool } from "./contracts/furion-farming/FarmingPool";
+export { FarmingPool__factory } from "./factories/contracts/furion-farming/FarmingPool__factory";
+export type { IFarmingPool } from "./contracts/furion-farming/interfaces/IFarmingPool";
+export { IFarmingPool__factory } from "./factories/contracts/furion-farming/interfaces/IFarmingPool__factory";
 export type { FurionSwapFactory } from "./contracts/furion-swap/FurionSwapFactory";
 export { FurionSwapFactory__factory } from "./factories/contracts/furion-swap/FurionSwapFactory__factory";
 export type { FurionSwapPair } from "./contracts/furion-swap/FurionSwapPair";
@@ -60,5 +66,3 @@ export type { Ownable } from "./contracts/utils/Ownable";
 export { Ownable__factory } from "./factories/contracts/utils/Ownable__factory";
 export type { OwnableWithoutContext } from "./contracts/utils/OwnableWithoutContext";
 export { OwnableWithoutContext__factory } from "./factories/contracts/utils/OwnableWithoutContext__factory";
-export type { Pausable } from "./contracts/utils/Pausable";
-export { Pausable__factory } from "./factories/contracts/utils/Pausable__factory";

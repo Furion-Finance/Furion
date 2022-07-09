@@ -13,6 +13,10 @@ import { ethers } from "ethers";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "Pausable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Pausable__factory>;
+    getContractFactory(
       name: "ERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20__factory>;
@@ -32,6 +36,14 @@ declare module "hardhat/types/runtime" {
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
+      name: "FarmingPool",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.FarmingPool__factory>;
+    getContractFactory(
+      name: "IFarmingPool",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IFarmingPool__factory>;
     getContractFactory(
       name: "FurionSwapFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -118,6 +130,11 @@ declare module "hardhat/types/runtime" {
     ): Promise<Contracts.Pausable__factory>;
 
     getContractAt(
+      name: "Pausable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Pausable>;
+    getContractAt(
       name: "ERC20",
       address: string,
       signer?: ethers.Signer
@@ -142,6 +159,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "FarmingPool",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.FarmingPool>;
+    getContractAt(
+      name: "IFarmingPool",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IFarmingPool>;
     getContractAt(
       name: "FurionSwapFactory",
       address: string,

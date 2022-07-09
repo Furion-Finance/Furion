@@ -3,6 +3,9 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type * as security from "./security";
 import type * as token from "./token";
+
+export type { security };
 
 export type { token };

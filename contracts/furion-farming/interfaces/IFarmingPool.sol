@@ -19,7 +19,12 @@ interface IFarmingPool {
     function setFurionReward(
         uint256 _poolId,
         uint256 _basicFurionPerBlock,
-        uint256 _bonusFurionPerBlock,
+        bool _withUpdate
+    ) external;
+
+    function setFurionReward(
+        uint256[] calldata _poolId,
+        uint256[] calldata _basicFurionPerBlock,
         bool _withUpdate
     ) external;
 
@@ -32,6 +37,4 @@ interface IFarmingPool {
     function massUpdatePools() external;
 
     function harvest(uint256 _poolId, address _to) external;
-
-    function updateBonus(address _user, uint256 _newBalance) external;
 }

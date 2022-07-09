@@ -86,6 +86,29 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256[]",
+        name: "_poolId",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "_basicFurionPerBlock",
+        type: "uint256[]",
+      },
+      {
+        internalType: "bool",
+        name: "_withUpdate",
+        type: "bool",
+      },
+    ],
+    name: "setFurionReward",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "_poolId",
         type: "uint256",
@@ -93,11 +116,6 @@ const _abi = [
       {
         internalType: "uint256",
         name: "_basicFurionPerBlock",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_bonusFurionPerBlock",
         type: "uint256",
       },
       {
@@ -138,24 +156,6 @@ const _abi = [
       },
     ],
     name: "stake",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "_newBalance",
-        type: "uint256",
-      },
-    ],
-    name: "updateBonus",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

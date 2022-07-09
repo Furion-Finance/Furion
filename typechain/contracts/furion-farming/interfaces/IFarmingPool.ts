@@ -31,10 +31,10 @@ export interface IFarmingPoolInterface extends utils.Interface {
     "harvest(uint256,address)": FunctionFragment;
     "massUpdatePools()": FunctionFragment;
     "pendingFurion(uint256,address)": FunctionFragment;
-    "setFurionReward(uint256,uint256,uint256,bool)": FunctionFragment;
+    "setFurionReward(uint256[],uint256[],bool)": FunctionFragment;
+    "setFurionReward(uint256,uint256,bool)": FunctionFragment;
     "setStartBlock(uint256)": FunctionFragment;
     "stake(uint256,uint256)": FunctionFragment;
-    "updateBonus(address,uint256)": FunctionFragment;
     "updatePool(uint256)": FunctionFragment;
     "withdraw(uint256,uint256)": FunctionFragment;
   };
@@ -45,10 +45,10 @@ export interface IFarmingPoolInterface extends utils.Interface {
       | "harvest"
       | "massUpdatePools"
       | "pendingFurion"
-      | "setFurionReward"
+      | "setFurionReward(uint256[],uint256[],bool)"
+      | "setFurionReward(uint256,uint256,bool)"
       | "setStartBlock"
       | "stake"
-      | "updateBonus"
       | "updatePool"
       | "withdraw"
   ): FunctionFragment;
@@ -74,9 +74,16 @@ export interface IFarmingPoolInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "setFurionReward",
+    functionFragment: "setFurionReward(uint256[],uint256[],bool)",
     values: [
-      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<boolean>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFurionReward(uint256,uint256,bool)",
+    values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<boolean>
@@ -89,10 +96,6 @@ export interface IFarmingPoolInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "stake",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateBonus",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "updatePool",
@@ -114,7 +117,11 @@ export interface IFarmingPoolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setFurionReward",
+    functionFragment: "setFurionReward(uint256[],uint256[],bool)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setFurionReward(uint256,uint256,bool)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -122,10 +129,6 @@ export interface IFarmingPoolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updateBonus",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "updatePool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
@@ -182,10 +185,16 @@ export interface IFarmingPool extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    setFurionReward(
+    "setFurionReward(uint256[],uint256[],bool)"(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerBlock: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    "setFurionReward(uint256,uint256,bool)"(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerBlock: PromiseOrValue<BigNumberish>,
-      _bonusFurionPerBlock: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -198,12 +207,6 @@ export interface IFarmingPool extends BaseContract {
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    updateBonus(
-      _user: PromiseOrValue<string>,
-      _newBalance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -242,10 +245,16 @@ export interface IFarmingPool extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  setFurionReward(
+  "setFurionReward(uint256[],uint256[],bool)"(
+    _poolId: PromiseOrValue<BigNumberish>[],
+    _basicFurionPerBlock: PromiseOrValue<BigNumberish>[],
+    _withUpdate: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  "setFurionReward(uint256,uint256,bool)"(
     _poolId: PromiseOrValue<BigNumberish>,
     _basicFurionPerBlock: PromiseOrValue<BigNumberish>,
-    _bonusFurionPerBlock: PromiseOrValue<BigNumberish>,
     _withUpdate: PromiseOrValue<boolean>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -258,12 +267,6 @@ export interface IFarmingPool extends BaseContract {
   stake(
     _poolId: PromiseOrValue<BigNumberish>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  updateBonus(
-    _user: PromiseOrValue<string>,
-    _newBalance: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -300,10 +303,16 @@ export interface IFarmingPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    setFurionReward(
+    "setFurionReward(uint256[],uint256[],bool)"(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerBlock: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setFurionReward(uint256,uint256,bool)"(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerBlock: PromiseOrValue<BigNumberish>,
-      _bonusFurionPerBlock: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -316,12 +325,6 @@ export interface IFarmingPool extends BaseContract {
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    updateBonus(
-      _user: PromiseOrValue<string>,
-      _newBalance: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -363,10 +366,16 @@ export interface IFarmingPool extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    setFurionReward(
+    "setFurionReward(uint256[],uint256[],bool)"(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerBlock: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    "setFurionReward(uint256,uint256,bool)"(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerBlock: PromiseOrValue<BigNumberish>,
-      _bonusFurionPerBlock: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -379,12 +388,6 @@ export interface IFarmingPool extends BaseContract {
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    updateBonus(
-      _user: PromiseOrValue<string>,
-      _newBalance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -424,10 +427,16 @@ export interface IFarmingPool extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    setFurionReward(
+    "setFurionReward(uint256[],uint256[],bool)"(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerBlock: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setFurionReward(uint256,uint256,bool)"(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerBlock: PromiseOrValue<BigNumberish>,
-      _bonusFurionPerBlock: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -440,12 +449,6 @@ export interface IFarmingPool extends BaseContract {
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    updateBonus(
-      _user: PromiseOrValue<string>,
-      _newBalance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

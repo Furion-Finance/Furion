@@ -3,3 +3,4 @@
 /* eslint-disable */
 export * as interfaces from "./interfaces";
 export { FarmingPool__factory } from "./FarmingPool__factory";
+export { FarmingPoolUpgradeable__factory } from "./FarmingPoolUpgradeable__factory";

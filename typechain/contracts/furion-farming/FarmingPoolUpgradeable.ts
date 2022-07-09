@@ -29,7 +29,7 @@ import type {
   utils,
 } from "ethers";
 
-export declare namespace FarmingPool {
+export declare namespace FarmingPoolUpgradeable {
   export type PoolInfoStruct = {
     lpToken: PromiseOrValue<string>;
     basicFurionPerSecond: PromiseOrValue<BigNumberish>;
@@ -50,7 +50,7 @@ export declare namespace FarmingPool {
   };
 }
 
-export interface FarmingPoolInterface extends utils.Interface {
+export interface FarmingPoolUpgradeableInterface extends utils.Interface {
   functions: {
     "SCALE()": FunctionFragment;
     "_nextPoolId()": FunctionFragment;
@@ -59,6 +59,7 @@ export interface FarmingPoolInterface extends utils.Interface {
     "getPoolList()": FunctionFragment;
     "getUserBalance(uint256,address)": FunctionFragment;
     "harvest(uint256,address)": FunctionFragment;
+    "initialize(address)": FunctionFragment;
     "isFarming(uint256)": FunctionFragment;
     "massUpdatePools()": FunctionFragment;
     "name()": FunctionFragment;
@@ -90,6 +91,7 @@ export interface FarmingPoolInterface extends utils.Interface {
       | "getPoolList"
       | "getUserBalance"
       | "harvest"
+      | "initialize"
       | "isFarming"
       | "massUpdatePools"
       | "name"
@@ -137,6 +139,10 @@ export interface FarmingPoolInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "harvest",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isFarming",
@@ -228,6 +234,7 @@ export interface FarmingPoolInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "harvest", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isFarming", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "massUpdatePools",
@@ -281,6 +288,7 @@ export interface FarmingPoolInterface extends utils.Interface {
     "FarmingPoolStopped(uint256,uint256)": EventFragment;
     "FurionRewardChanged(uint256,uint256)": EventFragment;
     "Harvest(address,address,uint256,uint256)": EventFragment;
+    "Initialized(uint8)": EventFragment;
     "NewPoolAdded(address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
@@ -295,6 +303,7 @@ export interface FarmingPoolInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "FarmingPoolStopped"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FurionRewardChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Harvest"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewPoolAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
@@ -353,6 +362,13 @@ export type HarvestEvent = TypedEvent<
 >;
 
 export type HarvestEventFilter = TypedEventFilter<HarvestEvent>;
+
+export interface InitializedEventObject {
+  version: number;
+}
+export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
+
+export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
 export interface NewPoolAddedEventObject {
   lpToken: string;
@@ -437,12 +453,12 @@ export type WithdrawEvent = TypedEvent<
 
 export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
-export interface FarmingPool extends BaseContract {
+export interface FarmingPoolUpgradeable extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: FarmingPoolInterface;
+  interface: FarmingPoolUpgradeableInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -479,7 +495,7 @@ export interface FarmingPool extends BaseContract {
 
     getPoolList(
       overrides?: CallOverrides
-    ): Promise<[FarmingPool.PoolInfoStructOutput[]]>;
+    ): Promise<[FarmingPoolUpgradeable.PoolInfoStructOutput[]]>;
 
     getUserBalance(
       _poolId: PromiseOrValue<BigNumberish>,
@@ -490,6 +506,11 @@ export interface FarmingPool extends BaseContract {
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    initialize(
+      _furion: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -613,7 +634,7 @@ export interface FarmingPool extends BaseContract {
 
   getPoolList(
     overrides?: CallOverrides
-  ): Promise<FarmingPool.PoolInfoStructOutput[]>;
+  ): Promise<FarmingPoolUpgradeable.PoolInfoStructOutput[]>;
 
   getUserBalance(
     _poolId: PromiseOrValue<BigNumberish>,
@@ -624,6 +645,11 @@ export interface FarmingPool extends BaseContract {
   harvest(
     _poolId: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  initialize(
+    _furion: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -747,7 +773,7 @@ export interface FarmingPool extends BaseContract {
 
     getPoolList(
       overrides?: CallOverrides
-    ): Promise<FarmingPool.PoolInfoStructOutput[]>;
+    ): Promise<FarmingPoolUpgradeable.PoolInfoStructOutput[]>;
 
     getUserBalance(
       _poolId: PromiseOrValue<BigNumberish>,
@@ -758,6 +784,11 @@ export interface FarmingPool extends BaseContract {
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    initialize(
+      _furion: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -899,6 +930,9 @@ export interface FarmingPool extends BaseContract {
       pendingReward?: null
     ): HarvestEventFilter;
 
+    "Initialized(uint8)"(version?: null): InitializedEventFilter;
+    Initialized(version?: null): InitializedEventFilter;
+
     "NewPoolAdded(address,uint256)"(
       lpToken?: null,
       basicFurionPerSecond?: null
@@ -979,6 +1013,11 @@ export interface FarmingPool extends BaseContract {
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    initialize(
+      _furion: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1100,6 +1139,11 @@ export interface FarmingPool extends BaseContract {
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      _furion: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

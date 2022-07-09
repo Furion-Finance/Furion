@@ -7,3 +7,4 @@ import type * as interfaces from "./interfaces";
 
 export type { interfaces };
 export type { FarmingPool } from "./FarmingPool";
+export type { FarmingPoolUpgradeable } from "./FarmingPoolUpgradeable";

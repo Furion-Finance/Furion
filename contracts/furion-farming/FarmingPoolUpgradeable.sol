@@ -2,13 +2,16 @@
 
 pragma solidity ^0.8.10;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {OwnableWithoutContext} from "../utils/OwnableWithoutContext.sol";
-import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
-import {IFurionToken} from "../tokens/interfaces/IFurionToken.sol";
-import {Math} from "../libraries/Math.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { 
+    ReentrancyGuardUpgradeable
+} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { IFurionToken } from "../tokens/interfaces/IFurionToken.sol";
+import { Math } from "../libraries/Math.sol";
 
 /*
 //===================================//
@@ -23,14 +26,18 @@ import {Math} from "../libraries/Math.sol";
 
 /**
  * @title  Farming Pool
- * @notice This contract is for Furion tokens and Furion LPTokens mining on Furion
+ * @notice This contract is for LPToken mining on Furion
  * @dev    The pool id starts from 1 rather than 0
- *         The FUR reward is calculated by timestamp rather than block number
- *         Farming rate will be reset daily according to their TVL in previous date
- *         Only top five pools + another random one will be rewarded
+ *         The Furion reward is calculated by timestamp rather than block number
+ *         This is one upgradeable version
  */
 
-contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
+contract FarmingPoolUpgradeable is
+    Initializable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    PausableUpgradeable
+{
     using SafeERC20 for IERC20;
     using SafeERC20 for IFurionToken;
     using Math for uint256;
@@ -54,12 +61,11 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     uint256 public startTimestamp;
 
     struct PoolInfo {
-        address lpToken; // LPToken address to farm FUR
+        address lpToken; // LPToken address
         uint256 basicFurionPerSecond; // Basic Reward speed
         uint256 lastRewardTimestamp; // Last reward timestamp
         uint256 accFurionPerShare; // Accumulated Furion per share
     }
-
     PoolInfo[] public poolList;
 
     // lptoken address => poolId
@@ -79,6 +85,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     // ---------------------------------------------------------------------------------------- //
     // *************************************** Events ***************************************** //
     // ---------------------------------------------------------------------------------------- //
+
     event StartTimestampChanged(uint256 startTimestamp);
     event Stake(address staker, uint256 poolId, uint256 amount);
     event Withdraw(address staker, uint256 poolId, uint256 amount);
@@ -109,13 +116,18 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     // ************************************* Constructor ************************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    constructor(address _furion) OwnableWithoutContext(msg.sender) {
+    function initialize(address _furion) public initializer {
+        require(_furion != address(0), "FARMING_POOL: ZERO_ADDRESS");
+
+        __Ownable_init();
+        __ReentrancyGuard_init_unchained();
+        __Pausable_init_unchained();
+
         furion = IFurionToken(_furion);
 
         // Start from 1
         _nextPoolId = 1;
 
-        // add one empty pool to make array index align with poolId
         poolList.push(
             PoolInfo({
                 lpToken: address(0),

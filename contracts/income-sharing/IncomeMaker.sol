@@ -23,7 +23,7 @@ import "../furion-swap/interfaces/IFurionSwapV2Router.sol";
 /**
  * @title Furion Income Maker Contract
  * @dev This contract will receive the transaction fee from swap pool
- *      Then it will transfer to income maker vault
+ *      All tx fees will be converted into FUR firstly, then transfer to income maker vault
  */
 contract IncomeMaker is OwnableUpgradeable {
     using SafeERC20 for IERC20;
@@ -32,7 +32,8 @@ contract IncomeMaker is OwnableUpgradeable {
     // ************************************* Constants **************************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    uint256 public constant UINT256_MAX = type(uint256).max;
+    uint public constant uint_MAX = type(uint).max;
+    uint public constant PRICE_SCALE = 1e6;
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Variables **************************************** //
@@ -44,27 +45,25 @@ contract IncomeMaker is OwnableUpgradeable {
 
     address public incomeSharingVault;
 
-    uint256 public PRICE_SCALE = 1e6;
+    // all income would be converted to one uniform token, default by FUR
+    address public incomeToken;
 
     // ---------------------------------------------------------------------------------------- //
     // *************************************** Events ***************************************** //
     // ---------------------------------------------------------------------------------------- //
+    event IncomeTokenChanged(
+        address oldToken,
+        address newToken
+    );
 
     event IncomeToToken(
         address otherTokenAddress,
-        address outputTokenAddress,
-        uint256 amountOut
+        address incomeTokenAddress,
+        uint amountIn,
+        uint amountOut
     );
 
-    event ConvertIncome(
-        address caller,
-        address otherTokenAddress,
-        address outputTokenAddress,
-        uint256 otherTokenAmount, // Amount of other token by burning lp tokens
-        uint256 outputTokenAmount, // Amount of outputToken by burning lp tokens
-        uint256 outputTokenBackAmount // Amount of outputToken by swapping other tokens
-    );
-    event EmergencyWithdraw(address token, uint256 amount);
+    event EmergencyWithdraw(address token, uint amount);
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Constructor ************************************** //
@@ -72,17 +71,20 @@ contract IncomeMaker is OwnableUpgradeable {
 
     /**
      * @notice Initialize function
+     * @param _incomeToken Address of income token, default by FUR
      * @param _router Address of the FurionSwap router
      * @param _factory Address of the FurionSwap factory
      * @param _vault Address of the income sharing vault
      */
     function initialize(
+        address _incomeToken,
         address _router,
         address _factory,
         address _vault
     ) public initializer {
         __Ownable_init();
 
+        incomeToken = _incomeToken;
         router = IFurionSwapV2Router(_router);
         factory = IFurionSwapFactory(_factory);
 
@@ -94,16 +96,21 @@ contract IncomeMaker is OwnableUpgradeable {
     // ---------------------------------------------------------------------------------------- //
 
     /**
-     * @notice Convert the income to outputToken and transfer to the incomeSharingVault
-     * @param _otherToken Address of the other token
-     * @param _outputToken Address of the outputcoi
+     * @notice Collect income from furion swap, turn token into incomeToken, and transfer to the incomeSharingVault
+     * @param _tokenA Address of tokenA for trading pair
+     * @param _tokenB Address of tokenB for trading pair
+     * @return amountIncome Amount of income collected
      */
-    function convertIncome(address _otherToken, address _outputToken) external {
+    function collectIncomeFromSwap(address _tokenA, address _tokenB)
+    external returns (uint amountIncome){
         // Get the pair
         IFurionSwapPair pair = IFurionSwapPair(
-            factory.getPair(_otherToken, _outputToken)
-        );
-        require(address(pair) != address(0), "Pair not exist");
+            factory.getPair(_tokenA, _tokenB));
+        require(address(pair) != address(0), "INCOME_MAKER: PAIR_NOT_EXIST");
+
+        (address token0, address token1) = _tokenA < _tokenB
+            ? (_tokenA, _tokenB)
+            : (_tokenB, _tokenA);
 
         // Transfer lp token to the pool and get two tokens
         IERC20(address(pair)).safeTransfer(
@@ -112,30 +119,12 @@ contract IncomeMaker is OwnableUpgradeable {
         );
 
         // Directly call the pair to burn lp tokens
-        (uint256 amount0, uint256 amount1) = pair.burn(address(this));
+        (uint amount0, uint amount1) = pair.burn(address(this));
 
-        // Finish swap
-        uint256 amountOut = _swap(
-            _otherToken,
-            _outputToken,
-            amount0,
-            address(this)
-        );
+        uint amountIncome0 = _convertIncome(token0, amount0);
+        uint amountIncome1 = _convertIncome(token1, amount1);
 
-        // Transfer all outputTokens to income sharing vault
-        IERC20(_outputToken).safeTransfer(
-            incomeSharingVault,
-            IERC20(_outputToken).balanceOf(address(this))
-        );
-
-        emit ConvertIncome(
-            msg.sender,
-            _otherToken,
-            _outputToken,
-            amount0,
-            amount1,
-            amountOut
-        );
+        amountIncome = amountIncome0 + amountIncome1;
     }
 
     /**
@@ -143,7 +132,7 @@ contract IncomeMaker is OwnableUpgradeable {
      * @param _token Address of the token
      * @param _amount Amount of the token
      */
-    function emergencyWithdraw(address _token, uint256 _amount)
+    function emergencyWithdraw(address _token, uint _amount)
         external
         onlyOwner
     {
@@ -152,42 +141,84 @@ contract IncomeMaker is OwnableUpgradeable {
     }
 
     // ---------------------------------------------------------------------------------------- //
+    // ************************************ Set Functions ************************************* //
+    // ---------------------------------------------------------------------------------------- //
+
+    function setIncomeToken(address _newIncomeToken) external onlyOwner {
+        require(_newIncomeToken != address(0), "INCOME_MAKER: ZERO_ADDRESS");
+        incomeToken = _newIncomeToken;
+        emit IncomeTokenChanged(incomeToken, _newIncomeToken);
+    }
+
+    // ---------------------------------------------------------------------------------------- //
     // *********************************** Internal Functions ********************************* //
     // ---------------------------------------------------------------------------------------- //
 
     /**
-     * @notice Swap other tokens to outputTokens
+     * @notice Convert the income to incomeToken and transfer to the incomeSharingVault
+     * @param _otherToken Address of the other token
+     */
+    function _convertIncome(address _otherToken, uint _amountToken) internal returns (uint amountIncome){
+        if(_otherToken != incomeToken){
+            // Get the pair
+            IFurionSwapPair pair = IFurionSwapPair(factory.getPair(_otherToken, incomeToken));
+            require(address(pair) != address(0), "INCOME_MAKER: PAIR_NOT_EXIST");
+
+            amountIncome = _swap(
+                _otherToken,
+                _amountToken,
+                address(this)
+            );
+
+            emit IncomeToToken(_otherToken, incomeToken, _amountToken, amountIncome);
+        }
+        
+        // Transfer all incomeTokens to income sharing vault
+        IERC20(incomeToken).safeTransfer(
+            incomeSharingVault,
+            IERC20(incomeToken).balanceOf(address(this))
+        );
+    }
+
+    /**
+     * @notice Swap other tokens to incomeToken
      * @param _otherToken Address of other token
-     * @param _outputToken Address of outputToken
      * @param _amount Amount of other token
      * @param _to Address of the receiver
      */
     function _swap(
         address _otherToken,
-        address _outputToken,
-        uint256 _amount,
+        uint _amount,
         address _to
-    ) internal returns (uint256 amountOut) {
+    ) internal returns (uint amountOut) {
         // Get the pair
         IFurionSwapPair pair = IFurionSwapPair(
-            factory.getPair(_otherToken, _outputToken)
+            factory.getPair(_otherToken, incomeToken)
         );
-        require(address(pair) != address(0), "Pair not exist");
+        require(address(pair) != address(0), "INCOME_MAKER: PAIR_NOT_EXIST");
 
-        (uint256 reserve0, uint256 reserve1) = pair.getReserves();
+        (uint reserve0, uint reserve1) = pair.getReserves();
 
-        uint256 feeRate = pair.feeRate();
+        (uint reserveIn, uint reserveOut) = _otherToken < incomeToken
+            ? (reserve0, reserve1)
+            : (reserve1, reserve0);
+
+        uint feeRate = pair.feeRate();
 
         // Calculate amountIn - fee
-        uint256 amountInWithFee = _amount * (1000 - feeRate);
+        uint amountInWithFee = _amount * (1000 - feeRate);
 
         // Calculate amountOut
         amountOut =
-            (amountInWithFee * reserve1) /
-            (reserve0 * 1000 + amountInWithFee);
+            (amountInWithFee * reserveOut) /
+            (reserveIn * 1000 + amountInWithFee);
 
         // Transfer other token and swap
         IERC20(_otherToken).safeTransfer(address(pair), _amount);
-        pair.swap(0, amountOut, _to);
+
+        (uint amount0Out, uint amount1Out) = _otherToken < incomeToken
+            ? (uint(0), amountOut)
+            : (amountOut, uint(0));
+        pair.swap(amount0Out, amount1Out, _to);
     }
 }

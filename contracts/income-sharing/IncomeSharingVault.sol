@@ -28,17 +28,18 @@ import "hardhat/console.sol";
  * @title Furion's Income Sharing Contract with veFUR
  * @notice This contract will receive part of the income from Furion products
  *         And the income will be shared by FUR holders (in the form of veFUR staking)
+ *         All income come out as one same token(income token, FUR by default)
  *
  *         It is designed to be an ever-lasting reward
  *
  *         To enter the income sharing vault, you need to lock some veFUR
  *             - When your veFUR is locked, it can not be withdrawed
  *
- *         The reward is distributed per second like a farming pool
+ *         The reward is FIStributed per second like a farming pool
  *         The income will come from (to be updated)
  *             - IncomeMaker: Collect swap fee in furion swap pool
  */
- 
+
 contract IncomeSharingVault is
     OwnableUpgradeable,
     PausableUpgradeable,
@@ -52,6 +53,7 @@ contract IncomeSharingVault is
 
     uint256 public constant SCALE = 1e30;
 
+    // How long one single round would last
     uint256 public roundTime;
 
     IVeFUR public veFUR;
@@ -64,17 +66,19 @@ contract IncomeSharingVault is
         uint256 accRewardPerShare;
         uint256 lastRewardTimestamp;
     }
-    // Pool Id
-    // 1: USDC.e as reward
-    // 2: Shield as reward
+
+    // PoolId => PoolInfo, different pool with different reward token
     mapping(uint256 => PoolInfo) public pools;
 
     struct UserInfo {
         uint256 totalAmount;
         uint256 rewardDebt;
     }
+
+    // poolId => user address => user info
     mapping(uint256 => mapping(address => UserInfo)) public users;
 
+    // next pool id, starting from 1
     uint256 public nextPool;
 
     // ---------------------------------------------------------------------------------------- //
@@ -93,11 +97,11 @@ contract IncomeSharingVault is
     // *************************************** Errors ***************************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    // Errors start with DIS(FURis Income Sharing)
-    error DIS__PoolNotAvailable();
-    error DIS__ZeroAmount();
-    error DIS__NotEnoughVeFUR();
-    error DIS__WrongSpeed();
+    // Errors start with FIS(Furion Income Sharing)
+    error FIS__PoolNotAvailable();
+    error FIS__ZeroAmount();
+    error FIS__NotEnoughVeFUR();
+    error FIS__WrongSpeed();
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Constructor ************************************** //
@@ -111,6 +115,9 @@ contract IncomeSharingVault is
         veFUR = IVeFUR(_veFUR);
 
         nextPool = 1;
+
+        // 7 days every round by default
+        roundTime = 3600 * 24 * 7;
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -179,9 +186,7 @@ contract IncomeSharingVault is
 
     /**
      * @notice Start a new income sharing pool
-     * @dev Normally there will be two pools
-     *          - USDC.e as reward (1)
-     *          - Shield as reward (2)
+     * @dev Every pool would have its own reward token
      * @param _rewardToken Reward token address
      */
     function startPool(address _rewardToken) external onlyOwner {
@@ -209,7 +214,7 @@ contract IncomeSharingVault is
         if (
             roundTime * _rewardPerSecond >
             IERC20(pool.rewardToken).balanceOf(address(this))
-        ) revert DIS__WrongSpeed();
+        ) revert FIS__WrongSpeed();
 
         pools[_poolId].rewardPerSecond = _rewardPerSecond;
 
@@ -226,9 +231,9 @@ contract IncomeSharingVault is
      * @param _amount Amount of tokens to deposit
      */
     function deposit(uint256 _poolId, uint256 _amount) external nonReentrant {
-        if (!pools[_poolId].available) revert DIS__PoolNotAvailable();
-        if (_amount == 0) revert DIS__ZeroAmount();
-        if (veFUR.balanceOf(msg.sender) < _amount) revert DIS__NotEnoughVeFUR();
+        if (!pools[_poolId].available) revert FIS__PoolNotAvailable();
+        if (_amount == 0) revert FIS__ZeroAmount();
+        if (veFUR.balanceOf(msg.sender) < _amount) revert FIS__NotEnoughVeFUR();
 
         updatePool(_poolId);
 
@@ -276,12 +281,12 @@ contract IncomeSharingVault is
      * @param _amount Amount to withdraw
      */
     function withdraw(uint256 _poolId, uint256 _amount) public nonReentrant {
-        if (_amount == 0) revert DIS__ZeroAmount();
+        if (_amount == 0) revert FIS__ZeroAmount();
 
         PoolInfo storage pool = pools[_poolId];
         UserInfo storage user = users[_poolId][msg.sender];
 
-        if (user.totalAmount < _amount) revert DIS__NotEnoughVeFUR();
+        if (user.totalAmount < _amount) revert FIS__NotEnoughVeFUR();
 
         updatePool(_poolId);
 

@@ -4,6 +4,7 @@
 export * as furionFarming from "./furion-farming";
 export * as furionStaking from "./furion-staking";
 export * as furionSwap from "./furion-swap";
+export * as incomeSharing from "./income-sharing";
 export * as libraries from "./libraries";
 export * as mock from "./mock";
 export * as tokens from "./tokens";

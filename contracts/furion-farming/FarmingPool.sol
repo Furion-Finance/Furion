@@ -233,7 +233,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
      * @param _basicFurionPerSecond New basic reward amount per second
      * @param _withUpdate Whether update all pools
      */
-    function setFurionReward(
+    function setFurionRewards(
         uint256[] calldata _poolId,
         uint256[] calldata _basicFurionPerSecond,
         bool _withUpdate

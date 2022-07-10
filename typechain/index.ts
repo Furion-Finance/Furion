@@ -60,6 +60,10 @@ export type { IFurionSwapV2Router } from "./contracts/furion-swap/interfaces/IFu
 export { IFurionSwapV2Router__factory } from "./factories/contracts/furion-swap/interfaces/IFurionSwapV2Router__factory";
 export type { Greeter } from "./contracts/Greeter";
 export { Greeter__factory } from "./factories/contracts/Greeter__factory";
+export type { IncomeMaker } from "./contracts/income-sharing/IncomeMaker";
+export { IncomeMaker__factory } from "./factories/contracts/income-sharing/IncomeMaker__factory";
+export type { IncomeSharingVault } from "./contracts/income-sharing/IncomeSharingVault";
+export { IncomeSharingVault__factory } from "./factories/contracts/income-sharing/IncomeSharingVault__factory";
 export type { SafePRBMathTester } from "./contracts/libraries/SafePRBMathTester";
 export { SafePRBMathTester__factory } from "./factories/contracts/libraries/SafePRBMathTester__factory";
 export type { StringsUtilsTester } from "./contracts/libraries/StringsUtilsTester";

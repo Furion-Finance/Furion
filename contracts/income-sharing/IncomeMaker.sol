@@ -48,12 +48,19 @@ contract IncomeMaker is OwnableUpgradeable {
     // all income would be converted to one uniform token, default by FUR
     address public incomeToken;
 
+    // proportion allocated to income sharing vault, 0-100, 80 by default
+    uint8 public incomeProportion = 80;
+
     // ---------------------------------------------------------------------------------------- //
     // *************************************** Events ***************************************** //
     // ---------------------------------------------------------------------------------------- //
     event IncomeTokenChanged(
         address oldToken,
         address newToken
+    );
+    event IncomeProportionChanged(
+        uint8 oldProportion,
+        uint8 newProportion
     );
 
     event IncomeToToken(
@@ -150,6 +157,12 @@ contract IncomeMaker is OwnableUpgradeable {
         emit IncomeTokenChanged(incomeToken, _newIncomeToken);
     }
 
+    function setIncomeProportion(uint8 _newIncomeProportion) external onlyOwner {
+        require(_newIncomeProportion <= 100, "INCOME_MAKER: EXCEED_PROPORTION_RANGE");
+        incomeProportion = _newIncomeProportion;
+        emit IncomeProportionChanged(incomeProportion, _newIncomeProportion);
+    }
+
     // ---------------------------------------------------------------------------------------- //
     // *********************************** Internal Functions ********************************* //
     // ---------------------------------------------------------------------------------------- //
@@ -176,7 +189,7 @@ contract IncomeMaker is OwnableUpgradeable {
         // Transfer all incomeTokens to income sharing vault
         IERC20(incomeToken).safeTransfer(
             incomeSharingVault,
-            IERC20(incomeToken).balanceOf(address(this))
+            IERC20(incomeToken).balanceOf(address(this)) * incomeProportion / 100
         );
     }
 

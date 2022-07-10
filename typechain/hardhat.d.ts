@@ -113,6 +113,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Greeter__factory>;
     getContractFactory(
+      name: "IncomeMaker",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IncomeMaker__factory>;
+    getContractFactory(
+      name: "IncomeSharingVault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IncomeSharingVault__factory>;
+    getContractFactory(
       name: "SafePRBMathTester",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SafePRBMathTester__factory>;
@@ -294,6 +302,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Greeter>;
+    getContractAt(
+      name: "IncomeMaker",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IncomeMaker>;
+    getContractAt(
+      name: "IncomeSharingVault",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IncomeSharingVault>;
     getContractAt(
       name: "SafePRBMathTester",
       address: string,

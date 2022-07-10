@@ -161,7 +161,7 @@ describe("Furion Swap V2 Router", function(){
             let balance0: BigNumber, balance1: BigNumber;
             if (erc.address < usd.address){
                 balance0 = toWei("99.999999999");
-                balance1 = stablecoinToWei("99");
+                balance1 = stablecoinToWei("99.999999");
             }else{
                 balance1 = toWei("99.999999999");
                 balance0 = stablecoinToWei("99.999999");

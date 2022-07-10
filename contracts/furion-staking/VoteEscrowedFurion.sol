@@ -186,100 +186,6 @@ contract VoteEscrowedFurion is
     }
 
     // ---------------------------------------------------------------------------------------- //
-    // ************************************ View Functions ************************************ //
-    // ---------------------------------------------------------------------------------------- //
-
-    /**
-     * @notice Calculate the amount of veFUR that can be claimed by user
-     * @param _user User address
-     * @return claimableAmount Claimable amount of the user
-     */
-    function claimable(address _user) public view returns (uint256) {
-        if (_user == address(0)) revert VEF__ZeroAddress();
-
-        UserInfo memory user = users[_user];
-
-        // Seconds passed since last claim
-        uint256 timePassed = block.timestamp - user.lastRelease;
-
-        uint256 realCapRatio = _getCapRatio(_user);
-
-        uint256 pending;
-
-        pending = Math.wmul(user.amount, timePassed * generationRate);
-
-        // get user's veFUR balance
-        uint256 userVeFURBalance = balanceOf(_user) -
-            user.amountLocked * realCapRatio;
-
-        // user veFUR balance cannot go above user.amount * maxCap
-        uint256 veFURCap = user.amount * realCapRatio;
-
-        // first, check that user hasn't reached the max limit yet
-        if (userVeFURBalance < veFURCap) {
-            // then, check if pending amount will make user balance overpass maximum amount
-            if (userVeFURBalance + pending > veFURCap) {
-                return veFURCap - userVeFURBalance;
-            } else {
-                return pending;
-            }
-        }
-        return 0;
-    }
-
-    // ---------------------------------------------------------------------------------------- //
-    // ************************************ Set Functions ************************************* //
-    // ---------------------------------------------------------------------------------------- //
-
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    function unpause() external onlyOwner {
-        _unpause();
-    }
-
-    /**
-     * @notice Add a new whitelist address
-     * @dev Only callable by the owner
-     * @param _account Address to add
-     */
-    function addWhitelist(address _account) external onlyOwner {
-        whitelist[_account] = true;
-        emit WhiteListAdded(_account);
-    }
-
-    /**
-     * @notice Remove a new whitelist address
-     * @dev Only callable by the owner
-     * @param _account Address to remove
-     */
-    function removeWhitelist(address _account) external onlyOwner {
-        whitelist[_account] = false;
-        emit WhiteListRemoVEF(_account);
-    }
-
-    /**
-     * @notice Set maxCap ratio
-     * @param _maxCapRatio the new max ratio
-     */
-    function setMaxCapRatio(uint256 _maxCapRatio) external onlyOwner {
-        if (_maxCapRatio == 0) revert VEF__ZeroAmount();
-        emit MaxCapRatioChanged(maxCapRatio, _maxCapRatio);
-        maxCapRatio = _maxCapRatio;
-    }
-
-    /**
-     * @notice Set generationRate
-     * @param _generationRate New generation rate
-     */
-    function setGenerationRate(uint256 _generationRate) external onlyOwner {
-        if (_generationRate == 0) revert VEF__ZeroAmount();
-        emit GenerationRateChanged(generationRate, _generationRate);
-        generationRate = _generationRate;
-    }
-
-    // ---------------------------------------------------------------------------------------- //
     // ************************************ Main Functions ************************************ //
     // ---------------------------------------------------------------------------------------- //
 
@@ -460,6 +366,100 @@ contract VoteEscrowedFurion is
 
         _burn(_to, _amount);
         emit BurnVeFUR(msg.sender, _to, _amount);
+    }
+
+     // ---------------------------------------------------------------------------------------- //
+    // ************************************ View Functions ************************************ //
+    // ---------------------------------------------------------------------------------------- //
+
+    /**
+     * @notice Calculate the amount of veFUR that can be claimed by user
+     * @param _user User address
+     * @return claimableAmount Claimable amount of the user
+     */
+    function claimable(address _user) public view returns (uint256) {
+        if (_user == address(0)) revert VEF__ZeroAddress();
+
+        UserInfo memory user = users[_user];
+
+        // Seconds passed since last claim
+        uint256 timePassed = block.timestamp - user.lastRelease;
+
+        uint256 realCapRatio = _getCapRatio(_user);
+
+        uint256 pending;
+
+        pending = Math.wmul(user.amount, timePassed * generationRate);
+
+        // get user's veFUR balance
+        uint256 userVeFURBalance = balanceOf(_user) -
+            user.amountLocked * realCapRatio;
+
+        // user veFUR balance cannot go above user.amount * maxCap
+        uint256 veFURCap = user.amount * realCapRatio;
+
+        // first, check that user hasn't reached the max limit yet
+        if (userVeFURBalance < veFURCap) {
+            // then, check if pending amount will make user balance overpass maximum amount
+            if (userVeFURBalance + pending > veFURCap) {
+                return veFURCap - userVeFURBalance;
+            } else {
+                return pending;
+            }
+        }
+        return 0;
+    }
+
+    // ---------------------------------------------------------------------------------------- //
+    // ************************************ Set Functions ************************************* //
+    // ---------------------------------------------------------------------------------------- //
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    /**
+     * @notice Add a new whitelist address
+     * @dev Only callable by the owner
+     * @param _account Address to add
+     */
+    function addWhitelist(address _account) external onlyOwner {
+        whitelist[_account] = true;
+        emit WhiteListAdded(_account);
+    }
+
+    /**
+     * @notice Remove a new whitelist address
+     * @dev Only callable by the owner
+     * @param _account Address to remove
+     */
+    function removeWhitelist(address _account) external onlyOwner {
+        whitelist[_account] = false;
+        emit WhiteListRemoVEF(_account);
+    }
+
+    /**
+     * @notice Set maxCap ratio
+     * @param _maxCapRatio the new max ratio
+     */
+    function setMaxCapRatio(uint256 _maxCapRatio) external onlyOwner {
+        if (_maxCapRatio == 0) revert VEF__ZeroAmount();
+        emit MaxCapRatioChanged(maxCapRatio, _maxCapRatio);
+        maxCapRatio = _maxCapRatio;
+    }
+
+    /**
+     * @notice Set generationRate
+     * @param _generationRate New generation rate
+     */
+    function setGenerationRate(uint256 _generationRate) external onlyOwner {
+        if (_generationRate == 0) revert VEF__ZeroAmount();
+        emit GenerationRateChanged(generationRate, _generationRate);
+        generationRate = _generationRate;
     }
 
     // ---------------------------------------------------------------------------------------- //

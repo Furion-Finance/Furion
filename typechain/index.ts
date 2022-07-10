@@ -38,6 +38,14 @@ export type { FarmingPoolUpgradeable } from "./contracts/furion-farming/FarmingP
 export { FarmingPoolUpgradeable__factory } from "./factories/contracts/furion-farming/FarmingPoolUpgradeable__factory";
 export type { IFarmingPool } from "./contracts/furion-farming/interfaces/IFarmingPool";
 export { IFarmingPool__factory } from "./factories/contracts/furion-farming/interfaces/IFarmingPool__factory";
+export type { IVeERC20 } from "./contracts/furion-staking/interfaces/IVeERC20";
+export { IVeERC20__factory } from "./factories/contracts/furion-staking/interfaces/IVeERC20__factory";
+export type { IVeFUR } from "./contracts/furion-staking/interfaces/IVeFUR";
+export { IVeFUR__factory } from "./factories/contracts/furion-staking/interfaces/IVeFUR__factory";
+export type { VeERC20Upgradeable } from "./contracts/furion-staking/VeERC20Upgradeable";
+export { VeERC20Upgradeable__factory } from "./factories/contracts/furion-staking/VeERC20Upgradeable__factory";
+export type { VoteEscrowedFurion } from "./contracts/furion-staking/VoteEscrowedFurion";
+export { VoteEscrowedFurion__factory } from "./factories/contracts/furion-staking/VoteEscrowedFurion__factory";
 export type { FurionSwapFactory } from "./contracts/furion-swap/FurionSwapFactory";
 export { FurionSwapFactory__factory } from "./factories/contracts/furion-swap/FurionSwapFactory__factory";
 export type { FurionSwapPair } from "./contracts/furion-swap/FurionSwapPair";

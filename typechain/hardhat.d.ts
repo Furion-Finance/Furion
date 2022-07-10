@@ -69,6 +69,22 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IFarmingPool__factory>;
     getContractFactory(
+      name: "IVeERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVeERC20__factory>;
+    getContractFactory(
+      name: "IVeFUR",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IVeFUR__factory>;
+    getContractFactory(
+      name: "VeERC20Upgradeable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VeERC20Upgradeable__factory>;
+    getContractFactory(
+      name: "VoteEscrowedFurion",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VoteEscrowedFurion__factory>;
+    getContractFactory(
       name: "FurionSwapFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FurionSwapFactory__factory>;
@@ -223,6 +239,26 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IFarmingPool>;
+    getContractAt(
+      name: "IVeERC20",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVeERC20>;
+    getContractAt(
+      name: "IVeFUR",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IVeFUR>;
+    getContractAt(
+      name: "VeERC20Upgradeable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VeERC20Upgradeable>;
+    getContractAt(
+      name: "VoteEscrowedFurion",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VoteEscrowedFurion>;
     getContractAt(
       name: "FurionSwapFactory",
       address: string,

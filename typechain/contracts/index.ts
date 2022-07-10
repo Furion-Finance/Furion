@@ -4,6 +4,7 @@
 
 /* eslint-disable */
 import type * as furionFarming from "./furion-farming";
+import type * as furionStaking from "./furion-staking";
 import type * as furionSwap from "./furion-swap";
 import type * as libraries from "./libraries";
 import type * as mock from "./mock";
@@ -11,6 +12,8 @@ import type * as tokens from "./tokens";
 import type * as utils from "./utils";
 
 export type { furionFarming };
+
+export type { furionStaking };
 
 export type { furionSwap };
 

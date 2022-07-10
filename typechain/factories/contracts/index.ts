@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as furionFarming from "./furion-farming";
+export * as furionStaking from "./furion-staking";
 export * as furionSwap from "./furion-swap";
 export * as libraries from "./libraries";
 export * as mock from "./mock";

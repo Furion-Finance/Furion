@@ -12,11 +12,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     // NFT address to pool address
     mapping(address => address) public getPool;
-    // Get NFT address for getting reference price from oracle
-    // Pool address to NFT address
-    mapping(address => address) public getNft;
 
-    address public checker;
+    IChecker Checker;
     address public fur;
     address[] public allPools;
 
@@ -30,7 +27,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     );
 
     constructor(address _checker, address _fur) {
-        checker = _checker;
+        Checker = IChecker(_checker);
         fur = _fur;
     }
 
@@ -69,7 +66,10 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         external
         returns (address poolAddress)
     {
-        require(checker != address(0), "ProjectPoolFactory: Checker not set.");
+        require(
+            address(Checker) != address(0),
+            "ProjectPoolFactory: Checker not set."
+        );
         require(_nftAddress != address(0), "ProjectPoolFactory: ZERO_ADDRESS");
         require(
             getPool[_nftAddress] == address(0),
@@ -94,9 +94,8 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         );
 
         getPool[_nftAddress] = poolAddress;
-        getNft[poolAddress] = _nftAddress;
         //allPools.push(poolAddress);
-        IChecker(checker).addToken(poolAddress);
+        Checker.addToken(poolAddress);
 
         emit PoolCreated(_nftAddress, poolAddress, allPools.length);
     }

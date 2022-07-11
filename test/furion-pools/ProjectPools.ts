@@ -99,7 +99,6 @@ describe("Project Pools", function () {
         await expect(this.ppf.createPool(this.nft.address)).to.emit(this.ppf, "PoolCreated");
         // Check state change on factory contract
         expect(await this.ppf.getPool(this.nft.address)).to.equal(poolAddress);
-        expect(await this.ppf.getNft(poolAddress)).to.equal(this.nft.address);
 
         // Connect to deployed token contract
         this.pp = <ProjectPool>await ethers.getContractAt("ProjectPool", poolAddress);

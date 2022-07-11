@@ -117,7 +117,7 @@ contract IncomeSharingVault is
         nextPool = 1;
 
         // 7 days every round by default
-        roundTime = 3600 * 24 * 7;
+        // roundTime = 3600 * 24 * 7;
     }
 
     // ---------------------------------------------------------------------------------------- //

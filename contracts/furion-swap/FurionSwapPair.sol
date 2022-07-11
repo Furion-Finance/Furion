@@ -343,9 +343,9 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
                     uint256 incomeMakerProportion = IFurionSwapFactory(factory)
                         .incomeMakerProportion();
                     uint256 denominator = rootK *
-                        (1000 / incomeMakerProportion - 10) +
+                        (1000 / incomeMakerProportion - 100) +
                         rootKLast *
-                        10;
+                        100;
 
                     uint256 liquidity = numerator / denominator;
 

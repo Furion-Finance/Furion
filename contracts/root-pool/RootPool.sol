@@ -7,12 +7,13 @@ import "../project-pool/interfaces/IProjectPoolFactory.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 // For F-* token and FUR
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 // In this contract, pools refer to root pools and tokens refer to project pool
 // tokens (i.e. project pools)
 
 contract RootPool is ERC20Permit {
-    uint256 public constant MULTIPLIER = 1e18;
+    //uint256 public constant MULTIPLIER = 1e18;
     // For testing only
     uint256 constant NFT_PRICE = 15 ether;
     // For testing only, simulate NFT price growth
@@ -32,11 +33,23 @@ contract RootPool is ERC20Permit {
     // ID to token address
     mapping(uint256 => address) private getToken;
 
-    // 0 - 100
-    uint64 public stakeFeeRate = 1;
-    uint64 public unstakeFeeRate = 3;
-    // Serves as ID for F-* tokens in this pool
-    uint128 public tokenTypes;
+    // Fees in FUR
+    uint112 public stakeFee = 100 * 10**18;
+    uint112 public unstakeFee = 100 * 10**18;
+    // Serves as ID for F-* tokens in this pool (ID for next token to be registered)
+    uint32 public tokenTypes;
+
+    event RegisteredToken(address tokenAddress);
+    event StakedToken(
+        address indexed tokenAddress,
+        address indexed staker,
+        uint256 tokenAmount
+    );
+    event UnstakedToken(
+        address indexed tokenAddress,
+        address indexed unstaker,
+        uint256 tokenAmount
+    );
 
     constructor(
         address _fur,
@@ -61,7 +74,12 @@ contract RootPool is ERC20Permit {
             }
         }
 
-        tokenTypes = uint128(_tokens.length);
+        tokenTypes = uint32(_tokens.length);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "RootPool: Not permitted to call.");
+        _;
     }
 
     modifier onlyFactory() {
@@ -93,12 +111,14 @@ contract RootPool is ERC20Permit {
 
     /**
      * @dev Add F-* token to pool
-
-    function registerToken(address _tokenAddress) external onlyFactory {
+     */
+    function registerToken(address _tokenAddress) external onlyOwner {
         registered[_tokenAddress] = true;
-        numOfTokens++;
+        getToken[tokenTypes] = _tokenAddress;
+        tokenTypes++;
+
+        emit RegisteredToken(_tokenAddress);
     }
-    */
 
     /**
      * @dev Stake F-* tokens and mint FFT
@@ -117,13 +137,15 @@ contract RootPool is ERC20Permit {
         uint256 fftRefPrice = _refPricePerFFT(_price);
         // Amount of FFT to get before fee
         uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
-        // Amount of fee in FFT
-        uint256 fee = (mintAmount * stakeFeeRate) / 100;
 
+        // Transfer FUR (fees)
+        FUR.transferFrom(msg.sender, owner, 100 ether);
+        // Transfer pool tokens to be staked
         IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
+        // Mint FFT
+        _mint(msg.sender, mintAmount);
 
-        _mint(msg.sender, mintAmount - fee);
-        _mint(owner, fee);
+        emit StakedToken(_tokenAddress, msg.sender, _amount);
     }
 
     /**
@@ -141,17 +163,18 @@ contract RootPool is ERC20Permit {
         uint256 tokenRefPrice = _refPricePerToken(_tokenAddress, _price);
         uint256 fftRefPrice = _refPricePerFFT(_price);
 
-        uint256 fee = (_amount * unstakeFeeRate) / 100;
         // Amount of F-* tokens to get back
-        uint256 retrieveAmount = ((_amount - fee) * fftRefPrice) /
-            tokenRefPrice;
+        uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
 
-        // Transfer fee to fee receiver
-        transfer(owner, fee);
-        // Burn amount of FFT used for exchange
-        _burn(msg.sender, _amount - fee);
+        // Transfer FUR (fees)
+        FUR.transferFrom(msg.sender, owner, uint256(unstakeFee));
+        // Burn FFT used for exchange
+        _burn(msg.sender, _amount);
 
+        // Transfer pool tokens to caller
         IERC20(_tokenAddress).transfer(msg.sender, retrieveAmount);
+
+        emit UnstakedToken(_tokenAddress, msg.sender, retrieveAmount);
     }
 
     /**

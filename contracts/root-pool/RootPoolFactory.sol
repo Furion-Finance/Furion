@@ -29,14 +29,11 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
     event PoolCreated(address poolAddress, uint256 id);
 
-    constructor(
-        //address _fur,
-        //address _oracle,
-        address _checker
-    ) {
-        //fur = _fur;
-        //oracle = _oracle;
+    constructor(address _checker, address _fur) //address _oracle
+    {
         checker = _checker;
+        fur = _fur;
+        //oracle = _oracle;
     }
 
     /**

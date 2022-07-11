@@ -45,7 +45,9 @@ describe("Checker", async function () {
 
     // Deploy root pool factory
     const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-    this.rpf = <RootPoolFactory>await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address]);
+    this.rpf = <RootPoolFactory>(
+      await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address, this.furT.address])
+    );
   });
 
   it("should only allow owner to set factories", async function () {

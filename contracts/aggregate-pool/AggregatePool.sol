@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./interfaces/IFurionOracle.sol";
-import "../project-pool/interfaces/IProjectPoolFactory.sol";
+import "./interfaces/IFurionPricingOracle.sol";
+import "../separate-pool/interfaces/ISeparatePoolFactory.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 // For F-* token and FUR
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -12,7 +12,7 @@ import "hardhat/console.sol";
 // In this contract, pools refer to root pools and tokens refer to project pool
 // tokens (i.e. project pools)
 
-contract RootPool is ERC20Permit {
+contract AggregatePool is ERC20Permit {
     //uint256 public constant MULTIPLIER = 1e18;
     // For testing only
     uint256 constant NFT_PRICE = 15 ether;
@@ -20,7 +20,7 @@ contract RootPool is ERC20Permit {
     uint256 constant NFT_PRICE_1 = 18 ether;
 
     IERC20 FUR;
-    IFurionOracle Oracle;
+    IFurionPricingOracle Oracle;
 
     address public immutable factory;
     // Will be immutable for income sharing vault
@@ -61,7 +61,7 @@ contract RootPool is ERC20Permit {
     ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
         FUR = IERC20(_fur);
-        Oracle = IFurionOracle(_oracle);
+        Oracle = IFurionPricingOracle(_oracle);
         owner = _owner;
 
         // Checked support at factory, register tokens upon pool creation
@@ -78,12 +78,12 @@ contract RootPool is ERC20Permit {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "RootPool: Not permitted to call.");
+        require(msg.sender == owner, "AggregatePool: Not permitted to call.");
         _;
     }
 
     modifier onlyFactory() {
-        require(msg.sender == factory, "RootPool: Not permitted to call.");
+        require(msg.sender == factory, "AggregatePool: Not permitted to call.");
         _;
     }
 
@@ -91,7 +91,7 @@ contract RootPool is ERC20Permit {
     modifier tokenRegistered(address _tokenAddress) {
         require(
             registered[_tokenAddress] == true,
-            "RootPool: Token not accepted in this pool."
+            "AggregatePool: Token not accepted in this pool."
         );
         _;
     }
@@ -188,7 +188,7 @@ contract RootPool is ERC20Permit {
         returns (uint256)
     {
         /*
-        address nft = IProjectPoolFactory(factory).getNft(_tokenAddress);
+        address nft = ISeparatePoolFactory(factory).getNft(_tokenAddress);
 
         // Price of 1000 F-* tokens in terms of ETH
         uint256 refPrice = Oracle.getNFTPrice(nft, 0);

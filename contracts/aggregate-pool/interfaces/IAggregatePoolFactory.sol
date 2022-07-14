@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IRootPoolFactory {
+interface IAggregatePoolFactory {
     function oracle() external view returns (address);
 
     function getPool(uint256 _poolId) external view returns (address);

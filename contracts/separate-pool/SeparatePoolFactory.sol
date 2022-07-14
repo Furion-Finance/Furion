@@ -2,14 +2,14 @@
 
 pragma solidity ^0.8.0;
 
-import "./ProjectPool.sol";
-import "./interfaces/IProjectPool.sol";
-import "./interfaces/IProjectPoolFactory.sol";
+import "./SeparatePool.sol";
+import "./interfaces/ISeparatePool.sol";
+import "./interfaces/ISeparatePoolFactory.sol";
 import "../IChecker.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
+contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
     // NFT address to pool address
     mapping(address => address) public getPool;
 
@@ -51,7 +51,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
         _transferOwnership(_newOwner);
 
         for (uint256 i = 0; i < allPools.length; ) {
-            IProjectPool(allPools[i]).changeOwner(_newOwner);
+            ISeparatePool(allPools[i]).changeOwner(_newOwner);
 
             unchecked {
                 ++i;
@@ -68,12 +68,12 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
     {
         require(
             address(Checker) != address(0),
-            "ProjectPoolFactory: Checker not set."
+            "SeparatePoolFactory: Checker not set."
         );
-        require(_nftAddress != address(0), "ProjectPoolFactory: ZERO_ADDRESS");
+        require(_nftAddress != address(0), "SeparatePoolFactory: ZERO_ADDRESS");
         require(
             getPool[_nftAddress] == address(0),
-            "ProjectPoolFactory: PAIR_EXISTS"
+            "SeparatePoolFactory: PAIR_EXISTS"
         );
 
         (string memory tokenName, string memory tokenSymbol) = _tokenMetadata(
@@ -84,7 +84,7 @@ contract ProjectPoolFactory is IProjectPoolFactory, Ownable {
 
         // New way to invoke create2 without assembly, paranthesis still needed for empty constructor
         poolAddress = address(
-            new ProjectPool{salt: _salt}(
+            new SeparatePool{salt: _salt}(
                 _nftAddress,
                 fur,
                 owner(),

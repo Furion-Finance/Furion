@@ -6,17 +6,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Checker is Ownable {
     // Project pool factory
-    address public PP_FACTORY;
+    address public SP_FACTORY;
     // Root pool factory
-    address public RP_FACTORY;
+    address public AP_FACTORY;
 
     mapping(address => bool) private isFurion;
 
     modifier callable() {
         require(
             msg.sender == owner() ||
-                msg.sender == PP_FACTORY ||
-                msg.sender == RP_FACTORY,
+                msg.sender == SP_FACTORY ||
+                msg.sender == AP_FACTORY,
             "Checker: Not permitted to call."
         );
         _;
@@ -26,12 +26,12 @@ contract Checker is Ownable {
         return isFurion[_tokenAddress];
     }
 
-    function setPPFactory(address _ppFactory) external onlyOwner {
-        PP_FACTORY = _ppFactory;
+    function setSPFactory(address _spFactory) external onlyOwner {
+        SP_FACTORY = _spFactory;
     }
 
-    function setRPFactory(address _rpFactory) external onlyOwner {
-        RP_FACTORY = _rpFactory;
+    function setAPFactory(address _apFactory) external onlyOwner {
+        AP_FACTORY = _apFactory;
     }
 
     function addToken(address _tokenAddress) external callable {

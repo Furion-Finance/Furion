@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ProjectPool is ERC20Permit, IERC721Receiver {
+contract SeparatePool is ERC20Permit, IERC721Receiver {
     uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
 
@@ -55,12 +55,12 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "ProjectPool: Not permitted to call.");
+        require(msg.sender == owner, "SeparatePool: Not permitted to call.");
         _;
     }
 
     modifier onlyFactory() {
-        require(msg.sender == factory, "ProjectPool: Not permitted to call.");
+        require(msg.sender == factory, "SeparatePool: Not permitted to call.");
         _;
     }
 
@@ -71,11 +71,11 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
 
         require(
             lockInfo[fId].locker == msg.sender,
-            "ProjectPool: You did not lock this NFT."
+            "SeparatePool: You did not lock this NFT."
         );
         require(
             lockInfo[fId].releaseTime > uint96(block.timestamp),
-            "ProjectPool: NFT has already been released to public pool."
+            "SeparatePool: NFT has already been released to public pool."
         );
         _;
     }
@@ -87,11 +87,11 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
 
         require(
             lockInfo[fId].locker != address(0),
-            "ProjectPool: NFT is not locked."
+            "SeparatePool: NFT is not locked."
         );
         require(
             lockInfo[fId].releaseTime < uint96(block.timestamp),
-            "ProjectPool: Release time not yet reached."
+            "SeparatePool: Release time not yet reached."
         );
         _;
     }
@@ -116,7 +116,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
      * @dev Change fee rate for buying NFT after governance voting
      */
     function setBuyFeeRate(uint128 _rate) external onlyOwner {
-        require(_rate >= 0 && _rate <= 100, "ProjectPool: Invalid fee rate.");
+        require(_rate >= 0 && _rate <= 100, "SeparatePool: Invalid fee rate.");
         swapFeeRate = _rate;
     }
 
@@ -124,7 +124,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
      * @dev Change fee rate for redeeming NFT after governance voting
      */
     function setRedeemFeeRate(uint128 _rate) external onlyOwner {
-        require(_rate >= 0 && _rate <= 100, "ProjectPool: Invalid fee rate.");
+        require(_rate >= 0 && _rate <= 100, "SeparatePool: Invalid fee rate.");
         lockFeeRate = _rate;
     }
 
@@ -151,7 +151,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     function sell(uint256[] calldata _ids) external {
         // Number of NFTs in list
         uint256 length = _ids.length;
-        require(length <= 9, "ProjectPool: Can only sell 9 NFTs at once");
+        require(length <= 9, "SeparatePool: Can only sell 9 NFTs at once");
 
         for (uint256 i = 0; i < length; ) {
             // Mint total amount all at once
@@ -178,7 +178,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
     function buy(uint256[] calldata _ids) external {
         // Number of NFTs to buy
         uint256 length = _ids.length;
-        require(length <= 9, "ProjectPool: Can only buy 9 NFTs at once");
+        require(length <= 9, "SeparatePool: Can only buy 9 NFTs at once");
 
         uint256 burnTotal = SWAP_MINT_AMOUNT * length;
         uint256 feeTotal = 100 ether * length;
@@ -202,7 +202,7 @@ contract ProjectPool is ERC20Permit, IERC721Receiver {
      *        the moment of locking
      */
     function lock(uint256 _id, uint256 _lockCycle) external {
-        require(_lockCycle != 0, "ProjectPool: Invalid lock cycle");
+        require(_lockCycle != 0, "SeparatePool: Invalid lock cycle");
 
         bytes32 fId = getFurionId(_id);
 

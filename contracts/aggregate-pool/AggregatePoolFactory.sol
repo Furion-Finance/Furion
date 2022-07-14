@@ -2,16 +2,16 @@
 
 pragma solidity ^0.8.0;
 
-import "./RootPool.sol";
-import "./interfaces/IRootPool.sol";
-import "./interfaces/IRootPoolFactory.sol";
+import "./AggregatePool.sol";
+import "./interfaces/IAggregatePool.sol";
+import "./interfaces/IAggregatePoolFactory.sol";
 import "../IChecker.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
-contract RootPoolFactory is IRootPoolFactory, Ownable {
+contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
     using Counters for Counters.Counter;
 
     address public fur;
@@ -29,8 +29,10 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
     event PoolCreated(address poolAddress, uint256 id);
 
-    constructor(address _checker, address _fur) //address _oracle
-    {
+    constructor(
+        address _checker,
+        address _fur //address _oracle
+    ) {
         checker = _checker;
         fur = _fur;
         //oracle = _oracle;
@@ -56,7 +58,7 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
 
         // ID starts from 1
         for (uint256 i = 1; i <= poolId.current(); ) {
-            IRootPool(getPool[i]).changeOwner(_newOwner);
+            IAggregatePool(getPool[i]).changeOwner(_newOwner);
 
             unchecked {
                 ++i;
@@ -73,17 +75,20 @@ contract RootPoolFactory is IRootPoolFactory, Ownable {
         external
         returns (address poolAddress)
     {
-        require(checker != address(0), "RootPoolFactory: Checker not set.");
+        require(
+            checker != address(0),
+            "AggregatePoolFactory: Checker not set."
+        );
         poolId.increment();
 
         // Act as identifier for pools to ensure no duplications
         bytes32 _salt = keccak256(abi.encodePacked(_tokens));
         /*require(
             !alreadyExist[_salt],
-            "RootPoolFactory: Root pool for these NFTs already exists."
+            "AggregatePoolFactory: Root pool for these NFTs already exists."
         );*/
         poolAddress = address(
-            new RootPool{salt: _salt}(
+            new AggregatePool{salt: _salt}(
                 fur,
                 oracle,
                 owner(),

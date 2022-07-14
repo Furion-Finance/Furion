@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract FurionOracle is Ownable {
+contract FurionPricingOracle is Ownable {
     mapping(bytes32 => AggregatorV3Interface) priceFeed;
 
     mapping(address => uint256[]) public prices;

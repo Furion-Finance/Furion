@@ -4,8 +4,8 @@ import { artifacts, ethers, waffle } from "hardhat";
 import type { Artifact } from "hardhat/types";
 
 import type { Checker } from "../../src/types/contracts/Checker";
-import type { ProjectPoolFactory } from "../../src/types/contracts/project-pool/ProjectPoolFactory";
-import type { RootPoolFactory } from "../../src/types/contracts/root-pool/RootPoolFactory";
+import type { AggregatePoolFactory } from "../../src/types/contracts/aggregate-pool/AggregatePoolFactory";
+import type { SeparatePoolFactory } from "../../src/types/contracts/separate-pool/SeparatePoolFactory";
 import type { FurionTokenTest } from "../../src/types/contracts/test-only/FurionTokenTest";
 import type { NFTest } from "../../src/types/contracts/test-only/NFTest";
 import { Signers } from "../types";
@@ -38,35 +38,35 @@ describe("Checker", async function () {
     this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
 
     // Deploy project pool factory
-    const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
-    this.ppf = <ProjectPoolFactory>(
-      await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address, this.furT.address])
+    const spfArtifact: Artifact = await artifacts.readArtifact("SeparatePoolFactory");
+    this.spf = <SeparatePoolFactory>(
+      await waffle.deployContract(this.signers.admin, spfArtifact, [this.checker.address, this.furT.address])
     );
 
     // Deploy root pool factory
-    const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-    this.rpf = <RootPoolFactory>(
-      await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address, this.furT.address])
+    const apfArtifact: Artifact = await artifacts.readArtifact("AggregatePoolFactory");
+    this.apf = <AggregatePoolFactory>(
+      await waffle.deployContract(this.signers.admin, apfArtifact, [this.checker.address, this.furT.address])
     );
   });
 
   it("should only allow owner to set factories", async function () {
-    await expect(this.checker.connect(this.signers.bob).setPPFactory(this.ppf.address)).to.be.revertedWith(
+    await expect(this.checker.connect(this.signers.bob).setPPFactory(this.spf.address)).to.be.revertedWith(
       "Ownable: caller is not the owner",
     );
-    await expect(this.checker.connect(this.signers.bob).setRPFactory(this.rpf.address)).to.be.revertedWith(
+    await expect(this.checker.connect(this.signers.bob).setRPFactory(this.apf.address)).to.be.revertedWith(
       "Ownable: caller is not the owner",
     );
-    await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
-    await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
+    await this.checker.connect(this.signers.admin).setPPFactory(this.spf.address);
+    await this.checker.connect(this.signers.admin).setRPFactory(this.apf.address);
 
-    expect(await this.checker.PP_FACTORY()).to.equal(this.ppf.address);
-    expect(await this.checker.RP_FACTORY()).to.equal(this.rpf.address);
+    expect(await this.checker.PP_FACTORY()).to.equal(this.spf.address);
+    expect(await this.checker.RP_FACTORY()).to.equal(this.apf.address);
   });
 
   it("should only allow owner and factories to add tokens", async function () {
-    await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
-    await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
+    await this.checker.connect(this.signers.admin).setPPFactory(this.spf.address);
+    await this.checker.connect(this.signers.admin).setRPFactory(this.apf.address);
 
     await expect(this.checker.connect(this.signers.bob).addToken(this.furT.address)).to.be.revertedWith(
       "Checker: Not permitted to call.",
@@ -74,12 +74,12 @@ describe("Checker", async function () {
     await this.checker.connect(this.signers.admin).addToken(this.furT.address);
     expect(await this.checker.isFurionToken(this.furT.address)).to.equal(true);
 
-    const pp = await this.ppf.callStatic.createPool(this.nft.address);
-    await this.ppf.createPool(this.nft.address);
+    const pp = await this.spf.callStatic.createPool(this.nft.address);
+    await this.spf.createPool(this.nft.address);
     expect(await this.checker.isFurionToken(pp)).to.equal(true);
 
-    const rp = await this.rpf.callStatic.createPool([pp]);
-    await this.rpf.createPool([pp]);
+    const rp = await this.apf.callStatic.createPool([pp]);
+    await this.apf.createPool([pp]);
     expect(await this.checker.isFurionToken(rp)).to.equal(true);
   });
 });

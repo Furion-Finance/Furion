@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface IFurionOracle {
+interface IFurionPricingOracle {
     function getNFTPrice(address _token, uint256 _id)
         external
         view

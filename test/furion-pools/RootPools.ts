@@ -5,10 +5,10 @@ import { artifacts, ethers, waffle } from "hardhat";
 import type { Artifact } from "hardhat/types";
 
 import type { Checker } from "../../src/types/contracts/Checker";
-import type { ProjectPool } from "../../src/types/contracts/project-pool/ProjectPool";
-import type { ProjectPoolFactory } from "../../src/types/contracts/project-pool/ProjectPoolFactory";
-import type { RootPool } from "../../src/types/contracts/root-pool/RootPool";
-import type { RootPoolFactory } from "../../src/types/contracts/root-pool/RootPoolFactory";
+import type { AggregatePool } from "../../src/types/contracts/aggregate-pool/AggregatePool";
+import type { AggregatePoolFactory } from "../../src/types/contracts/aggregate-pool/AggregatePoolFactory";
+import type { SeparatePool } from "../../src/types/contracts/separate-pool/SeparatePool";
+import type { SeparatePoolFactory } from "../../src/types/contracts/separate-pool/SeparatePoolFactory";
 import type { FurionTokenTest } from "../../src/types/contracts/test-only/FurionTokenTest";
 import type { NFTest } from "../../src/types/contracts/test-only/NFTest";
 import type { NFTest1 } from "../../src/types/contracts/test-only/NFTest1";
@@ -35,8 +35,8 @@ describe("Root Pools", function () {
     this.signers.alice = signers[2];
   });
 
-  describe("RootPoolFactory", function () {
-    // Deploy clean ProjectPoolFactory and NFTest contract
+  describe("AggregatePoolFactory", function () {
+    // Deploy clean SeparatePoolFactory and NFTest contract
     beforeEach(async function () {
       // Deploy NFTs
       const nftArtifact: Artifact = await artifacts.readArtifact("NFTest");
@@ -73,90 +73,90 @@ describe("Root Pools", function () {
       this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
 
       // Deploy project pool factory
-      const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
-      this.ppf = <ProjectPoolFactory>(
-        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address, this.furT.address])
+      const spfArtifact: Artifact = await artifacts.readArtifact("SeparatePoolFactory");
+      this.spf = <SeparatePoolFactory>(
+        await waffle.deployContract(this.signers.admin, spfArtifact, [this.checker.address, this.furT.address])
       );
 
       // Deploy root pool factory
-      const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-      this.rpf = <RootPoolFactory>(
-        await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address, this.furT.address])
+      const apfArtifact: Artifact = await artifacts.readArtifact("AggregatePoolFactory");
+      this.apf = <AggregatePoolFactory>(
+        await waffle.deployContract(this.signers.admin, apfArtifact, [this.checker.address, this.furT.address])
       );
 
       // Set factories
-      await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
-      await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
+      await this.checker.connect(this.signers.admin).setPPFactory(this.spf.address);
+      await this.checker.connect(this.signers.admin).setRPFactory(this.apf.address);
 
       // Create project pools
-      const projectPool = await this.ppf.callStatic.createPool(this.nft.address);
-      await this.ppf.createPool(this.nft.address);
-      const projectPool1 = await this.ppf.callStatic.createPool(this.nft1.address);
-      await this.ppf.createPool(this.nft1.address);
-      this.pp = <ProjectPool>await ethers.getContractAt("ProjectPool", projectPool);
-      this.pp1 = <ProjectPool>await ethers.getContractAt("ProjectPool", projectPool1);
+      const SeparatePool = await this.spf.callStatic.createPool(this.nft.address);
+      await this.spf.createPool(this.nft.address);
+      const SeparatePool1 = await this.spf.callStatic.createPool(this.nft1.address);
+      await this.spf.createPool(this.nft1.address);
+      this.sp = <SeparatePool>await ethers.getContractAt("SeparatePool", SeparatePool);
+      this.sp1 = <SeparatePool>await ethers.getContractAt("SeparatePool", SeparatePool1);
     });
 
     context("PoolCreation", async function () {
       it("should create root pool with single token and register token", async function () {
-        const rootPool = await this.rpf.callStatic.createPool([this.pp.address]);
+        const AggregatePool = await this.apf.callStatic.createPool([this.sp.address]);
         // Check event emission
-        await expect(this.rpf.createPool([this.pp.address])).to.emit(this.rpf, "PoolCreated");
+        await expect(this.apf.createPool([this.sp.address])).to.emit(this.apf, "PoolCreated");
         // Check state change on factory contract
-        expect(await this.rpf.getPool(1)).to.equal(rootPool);
+        expect(await this.apf.getPool(1)).to.equal(AggregatePool);
 
         // Connect to deployed root pool contract
-        this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
+        this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
 
         // Check registtration
-        expect(await this.rp.registered(this.pp.address)).to.equal(true);
+        expect(await this.ap.registered(this.sp.address)).to.equal(true);
       });
 
       it("should create root pools with multiple tokens and register token", async function () {
-        const rootPool = await this.rpf.callStatic.createPool([this.pp.address, this.pp1.address]);
-        await this.rpf.createPool([this.pp.address, this.pp1.address]);
+        const AggregatePool = await this.apf.callStatic.createPool([this.sp.address, this.sp1.address]);
+        await this.apf.createPool([this.sp.address, this.sp1.address]);
         // Check state change on factory contract
-        expect(await this.rpf.getPool(1)).to.equal(rootPool);
+        expect(await this.apf.getPool(1)).to.equal(AggregatePool);
 
         // Connect to deployed root pool contract
-        this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
+        this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
 
         // Check registtration
-        expect(await this.rp.registered(this.pp.address)).to.equal(true);
-        expect(await this.rp.registered(this.pp1.address)).to.equal(true);
+        expect(await this.ap.registered(this.sp.address)).to.equal(true);
+        expect(await this.ap.registered(this.sp1.address)).to.equal(true);
       });
 
       it("should create different pools", async function () {
-        const rootPool = await this.rpf.callStatic.createPool([this.pp.address]);
-        await this.rpf.createPool([this.pp.address]);
-        const rootPool1 = await this.rpf.callStatic.createPool([this.pp.address, this.pp1.address]);
-        await this.rpf.createPool([this.pp.address, this.pp1.address]);
+        const AggregatePool = await this.apf.callStatic.createPool([this.sp.address]);
+        await this.apf.createPool([this.sp.address]);
+        const AggregatePool1 = await this.apf.callStatic.createPool([this.sp.address, this.sp1.address]);
+        await this.apf.createPool([this.sp.address, this.sp1.address]);
         // Check state change on factory contract
-        expect(await this.rpf.getPool(1)).to.equal(rootPool);
-        expect(await this.rpf.getPool(2)).to.equal(rootPool1);
+        expect(await this.apf.getPool(1)).to.equal(AggregatePool);
+        expect(await this.apf.getPool(2)).to.equal(AggregatePool1);
 
         // Connect to root pools
-        this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
-        this.rp1 = <RootPool>await ethers.getContractAt("RootPool", rootPool1);
+        this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
+        this.ap1 = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool1);
 
         // Check registration
-        expect(await this.rp.registered(this.pp.address)).to.equal(true);
-        expect(await this.rp1.registered(this.pp.address)).to.equal(true);
-        expect(await this.rp1.registered(this.pp1.address)).to.equal(true);
+        expect(await this.ap.registered(this.sp.address)).to.equal(true);
+        expect(await this.ap1.registered(this.sp.address)).to.equal(true);
+        expect(await this.ap1.registered(this.sp1.address)).to.equal(true);
       });
 
       /*
       it("should not create two same pools with same token list", async function () {
-        await this.rpf.createPool([this.pp.address]);
-        await expect(this.rpf.createPool([this.pp.address])).to.be.revertedWith(
-          "RootPoolFactory: Root pool for these NFTs already exists.",
+        await this.apf.createPool([this.sp.address]);
+        await expect(this.apf.createPool([this.sp.address])).to.be.revertedWith(
+          "AggregatePoolFactory: Root pool for these NFTs already exists.",
         );
       });
       */
     });
   });
 
-  describe("RootPool", async function () {
+  describe("AggregatePool", async function () {
     beforeEach(async function () {
       // Deploy NFTs
       const nftArtifact: Artifact = await artifacts.readArtifact("NFTest");
@@ -193,54 +193,54 @@ describe("Root Pools", function () {
       this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
 
       // Deploy project pool factory
-      const ppfArtifact: Artifact = await artifacts.readArtifact("ProjectPoolFactory");
-      this.ppf = <ProjectPoolFactory>(
-        await waffle.deployContract(this.signers.admin, ppfArtifact, [this.checker.address, this.furT.address])
+      const spfArtifact: Artifact = await artifacts.readArtifact("SeparatePoolFactory");
+      this.spf = <SeparatePoolFactory>(
+        await waffle.deployContract(this.signers.admin, spfArtifact, [this.checker.address, this.furT.address])
       );
 
       // Deploy root pool factory
-      const rpfArtifact: Artifact = await artifacts.readArtifact("RootPoolFactory");
-      this.rpf = <RootPoolFactory>(
-        await waffle.deployContract(this.signers.admin, rpfArtifact, [this.checker.address, this.furT.address])
+      const apfArtifact: Artifact = await artifacts.readArtifact("AggregatePoolFactory");
+      this.apf = <AggregatePoolFactory>(
+        await waffle.deployContract(this.signers.admin, apfArtifact, [this.checker.address, this.furT.address])
       );
 
       // Set factories
-      await this.checker.connect(this.signers.admin).setPPFactory(this.ppf.address);
-      await this.checker.connect(this.signers.admin).setRPFactory(this.rpf.address);
+      await this.checker.connect(this.signers.admin).setPPFactory(this.spf.address);
+      await this.checker.connect(this.signers.admin).setRPFactory(this.apf.address);
 
       // Create project pools
-      const projectPool = await this.ppf.callStatic.createPool(this.nft.address);
-      await this.ppf.createPool(this.nft.address);
-      const pool1Address = await this.ppf.callStatic.createPool(this.nft1.address);
-      await this.ppf.createPool(this.nft1.address);
-      this.pp = <ProjectPool>await ethers.getContractAt("ProjectPool", projectPool);
-      this.pp1 = <ProjectPool>await ethers.getContractAt("ProjectPool", pool1Address);
+      const SeparatePool = await this.spf.callStatic.createPool(this.nft.address);
+      await this.spf.createPool(this.nft.address);
+      const pool1Address = await this.spf.callStatic.createPool(this.nft1.address);
+      await this.spf.createPool(this.nft1.address);
+      this.sp = <SeparatePool>await ethers.getContractAt("SeparatePool", SeparatePool);
+      this.sp1 = <SeparatePool>await ethers.getContractAt("SeparatePool", pool1Address);
 
       // Bob sells NFT to project pools to get tokens (2000 F-NFT)
-      await this.nft.connect(this.signers.bob).approve(this.pp.address, 3);
-      await this.nft.connect(this.signers.bob).approve(this.pp.address, 4);
-      await this.pp.connect(this.signers.bob)["sell(uint256[])"]([3, 4]);
-      await this.nft1.connect(this.signers.bob).approve(this.pp1.address, 1);
-      await this.pp1.connect(this.signers.bob)["sell(uint256)"](1);
+      await this.nft.connect(this.signers.bob).approve(this.sp.address, 3);
+      await this.nft.connect(this.signers.bob).approve(this.sp.address, 4);
+      await this.sp.connect(this.signers.bob)["sell(uint256[])"]([3, 4]);
+      await this.nft1.connect(this.signers.bob).approve(this.sp1.address, 1);
+      await this.sp1.connect(this.signers.bob)["sell(uint256)"](1);
 
       // Create root pool for F-NFT, token is FFT1
-      const rootPool = await this.rpf.callStatic.createPool([this.pp.address]);
-      await this.rpf.createPool([this.pp.address]);
-      this.rp = <RootPool>await ethers.getContractAt("RootPool", rootPool);
+      const AggregatePool = await this.apf.callStatic.createPool([this.sp.address]);
+      await this.apf.createPool([this.sp.address]);
+      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
     });
 
     context("Staking", async function () {
       it("should stake F-* tokens to get FFT with 0.01 ETH being the ref price of FFT for the first stake", async function () {
         // Bob stakes all F-NFT
-        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+        await this.sp.connect(this.signers.bob).approve(this.ap.address, su("2000"));
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"), 0);
 
         // F-NFT in root pool
-        expect(await this.pp.balanceOf(this.rp.address)).to.equal(su("2000"));
+        expect(await this.sp.balanceOf(this.ap.address)).to.equal(su("2000"));
         // Bob gets ((15 / 1000) * 2000) / 0.01 = 3000 FFT1, based on the assumption that
         // the NFT now is worth 15 ETH and FFT has a ref price of 0.01 ETH for the first stake
-        expect(await this.rp.balanceOf(this.signers.bob.address)).to.equal(su("3000"));
+        expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su("3000"));
         // Admin is fee receiver, 100 = 100 FUR
         expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1100"));
         expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("900"));
@@ -248,32 +248,32 @@ describe("Root Pools", function () {
 
       it("should stake F-* tokens to get FFT with ref price of FFT correctly calculated", async function () {
         // Bob stakes 1000 F-NFT first
-        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("200"));
-        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("1000"), 0);
+        await this.sp.connect(this.signers.bob).approve(this.ap.address, su("2000"));
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("200"));
+        await this.ap.connect(this.signers.bob).stake(this.sp.address, su("1000"), 0);
 
         // Bob gets ((15 / 1000) * 1000) / 0.01 = 1500 FFT1, based on the assumption that
         // the NFT now is worth 15 ETH and FFT has a ref price of 0.01 ETH for the first stake
-        expect(await this.rp.balanceOf(this.signers.bob.address)).to.equal(su("1500"));
+        expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su("1500"));
 
         // Bob stakes remaining 1000 F-NFT, when price of NFT increases to 18 ETH
-        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("1000"), 1);
+        await this.ap.connect(this.signers.bob).stake(this.sp.address, su("1000"), 1);
 
         // FFT ref price = sum / circulating supply = ((18 / 1000) * 1000) / 1500 = 0.012 ETH
         // Bob gets ((18 / 1000) * 1000) / 0.012 = 1500 FFT1
-        expect(await this.rp.balanceOf(this.signers.bob.address)).to.equal(su("3000"));
+        expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su("3000"));
         // Admin is fee receiver, 100 + 100 = 200 FUR
         expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1200"));
         expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
-        expect(await this.pp.balanceOf(this.rp.address)).to.equal(su("2000"));
+        expect(await this.sp.balanceOf(this.ap.address)).to.equal(su("2000"));
       });
 
       it("should not allow staking of unregistered tokens", async function () {
         // Bob tries to stake F-NFT1 which is not registered to the root pool
-        await this.pp1.connect(this.signers.bob).approve(this.rp.address, su("1000"));
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await expect(this.rp.connect(this.signers.bob).stake(this.pp1.address, su("1000"), 0)).to.be.revertedWith(
-          "RootPool: Token not accepted in this pool.",
+        await this.sp1.connect(this.signers.bob).approve(this.ap.address, su("1000"));
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await expect(this.ap.connect(this.signers.bob).stake(this.sp1.address, su("1000"), 0)).to.be.revertedWith(
+          "AggregatePool: Token not accepted in this pool.",
         );
       });
     });
@@ -281,15 +281,15 @@ describe("Root Pools", function () {
     context("Unstaking", async function () {
       it("should unstake with correct calculations given no NFT price changes", async function () {
         // Bob stakes all F-NFT, gets 3000 FFT1
-        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+        await this.sp.connect(this.signers.bob).approve(this.ap.address, su("2000"));
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"), 0);
 
         // Bob unstakes with 3000 FFT1
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await this.rp.connect(this.signers.bob).unstake(this.pp.address, su("3000"), 0);
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await this.ap.connect(this.signers.bob).unstake(this.sp.address, su("3000"), 0);
         // Bob gets 3000 * (30 / 3000) / 0.015 = 2000 F-NFT
-        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("2000"));
+        expect(await this.sp.balanceOf(this.signers.bob.address)).to.equal(su("2000"));
         // Admin (fee receiver) gets 100 + 100 = 200 FUR
         expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1200"));
         expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
@@ -297,16 +297,16 @@ describe("Root Pools", function () {
 
       it("should unstake with correct calculations given NFT price changes", async function () {
         // Bob stakes all F-NFT, gets 3000 FFT1
-        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+        await this.sp.connect(this.signers.bob).approve(this.ap.address, su("2000"));
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"), 0);
 
         // Bob unstakes with 3000 FFT1
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await this.rp.connect(this.signers.bob).unstake(this.pp.address, su("3000"), 1);
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await this.ap.connect(this.signers.bob).unstake(this.sp.address, su("3000"), 1);
         // Price of NFT increases to 18 ETH
         // Bob gets 3000 * (36 / 3000) / 0.018 = 2000 F-NFT
-        expect(await this.pp.balanceOf(this.signers.bob.address)).to.equal(su("2000"));
+        expect(await this.sp.balanceOf(this.signers.bob.address)).to.equal(su("2000"));
         // Admin (fee receiver) gets 100 + 100 = 200 FUR
         expect(await this.furT.balanceOf(this.signers.admin.address)).to.equal(su("1200"));
         expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
@@ -314,13 +314,13 @@ describe("Root Pools", function () {
 
       it("should not allow unstaking of unregistered tokens", async function () {
         // Bob stakes all F-NFT, gets 3000 FFT1
-        await this.pp.connect(this.signers.bob).approve(this.rp.address, su("2000"));
-        await this.furT.connect(this.signers.bob).approve(this.rp.address, su("100"));
-        await this.rp.connect(this.signers.bob).stake(this.pp.address, su("2000"), 0);
+        await this.sp.connect(this.signers.bob).approve(this.ap.address, su("2000"));
+        await this.furT.connect(this.signers.bob).approve(this.ap.address, su("100"));
+        await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"), 0);
 
         // Bob tries to unstake with 3000 FFT1 to get F-NFT1 which is unregistered
-        await expect(this.rp.connect(this.signers.bob).unstake(this.pp1.address, su("3000"), 0)).to.be.revertedWith(
-          "RootPool: Token not accepted in this pool.",
+        await expect(this.ap.connect(this.signers.bob).unstake(this.sp1.address, su("3000"), 0)).to.be.revertedWith(
+          "AggregatePool: Token not accepted in this pool.",
         );
       });
     });

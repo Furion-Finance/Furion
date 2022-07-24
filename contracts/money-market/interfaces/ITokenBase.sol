@@ -1,0 +1,122 @@
+pragma solidity ^0.8.0;
+
+interface ITokenBase {
+    /**
+     * @notice Event emitted when interest is accrued
+     */
+    event AccrueInterest(
+        uint256 cashPrior,
+        uint256 interestAccumulated,
+        uint256 borrowIndex,
+        uint256 totalBorrows
+    );
+
+    /**
+     * @notice Event emitted when tokens are minted
+     */
+    event Supply(address supplier, uint256 supplyAmount, uint256 tokensMinted);
+
+    /**
+     * @notice Event emitted when tokens are redeemed
+     */
+    event Redeem(address redeemer, uint256 redeemAmount, uint256 redeemTokens);
+
+    /**
+     * @notice Event emitted when underlying is borrowed
+     */
+    event Borrow(
+        address borrower,
+        uint256 borrowAmount,
+        uint256 accountBorrows,
+        uint256 totalBorrows
+    );
+
+    /**
+     * @notice Event emitted when a borrow is repaid
+     */
+    event RepayBorrow(
+        address payer,
+        address borrower,
+        uint256 repayAmount,
+        uint256 accountBorrows,
+        uint256 totalBorrows
+    );
+
+    /**
+     * @notice Event emitted when a borrow is liquidated
+     */
+    event LiquidateBorrow(
+        address liquidator,
+        address borrower,
+        uint256 repayAmount,
+        address fTokenCollateral,
+        uint256 seizeTokens
+    );
+
+    /*** Admin Events ***/
+
+    /**
+     * @notice Event emitted when pendingAdmin is changed
+     */
+    event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
+
+    /**
+     * @notice Event emitted when pendingAdmin is accepted, which means admin is updated
+     */
+    event NewAdmin(address oldAdmin, address newAdmin);
+
+    function balanceOfUnderlying(address _account)
+        external
+        virtual
+        returns (uint256);
+
+    function getAccountSnapshot(address _account)
+        external
+        view
+        virtual
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        );
+
+    function borrowRatePerBlock() external view virtual returns (uint256);
+
+    function supplyRatePerBlock() external view virtual returns (uint256);
+
+    function totalBorrowsCurrent() external virtual returns (uint256);
+
+    function borrowBalanceCurrent(address _account)
+        external
+        virtual
+        returns (uint256);
+
+    function borrowBalanceStored(address _account)
+        external
+        view
+        virtual
+        returns (uint256);
+
+    function exchangeRateCurrent() external virtual returns (uint256);
+
+    function exchangeRateStored() external view virtual returns (uint256);
+
+    function getCash() external view virtual returns (uint256);
+
+    function accrueInterest() external virtual returns (uint256);
+
+    function seize(
+        address _liquidator,
+        address _borrower,
+        uint256 _seizeTokens
+    ) external virtual returns (uint256);
+
+    /*** Admin ***/
+    function setPendingAdmin(address payable newPendingAdmin)
+        external
+        virtual
+        returns (uint256);
+
+    function acceptAdmin() external virtual returns (uint256);
+}

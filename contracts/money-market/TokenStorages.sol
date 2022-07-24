@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+import "./interfaces/IRiskManager.sol";
+import "./interfaces/IInterestRateModel.sol";
+
+// name, symbol, decimals, totalSupply, balances, allowances in ERC20 contract
+contract TokenBaseStorage {
+    bool public constant isFToken = true;
+
+    IRiskManager riskManager;
+
+    IInterestRateModel interestRateModel;
+
+    // Administrator for the market
+    address public admin;
+
+    // Pending administrator for the market
+    address public pendingAdmin;
+
+    // Max borrow rate per block (0.0005%)
+    uint256 internal constant BORROW_RATE_MAX_MANTISSA = 5e12;
+
+    // 50 underlying = 1 fToken
+    uint256 internal initialExchangeRateMantissa = 50e18;
+
+    // Block number that interest is last accrued at
+    uint256 public lastAccrualBlock;
+
+    // Accumulator for calculating interest
+    uint256 public borrowIndex;
+
+    uint256 public totalBorrows;
+
+    uint256 public totalReserves;
+
+    // Track user borrowing state
+    struct BorrowSnapshot {
+        // Borrow balance when last was made
+        uint256 principal;
+        // borrowIndex when last borrow was made
+        uint256 interestIndex;
+    }
+
+    mapping(address => BorrowSnapshot) internal accountBorrows;
+}
+
+contract FErc20Storage {
+    address public underlying;
+}

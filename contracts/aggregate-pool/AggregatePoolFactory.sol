@@ -57,7 +57,7 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
         _transferOwnership(_newOwner);
 
         // ID starts from 1
-        for (uint256 i = 1; i <= poolId.current(); ) {
+        for (uint256 i = 1; i < poolId.current() + 1; ) {
             IAggregatePool(getPool[i]).changeOwner(_newOwner);
 
             unchecked {

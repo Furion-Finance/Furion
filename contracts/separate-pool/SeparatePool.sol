@@ -116,7 +116,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
      * @dev Change fee rate for buying NFT after governance voting
      */
     function setBuyFeeRate(uint128 _rate) external onlyOwner {
-        require(_rate >= 0 && _rate <= 100, "SeparatePool: Invalid fee rate.");
+        require(_rate >= 0 && _rate < 101, "SeparatePool: Invalid fee rate.");
         swapFeeRate = _rate;
     }
 
@@ -124,7 +124,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
      * @dev Change fee rate for redeeming NFT after governance voting
      */
     function setRedeemFeeRate(uint128 _rate) external onlyOwner {
-        require(_rate >= 0 && _rate <= 100, "SeparatePool: Invalid fee rate.");
+        require(_rate >= 0 && _rate < 101, "SeparatePool: Invalid fee rate.");
         lockFeeRate = _rate;
     }
 
@@ -151,9 +151,9 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     function sell(uint256[] calldata _ids) external {
         // Number of NFTs in list
         uint256 length = _ids.length;
-        require(length <= 9, "SeparatePool: Can only sell 9 NFTs at once");
+        require(length < 10, "SeparatePool: Can only sell 9 NFTs at once");
 
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i; i < length; ) {
             // Mint total amount all at once
             _sell(_ids[i], false);
 
@@ -178,14 +178,14 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     function buy(uint256[] calldata _ids) external {
         // Number of NFTs to buy
         uint256 length = _ids.length;
-        require(length <= 9, "SeparatePool: Can only buy 9 NFTs at once");
+        require(length < 10, "SeparatePool: Can only buy 9 NFTs at once");
 
         uint256 burnTotal = SWAP_MINT_AMOUNT * length;
         uint256 feeTotal = 100 ether * length;
         _burn(msg.sender, burnTotal);
         FUR.transferFrom(msg.sender, owner, feeTotal);
 
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i; i < length; ) {
             // Mint total amount all at once
             _buy(_ids[i], false);
 

@@ -50,7 +50,7 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
 
         _transferOwnership(_newOwner);
 
-        for (uint256 i = 0; i < allPools.length; ) {
+        for (uint256 i; i < allPools.length; ) {
             ISeparatePool(allPools[i]).changeOwner(_newOwner);
 
             unchecked {

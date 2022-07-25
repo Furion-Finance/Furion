@@ -64,8 +64,10 @@ contract AggregatePool is ERC20Permit {
         Oracle = IFurionPricingOracle(_oracle);
         owner = _owner;
 
+        uint256 length = _tokens.length;
+
         // Checked support at factory, register tokens upon pool creation
-        for (uint256 i = 0; i < _tokens.length; ) {
+        for (uint256 i; i < length; ) {
             registered[_tokens[i]] = true;
             getToken[i] = _tokens[i];
 
@@ -74,7 +76,7 @@ contract AggregatePool is ERC20Permit {
             }
         }
 
-        tokenTypes = uint32(_tokens.length);
+        tokenTypes = uint32(length);
     }
 
     modifier onlyOwner() {
@@ -213,7 +215,7 @@ contract AggregatePool is ERC20Permit {
     function _refPriceSum(uint256 _price) private view returns (uint256) {
         uint256 sum;
 
-        for (uint256 i = 0; i < tokenTypes; ) {
+        for (uint256 i; i < tokenTypes; ) {
             address token = getToken[i];
 
             uint256 refPrice = _refPricePerToken(token, _price);

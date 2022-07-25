@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 import "./RiskManagerStorage.sol";
@@ -328,7 +330,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         }
 
         // Otherwise, perform a hypothetical liquidity check to guard against shortfall
-        (, uint256 shortfall) = getHypotheticalAccountLiquidity(
+        (, uint256 shortfall, ) = getHypotheticalAccountLiquidity(
             redeemer,
             _fToken,
             redeemTokens,
@@ -372,7 +374,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
             "RiskManager: Oracle price is 0"
         );
 
-        (, uint256 shortfall) = getHypotheticalAccountLiquidityInternal(
+        (, uint256 shortfall, ) = getHypotheticalAccountLiquidityInternal(
             borrower,
             _fToken,
             0,
@@ -414,7 +416,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         uint256 _repayAmount
     ) external override returns (bool) {
         require(
-            markets[_fTokenBorrowed].isListed ||
+            markets[_fTokenBorrowed].isListed &&
                 markets[_fTokenCollateral].isListed,
             "RiskManager: Market is not listed"
         );
@@ -423,11 +425,21 @@ contract RiskManager is RiskManagerStorage, Initializable {
             _borrower
         );
 
-        /* The borrower must have shortfall in order to be liquidatable */
-        (, uint256 shortfall) = getAccountLiquidity(_borrower);
+        (
+            ,
+            uint256 shortfall,
+            uint256 highestColalteralTier
+        ) = getAccountLiquidity(_borrower);
+        // The borrower must have shortfall in order to be liquidatable
         require(shortfall > 0, "RiskManager: Insufficient shortfall");
+        // Liquidation should start from highest tier collaterals
+        // (i.e. first liquidate collateral tier collaterals then cross-tier...)
+        require(
+            markets[_fTokenCollateral].tier == highestCollateralTier,
+            "RiskManager: Liquidation should start from highest tier"
+        );
 
-        /* The liquidator may not repay more than what is allowed by the closeFactor */
+        // The liquidator may not repay more than what is allowed by the closeFactor
         uint256 maxClose = mul_ScalarTruncate(
             Exp({mantissa: closeFactorMantissa}),
             borrowBalance
@@ -507,15 +519,18 @@ contract RiskManager is RiskManagerStorage, Initializable {
     function getAccountLiquidity(address _account, uint256 _tier)
         public
         view
-        returns (uint256[] liquidities, uint256 shortfall)
+        returns (
+            uint256[] memory liquidities,
+            uint256 shortfall,
+            uint256 highestCollateralTier
+        )
     {
         // address(0) -> no iteractions with market
-        (liquidities, shortfall) = getHypotheticalAccountLiquidity(
-            _account,
-            address(0),
-            0,
-            0
-        );
+        (
+            liquidities,
+            shortfall,
+            highestCollateralTier
+        ) = getHypotheticalAccountLiquidity(_account, address(0), 0, 0);
     }
 
     /**
@@ -527,14 +542,30 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @dev Note that we calculate the exchangeRateStored for each collateral cToken using stored data,
      *  without calculating accumulated interest.
      * @return (hypothetical spare liquidity for each asset tier from low to high,
-     *          hypothetical account shortfall below collateral requirements)
+     *          hypothetical account shortfall below collateral requirements,
+     *          highest collateral tier)
+     *
+     * NOTE: 'highestCollateralTier' is for checking if liquidation starts from most
+     * stable / valuable assets. The smaller the number, the higher the tier
      */
     function getHypotheticalAccountLiquidity(
         address _account,
         address _fToken,
         uint256 _redeemToken,
         uint256 _borrowAmount
-    ) public view returns (uint256[] liquidities, uint256 shortfall) {
+    )
+        public
+        view
+        returns (
+            uint256[] memory liquidities,
+            uint256 shortfall,
+            uint256 highestCollateralTier
+        )
+    {
+        // First assume highest collateral tier is isolation tier, because if
+        // left uninitialized, it will remain to be the unvalid 0 tier
+        highestCollateralTier = 3;
+
         // Holds all our calculation results
         AccountLiquidityLocalVars memory vars;
 
@@ -551,6 +582,12 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 vars.borrowBalance,
                 vars.exchangeRateMantissa
             ) = asset.getAccountSnapshot(_account);
+
+            // If the asset is used as collateral, and has higher tier than the
+            // current highestCollateralTier
+            if (vars.tokenBalance > 0 && assetTier < highestCollateralTier) {
+                highestCollateralTier = assetTier;
+            }
 
             vars.collateralFactor = Exp({
                 mantissa: markets[asset].collateralFactorMantissa
@@ -578,14 +615,6 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 vars.collateralValuePerToken,
                 vars.tierLiquidity[assetTier].tierCollateralValue
             );
-            /*
-            // sumCollateral += collateralValuePerToken * tokenBalance
-            vars.sumCollateralValue = mul_ScalarTruncateAddUInt(
-                vars.tokenBalance,
-                vars.collateralValuePerToken,
-                vars.sumCollateral
-            );
-            */
 
             vars
                 .tierLiquidity[assetTier]
@@ -594,15 +623,6 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 vars.oraclePrice,
                 vars.tierLiquidity[assetTier].tierBorrowValue
             );
-            /*
-            // Add value already borrowed
-            // sumBorrow += borrowBalance * oraclePrice
-            vars.sumBorrowValue = mul_ScalarTruncateAddUInt(
-                vars.oraclePrice,
-                vars.borrowBalance,
-                vars.sumBorrowPlusEffects
-            );
-            */
 
             // Calculate effects of interacting with fToken
             if (asset == _fToken) {
@@ -656,7 +676,8 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 liquidities.push(collateral - threshold);
                 vars.tempShortfall = 0;
             } else {
-                vars.tempShortfall += threshold - collateral;
+                vars.tempShortfall += (threshold - collateral);
+                liquidities.push(0);
             }
 
             unchecked {

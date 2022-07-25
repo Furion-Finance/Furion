@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 contract RiskManagerStorage {
@@ -50,20 +52,6 @@ contract RiskManagerStorage {
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
-
-    /**
-     * @notice Mapping of account -> highest tier among collaterals supplied.
-     *
-     * Liquidation starts with most stable, valuable assets (collateral tier ->
-     * cross-tier -> isolation tier).
-     *
-     * If the collateral asset happens to be really valuable and important, and
-     * belongs to the colalteral tier, it can be bought back with 1.2x liquidation
-     * price thanks to the liquidation protection mechanism.
-     *
-     * NOTE: The smaller the number, the higher the tier.
-     */
-    mapping(address => uint256) internal highestCollateralTier;
 
     // Largest tier number that markets can have, i.e. number for worst tier
     uint256 maxTier = 3;

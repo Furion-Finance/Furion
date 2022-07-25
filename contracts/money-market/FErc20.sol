@@ -40,7 +40,14 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
         borrowInternal(msg.sender, _borrowAmount);
     }
 
-    function repayBorrow(address _borrower, uint256 _repayAmount) external {
+    function repayBorrow(uint256 _repayAmount) external {
+        // Params: payer, borrower, repay amount
+        repayBorrowInternal(msg.sender, msg.sender, _repayAmount);
+    }
+
+    function repayBorrowBehalf(address _borrower, uint256 _repayAmount)
+        external
+    {
         // Params: payer, borrower, repay amount
         repayBorrowInternal(msg.sender, _borrower, _repayAmount);
     }

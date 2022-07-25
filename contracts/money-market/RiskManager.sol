@@ -49,7 +49,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
     function enterMarkets(address[] memory _fTokens) public override {
         uint256 len = _fTokens.length;
 
-        for (uint256 i = 0; i < len; ) {
+        for (uint256 i; i < len; ) {
             addToMarketInternal(_fToken, msg.sender);
 
             unchecked {
@@ -117,7 +117,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         address[] memory assets = marketsEntered[msg.sender];
         uint256 len = assets.length;
         uint256 assetIndex;
-        for (uint256 i = 0; i < len; i++) {
+        for (uint256 i; i < len; i++) {
             if (assets[i] == _fToken) {
                 assetIndex = i;
                 break;
@@ -136,6 +136,50 @@ contract RiskManager is RiskManagerStorage, Initializable {
     }
 
     /********************************* Admin *********************************/
+
+    /**
+     * @notice Begins transfer of admin rights. The newPendingAdmin MUST call
+     *  `acceptAdmin` to finalize the transfer.
+     * @dev Admin function to begin change of admin. The newPendingAdmin MUST
+     *  call `acceptAdmin` to finalize the transfer.
+     * @param _newPendingAdmin New pending admin.
+     */
+    function setPendingAdmin(address _newPendingAdmin)
+        external
+        override
+        onlyAdmin
+    {
+        // Save current value, if any, for inclusion in log
+        address oldPendingAdmin = pendingAdmin;
+
+        // Store pendingAdmin with value newPendingAdmin
+        pendingAdmin = _newPendingAdmin;
+
+        // Emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin)
+        emit NewPendingAdmin(oldPendingAdmin, _newPendingAdmin);
+    }
+
+    /**
+     * @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
+     * @dev Admin function for pending admin to accept role and update admin
+     */
+    function acceptAdmin() external override {
+        // Check caller is pendingAdmin
+        require(msg.sender == pendingAdmin, "TokenBase: Not pending admin");
+
+        // Save current values for inclusion in log
+        address oldAdmin = admin;
+        address oldPendingAdmin = pendingAdmin;
+
+        // Store admin with value pendingAdmin
+        admin = pendingAdmin;
+
+        // Clear the pending value
+        pendingAdmin = address(0);
+
+        emit NewAdmin(oldAdmin, admin);
+        emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
+    }
 
     /**
      * @notice Sets a new price oracle for the comptroller
@@ -192,6 +236,12 @@ contract RiskManager is RiskManagerStorage, Initializable {
             oldCollateralFactorMantissa,
             _newCollateralFactorMantissa
         );
+    }
+
+    function setTier(address _fToken, uint256 _tier) external onlyAdmin {
+        require(_tier > 0 && _tier <= maxTier, "RiskManager: Invalid tier");
+
+        markets[_fToken].tier = _tier;
     }
 
     /**
@@ -451,16 +501,16 @@ contract RiskManager is RiskManagerStorage, Initializable {
 
     /**
      * @notice Determine the current account liquidity wrt collateral requirements
-     * @return (account liquidity in excess of collateral requirements,
+     * @return (hypothetical spare liquidity for each asset tier from low to high,
      *          account shortfall below collateral requirements)
      */
     function getAccountLiquidity(address _account, uint256 _tier)
         public
         view
-        returns (uint256 liquidity, uint256 shortfall)
+        returns (uint256[] liquidities, uint256 shortfall)
     {
         // address(0) -> no iteractions with market
-        (liquidity, shortfall) = getHypotheticalAccountLiquidity(
+        (liquidities, shortfall) = getHypotheticalAccountLiquidity(
             _account,
             address(0),
             0,
@@ -476,7 +526,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @param _borrowAmount The amount of underlying to hypothetically borrow
      * @dev Note that we calculate the exchangeRateStored for each collateral cToken using stored data,
      *  without calculating accumulated interest.
-     * @return (hypothetical account liquidity in excess of collateral requirements,
+     * @return (hypothetical spare liquidity for each asset tier from low to high,
      *          hypothetical account shortfall below collateral requirements)
      */
     function getHypotheticalAccountLiquidity(
@@ -484,19 +534,18 @@ contract RiskManager is RiskManagerStorage, Initializable {
         address _fToken,
         uint256 _redeemToken,
         uint256 _borrowAmount
-    ) public view returns (uint256 liquidity, uint256 shortfall) {
+    ) public view returns (uint256[] liquidities, uint256 shortfall) {
         // Holds all our calculation results
         AccountLiquidityLocalVars memory vars;
 
-        // Tier number of market to interact with (_fToken)
-        uint256 tierNum = markets[_fToken].tier;
-
         // For each asset the account is in
+        // Loop through to calculate colalteral and borrow values for each tier
         address[] memory assets = marketsEntered[account];
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
+            uint256 assetTier = markets[asset].tier;
 
-            // Read the balances and exchange rate from the fToken
+            // Read the balances and exchange rate from the asset (market)
             (
                 vars.tokenBalance,
                 vars.borrowBalance,
@@ -521,13 +570,31 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 mul_(vars.oraclePrice, vars.exchangeRate),
                 vars.collateralFactor
             );
+
+            vars
+                .tierLiquidity[assetTier]
+                .tierCollateralValue = mul_ScalarTruncateAddUInt(
+                vars.tokenBalance,
+                vars.collateralValuePerToken,
+                vars.tierLiquidity[assetTier].tierCollateralValue
+            );
+            /*
             // sumCollateral += collateralValuePerToken * tokenBalance
             vars.sumCollateralValue = mul_ScalarTruncateAddUInt(
                 vars.tokenBalance,
                 vars.collateralValuePerToken,
                 vars.sumCollateral
             );
+            */
 
+            vars
+                .tierLiquidity[assetTier]
+                .tierBorrowValue = mul_ScalarTruncateAddUInt(
+                vars.borrowBalance,
+                vars.oraclePrice,
+                vars.tierLiquidity[assetTier].tierBorrowValue
+            );
+            /*
             // Add value already borrowed
             // sumBorrow += borrowBalance * oraclePrice
             vars.sumBorrowValue = mul_ScalarTruncateAddUInt(
@@ -535,23 +602,28 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 vars.borrowBalance,
                 vars.sumBorrowPlusEffects
             );
+            */
 
             // Calculate effects of interacting with fToken
             if (asset == _fToken) {
                 // Redeem effect
                 // sumBorrowPlusEffects += tokensToDenom * redeemTokens
-                vars.sumBorrowValue = mul_ScalarTruncateAddUInt(
-                    vars.collateralValuePerToken,
+                vars
+                    .tierLiquidity[assetTier]
+                    .tierCollateralValue = mul_ScalarTruncateSubUInt(
                     _redeemToken,
-                    vars.sumBorrowValue
+                    vars.collateralValuePerToken,
+                    vars.tierLiquidity[assetTier].tierCollateralValue
                 );
 
                 // Add amount to hypothetically borrow
                 // sumBorrowPlusEffects += oraclePrice * borrowAmount
-                vars.sumBorrowValue = mul_ScalarTruncateAddUInt(
-                    vars.oraclePrice,
+                vars
+                    .tierLiquidity[assetTier]
+                    .tierBorrowValue = mul_ScalarTruncateAddUInt(
                     _borrowAmount,
-                    vars.sumBorrowValue
+                    vars.oraclePrice,
+                    vars.tierLiquidity[assetTier].tierBorrowValue
                 );
             }
 
@@ -560,13 +632,39 @@ contract RiskManager is RiskManagerStorage, Initializable {
             }
         }
 
-        // These are safe, as the underflow condition is checked first
-        if (vars.sumCollateralValue > vars.sumBorrowValue) {
-            liquidity = vars.sumCollateralValue - vars.sumBorrowValue;
-            shortfall = 0;
-        } else {
-            liquidity = 0;
-            shortfall = vars.sumBorrowValue - vars.sumCollateralValue;
+        // In most cases, borrowers would prefer to back borrows with the lowest
+        // tier assets possible (i.e. isolation tier collateral -> isolation tier
+        // borrow, instead of collateral tier collateral -> isolation tier borrow).
+        // Therefore, we calculate starting from lowest tier (i.e. highest tier number).
+        //
+        // e.g. First iteration (tempShortfall = 0):
+        // isolation tier collateral > isolation tier borrow, push difference
+        // to liquidities array; isolation collateral < isolation tier borrow,
+        // add difference to `tempShortfall` and see if higher tier collaterals
+        // can back all borrows.
+        // Second iteration (Assume tempShortfall > 0):
+        // cross-tier collateral > cross-tier borrow + tempShortfall, push difference
+        // to liquidities array; cross-tier collateral < cross-tier borrow + tempShortfall,
+        // accumulate tier shortfall to tempShortfall and see if there are enough
+        // collateral tier collateral to back the total shortfall
+        for (uint256 i = maxTier; i > 0; ) {
+            uint256 collateral = vars.tierLiquidity[i].tierCollateralValue;
+            uint256 borrow = vars.tierLiquidity[i].tierBorrowValue;
+            uint256 threshold = borrow + vars.tempShortfall;
+
+            if (collateral >= threshold) {
+                liquidities.push(collateral - threshold);
+                vars.tempShortfall = 0;
+            } else {
+                vars.tempShortfall += threshold - collateral;
+            }
+
+            unchecked {
+                --i;
+            }
         }
+
+        // Return value
+        shortfall = vars.tempShortfall;
     }
 }

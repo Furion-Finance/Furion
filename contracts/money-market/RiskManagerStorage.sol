@@ -59,7 +59,7 @@ contract RiskManagerStorage {
      *
      * If the collateral asset happens to be really valuable and important, and
      * belongs to the colalteral tier, it can be bought back with 1.2x liquidation
-     * price thanks to the liquidation protection.
+     * price thanks to the liquidation protection mechanism.
      *
      * NOTE: The smaller the number, the higher the tier.
      */
@@ -89,19 +89,21 @@ contract RiskManagerStorage {
      * `borrowBalance` is the amount of underlying that the account has borrowed.
      */
     struct AccountLiquidityLocalVars {
-        uint256 sumCollateralValue;
-        uint256 sumBorrowValue;
         uint256 tokenBalance;
         uint256 borrowBalance;
         uint256 exchangeRateMantissa;
         uint256 oraclePriceMantissa;
         mapping(uint256 => TierLiquidity) tierLiquidity;
+        uint256 tempShortfall;
         Exp collateralFactor;
         Exp exchangeRate;
         Exp oraclePrice;
         Exp collateralValuePerToken;
     }
 
+    /**
+     * @dev Liquidity for individual tiers
+     */
     struct TierLiquidity {
         uint256 tierCollateralValue;
         uint256 tierBorrowValue;

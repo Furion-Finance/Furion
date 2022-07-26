@@ -7,8 +7,14 @@ import "./TokenStorages.sol";
 import "./interfaces/ITokenBase.sol";
 import "./interfaces/IRiskManager.sol";
 import "./interfaces/IInterestRateModel.sol";
+import "./ExponentialNoError.sol";
 
-contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
+contract TokenBase is
+    ERC20PermitUpgradeable,
+    TokenBaseStorage,
+    ITokenBase,
+    ExponentialNoError
+{
     function __TokenBase_init(
         address _riskManager,
         address _interestRateModel,
@@ -45,9 +51,9 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
 
     /**
      * @notice Begins transfer of admin rights. The newPendingAdmin MUST call
-     *    `acceptAdmin` to finalize the transfer.
+     *  `acceptAdmin` to finalize the transfer.
      * @dev Admin function to begin change of admin. The newPendingAdmin MUST
-     *    call `acceptAdmin` to finalize the transfer.
+     *  call `acceptAdmin` to finalize the transfer.
      * @param _newPendingAdmin New pending admin.
      */
     function setPendingAdmin(address _newPendingAdmin)
@@ -100,7 +106,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         override
         returns (uint256)
     {
-        Exp memory exchangeRate = Exp({mantissa: exchangeRateCurrent()});
+        Exp memory exchangeRate = Exp({mantissa: exchangeRate()});
         return mul_ScalarTruncate(exchangeRate, balanceOf(_account));
     }
 
@@ -120,11 +126,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             uint256
         )
     {
-        return (
-            balanceOf(_account),
-            borrowBalance(_account),
-            exchangeRateStoredInternal()
-        );
+        return (balanceOf(_account), borrowBalance(_account), exchangeRate());
     }
 
     /**
@@ -134,7 +136,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
     function borrowRatePerBlock() external view override returns (uint256) {
         return
             interestRateModel.getBorrowRate(
-                getCashPrior(),
+                getCash(),
                 totalBorrows,
                 totalReserves
             );
@@ -147,10 +149,10 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
     function supplyRatePerBlock() external view override returns (uint256) {
         return
             interestRateModel.getSupplyRate(
-                getCashPrior(),
+                getCash(),
                 totalBorrows,
-                totalReserves,
-                reserveFactorMantissa
+                totalReserves
+                //reserveFactorMantissa
             );
     }
 
@@ -172,20 +174,20 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         // Update market state
         accrueInterest();
 
-        /* Get borrowBalance and borrowIndex */
-        BorrowSnapshot storage borrowSnapshot = accountBorrows[account];
+        // Get borrowBalance and borrowIndex
+        BorrowSnapshot memory snapshot = accountBorrows[_account];
 
         /* If borrowBalance = 0 then borrowIndex is likely also 0.
          * Rather than failing the calculation with a division by 0, we immediately return 0 in this case.
          */
-        if (borrowSnapshot.principal == 0) {
+        if (snapshot.principal == 0) {
             return 0;
         }
 
         /* Calculate new borrow balance using the interest index:
          *  principal * how much borrowIndex has increased
          */
-        return (principal * borrowIndex) / borrowSnapshot.interestIndex;
+        return (snapshot.principal * borrowIndex) / snapshot.interestIndex;
     }
 
     /**
@@ -209,7 +211,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
              * Otherwise:
              *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
              */
-            uint256 totalCash = getCashPrior();
+            uint256 totalCash = getCash();
             uint256 cashPlusBorrowsMinusReserves = totalCash +
                 totalBorrows -
                 totalReserves;
@@ -248,7 +250,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             reservesPrior
         );
         require(
-            borrowRateMantissa <= borrowRateMaxMantissa,
+            borrowRatePerBlockMantissa <= BORROW_RATE_MAX_MANTISSA,
             "borrow rate is absurdly high"
         );
 
@@ -265,7 +267,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
          */
 
         Exp memory simpleInterestFactor = mul_(
-            Exp({mantissa: borrowRateMantissa}),
+            Exp({mantissa: borrowRatePerBlockMantissa}),
             blockDelta
         );
         uint256 interestAccumulated = mul_ScalarTruncate(
@@ -289,7 +291,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         // (No safe failures beyond this point)
 
         /* We write the previously calculated values into storage */
-        accrualBlockNumber = currentBlockNumber;
+        lastAccrualBlock = currentBlockNumber;
         borrowIndex = borrowIndexNew;
         totalBorrows = totalBorrowsNew;
         totalReserves = totalReservesNew;
@@ -345,8 +347,8 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         uint256 mintTokens = div_(_supplyAmount, exchangeRate);
         _mint(_supplier, mintTokens);
 
-        /* We emit a Mint event, and a Transfer event */
-        emit Mint(_supplier, _supplyAmount, mintTokens);
+        /* We emit a Supply event, and a Transfer event */
+        emit Supply(_supplier, _supplyAmount, mintTokens);
     }
 
     /**
@@ -365,7 +367,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         accrueInterest();
 
         require(
-            redeemTokensIn == 0 || redeemAmountIn == 0,
+            _redeemTokens == 0 || _redeemAmount == 0,
             "TokenBase: One of redeemTokens or redeemAmount must be zero"
         );
 
@@ -417,7 +419,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
 
     /**
      * @notice Users borrow assets from the protocol to their own address
-     * @param borrowAmount The amount of the underlying asset to borrow
+     * @param _borrowAmount The amount of the underlying asset to borrow
      */
     function borrowInternal(address _borrower, uint256 _borrowAmount) internal {
         // Update market state
@@ -434,14 +436,14 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         );
         // Fail gracefully if protocol has insufficient cash
         require(
-            getCash() > redeemAmount,
+            getCash() > _borrowAmount,
             "TokenBase: Market has insufficient cash"
         );
 
         // We calculate the new borrower and total borrow balances, failing on overflow
         uint256 borrowBalancePrev = borrowBalance(_borrower);
-        uint256 borrowBalanceNew = borrowBalance + borrowAmount;
-        uint256 totalBorrowsNew = totalBorrows + borrowAmount;
+        uint256 borrowBalanceNew = borrowBalance + _borrowAmount;
+        uint256 totalBorrowsNew = totalBorrows + _borrowAmount;
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -474,9 +476,9 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
 
     /**
      * @notice Borrows are repaid by another user (possibly the borrower).
-     * @param payer the account paying off the borrow
-     * @param borrower the account with the debt being payed off
-     * @param repayAmount the amount of underlying tokens being returned, or -1 for the full outstanding amount
+     * @param _payer the account paying off the borrow
+     * @param _borrower the account with the debt being payed off
+     * @param _repayAmount the amount of underlying tokens being returned, or -1 for the full outstanding amount
      * @return (uint) the actual repayment amount.
      */
     function repayBorrowInternal(
@@ -493,7 +495,8 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
                 _payer,
                 _borrower,
                 _repayAmount
-            )
+            ),
+            "TokenBase: Repay disallowed by risk manager"
         );
         // Ensure market is up to date
         require(
@@ -532,8 +535,8 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         uint256 totalBorrowsNew = totalBorrows - actualRepayAmount;
 
         /* We write the previously calculated values into storage */
-        accountBorrows[borrower].principal = borrowBalanceNew;
-        accountBorrows[borrower].interestIndex = borrowIndex;
+        accountBorrows[_borrower].principal = borrowBalanceNew;
+        accountBorrows[_borrower].interestIndex = borrowIndex;
         totalBorrows = totalBorrowsNew;
 
         /* We emit a RepayBorrow event */
@@ -546,41 +549,144 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         );
     }
 
+    /**
+     * @notice The liquidator liquidates the borrower's collateral.
+     *  The collateral seized is transferred to the liquidator.
+     * @param _borrower The borrower of this fToken to be liquidated
+     * @param _liquidator The address repaying the borrow and seizing collateral
+     * @param _repayAmount The amount of the underlying borrowed asset to repay
+     * @param _fTokenCollateral The market in which to seize collateral from the borrower
+     */
+    function liquidateBorrowInternal(
+        address _liquidator,
+        address _borrower,
+        uint256 _repayAmount,
+        address _fTokenCollateral
+    ) internal {
+        // Update market state
+        accrueInterest();
+
+        ITokenBase collateral = ITokenBase(_fTokenCollateral);
+
+        /* Fail if liquidate not allowed */
+        require(
+            riskManager.liquidateBorrowAllowed(
+                address(this),
+                _fTokenCollateral,
+                _liquidator,
+                _borrower,
+                _repayAmount
+            ),
+            "TokenBase: Liquidation disallowed by risk manager"
+        );
+        // Ensure market is up to date
+        require(
+            lastAccrualBlock == block.number,
+            "TokenBase: Market state not yet updated"
+        );
+
+        /* Verify cTokenCollateral market's block number equals current block number */
+        require(
+            collateral.lastAccrualBlock() == block.number,
+            "TokenBase: Collateral market state not yet updated"
+        );
+        /* Fail if borrower = liquidator */
+        require(
+            _borrower != _liquidator,
+            "TokenBase: Cannot liquidate yourself"
+        );
+        /* Fail if repayAmount = 0 or -1 */
+        require(
+            _repayAmount > 0 && _repayAmount != type(uint256).max,
+            "TokenBase: Invalid repay amount"
+        );
+
+        /* Fail if repayBorrow fails */
+        uint256 actualRepayAmount = repayBorrowInternal(
+            _liquidator,
+            _borrower,
+            _repayAmount
+        );
+
+        /////////////////////////
+        // EFFECTS & INTERACTIONS
+        // (No safe failures beyond this point)
+
+        /* We calculate the number of collateral tokens that will be seized */
+        (uint256 amountSeizeError, uint256 seizeTokens) = riskManager
+            .liquidateCalculateSeizeTokens(
+                address(this),
+                _fTokenCollateral,
+                actualRepayAmount
+            );
+        require(
+            amountSeizeError == NO_ERROR,
+            "LIQUIDATE_COMPTROLLER_CALCULATE_AMOUNT_SEIZE_FAILED"
+        );
+
+        /* Revert if borrower collateral token balance < seizeTokens */
+        require(
+            cTokenCollateral.balanceOf(borrower) >= seizeTokens,
+            "LIQUIDATE_SEIZE_TOO_MUCH"
+        );
+
+        // If this is also the collateral, run seizeInternal to avoid re-entrancy, otherwise make an external call
+        if (address(cTokenCollateral) == address(this)) {
+            seizeInternal(address(this), liquidator, borrower, seizeTokens);
+        } else {
+            require(
+                cTokenCollateral.seize(liquidator, borrower, seizeTokens) ==
+                    NO_ERROR,
+                "token seizure failed"
+            );
+        }
+
+        /* We emit a LiquidateBorrow event */
+        emit LiquidateBorrow(
+            _liquidator,
+            _borrower,
+            actualRepayAmount,
+            _fTokenCollateral,
+            seizeTokens
+        );
+    }
+
     /***************************** ERC20 Override *****************************/
 
     /**
-     * @dev ERC20 internal transfer funtion with risk manager trasfer check
+     * @dev ERC20 transfer funtions with risk manager trasfer check
      */
-    function _transfer(
+    function transfer(address to, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        address owner = _msgSender();
+        // Risk manager transferAllowed
+        require(
+            riskManager.trasnferAllowed(address(this), owner, to, amount),
+            "TokenBase: Transfer disallowed by risk manager"
+        );
+
+        _transfer(owner, to, amount);
+        return true;
+    }
+
+    function transferFrom(
         address from,
         address to,
         uint256 amount
-    ) internal virtual {
-        require(from != address(0), "ERC20: transfer from the zero address");
-        require(to != address(0), "ERC20: transfer to the zero address");
-
-        _beforeTokenTransfer(from, to, amount);
-
-        uint256 fromBalance = _balances[from];
-        require(
-            fromBalance >= amount,
-            "ERC20: transfer amount exceeds balance"
-        );
+    ) public override returns (bool) {
         // Risk manager transferAllowed
         require(
-            riskManager.trasnferAllowed(),
+            riskManager.trasnferAllowed(address(this), from, to, amount),
             "TokenBase: Transfer disallowed by risk manager"
         );
-        unchecked {
-            _balances[from] = fromBalance - amount;
-            // Overflow not possible: the sum of all balances is capped by totalSupply, and the sum is preserved by
-            // decrementing then incrementing.
-            _balances[to] += amount;
-        }
 
-        emit Transfer(from, to, amount);
-
-        _afterTokenTransfer(from, to, amount);
+        address spender = _msgSender();
+        _spendAllowance(from, spender, amount);
+        _transfer(from, to, amount);
+        return true;
     }
 
     /******************************* Safe Token *******************************/

@@ -4,9 +4,10 @@ pragma solidity ^0.8.0;
 
 import "./RiskManagerStorage.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "./ExponentialNoError.sol";
 
-contract RiskManager is RiskManagerStorage, Initializable {
-    function initialize() initializer {
+contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
+    function initialize() public initializer {
         admin = msg.sender;
     }
 
@@ -316,7 +317,8 @@ contract RiskManager is RiskManagerStorage, Initializable {
     }
 
     /**
-     * @dev Checks if the account should be allowed to redeem fTokens for underlying asset in the given market.
+     * @dev Checks if the account should be allowed to redeem fTokens for underlying
+     *  asset in the given market.
      * @param _redeemToken Amount of fTokens used for redemption.
      */
     function redeemAllowed(
@@ -342,10 +344,18 @@ contract RiskManager is RiskManagerStorage, Initializable {
     }
 
     /**
-     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market.
+     * @notice Checks if the account should be allowed to borrow the underlying
+     *  asset of the given market.
      * @param _fToken The market to verify the borrow against.
      * @param _borrower The account which would borrow the asset.
      * @param _borrowAmount The amount of underlying the account would borrow.
+     *
+     * NOTE: Borrowing is disallowed whenever a bad debt is found, no matter there
+     * is spare liquidity in other tiers or not because the spare liquidity may be
+     * used for liquidation (e.g. There may be spare liquidity for cross-tier +
+     * isolation tier but a shortfall in collateral tier. If liquidation of
+     * collateral tier collaterals are not enough to cover the debt, cross-tier
+     * collaterals will also be used).
      */
     function borrowAllowed(
         address _fToken,
@@ -380,16 +390,29 @@ contract RiskManager is RiskManagerStorage, Initializable {
             0,
             borrowAmount
         );
-        require(shortfall == 0, "RiskManager: Insufficient liquidity");
+        require(shortfall == 0, "RiskManager: Bad debt found, cannot borrow");
+
+        /*
+        uint256 spareLiquidity;
+        marketTier = markets[_fToken].tier;
+
+        for (uint i = 1; i <= marketTier; ) {
+            spareLiquidity += liquidities[liquidities.length - i];
+
+            unchecked {
+                ++i;
+            }
+        }
+        require(spareLiquidity >= 0);
+        */
 
         return true;
     }
 
     /**
-     * @notice Checks if the account should be allowed to repay a borrow in the given market
+     * @notice Checks if the account should be allowed to repay a borrow in the
+     *  given market (if a market is listed)
      * @param _fToken The market to verify the repay against
-     *
-     * NOTE: Only checks if the market is listed.
      */
     function repayBorrowAllowed(address _fToken)
         external
@@ -455,7 +478,6 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @param _fTokenBorrowed Asset which was borrowed by the borrower
      * @param _liquidator The address repaying the borrow and seizing the collateral
      * @param _borrower The address of the borrower
-     * @param _seizeTokens The number of collateral tokens to seize
      */
     function seizeAllowed(
         address _fTokenCollateral,
@@ -534,18 +556,22 @@ contract RiskManager is RiskManagerStorage, Initializable {
     }
 
     /**
-     * @notice Determine what the account liquidity would be if the given amounts were redeemed/borrowed
+     * @notice Determine what the account liquidity would be if the given amounts
+     *  were redeemed/borrowed
      * @param _account The account to determine liquidity for
      * @param _fToken The market to hypothetically redeem/borrow in
      * @param _redeemToken The number of fTokens to hypothetically redeem
      * @param _borrowAmount The amount of underlying to hypothetically borrow
-     * @dev Note that we calculate the exchangeRateStored for each collateral cToken using stored data,
-     *  without calculating accumulated interest.
+     * @dev Note that we calculate the exchangeRateStored for each collateral
+     *  cToken using stored data, without calculating accumulated interest.
      * @return (hypothetical spare liquidity for each asset tier from low to high,
      *          hypothetical account shortfall below collateral requirements,
      *          highest collateral tier)
      *
-     * NOTE: 'highestCollateralTier' is for checking if liquidation starts from most
+     * NOTE: liquidities here mean accumulated liquidities, [tier 3 liquidity,
+     * tier 3 + 2 liquidity, tier 3 + 2 + 1 liquidity]
+     *
+     * 'highestCollateralTier' is for checking if liquidation starts from most
      * stable / valuable assets. The smaller the number, the higher the tier
      */
     function getHypotheticalAccountLiquidity(

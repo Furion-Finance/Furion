@@ -158,8 +158,8 @@ describe("Furion Income Maker", function(){
             let vaultBalance = await furion.balanceOf(vault.address);
             // console.log(vaultBalance);
 
-            expect(vaultBalance).to.above(toWei("0.002"));
-            expect(vaultBalance).to.below(toWei("0.003"));
+            expect(vaultBalance).to.above(toWei("0.0015"));
+            expect(vaultBalance).to.below(toWei("0.0025"));
         });
     })
 

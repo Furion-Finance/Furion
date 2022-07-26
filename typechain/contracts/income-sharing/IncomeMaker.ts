@@ -169,7 +169,7 @@ export interface IncomeMakerInterface extends utils.Interface {
 
   events: {
     "EmergencyWithdraw(address,uint256)": EventFragment;
-    "IncomeProportionChanged(uint8,uint8)": EventFragment;
+    "IncomeProportionChanged(uint256,uint256)": EventFragment;
     "IncomeToToken(address,address,uint256,uint256)": EventFragment;
     "IncomeTokenChanged(address,address)": EventFragment;
     "Initialized(uint8)": EventFragment;
@@ -197,11 +197,11 @@ export type EmergencyWithdrawEventFilter =
   TypedEventFilter<EmergencyWithdrawEvent>;
 
 export interface IncomeProportionChangedEventObject {
-  oldProportion: number;
-  newProportion: number;
+  oldProportion: BigNumber;
+  newProportion: BigNumber;
 }
 export type IncomeProportionChangedEvent = TypedEvent<
-  [number, number],
+  [BigNumber, BigNumber],
   IncomeProportionChangedEventObject
 >;
 
@@ -295,7 +295,7 @@ export interface IncomeMaker extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<[string]>;
 
-    incomeProportion(overrides?: CallOverrides): Promise<[number]>;
+    incomeProportion(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     incomeSharingVault(overrides?: CallOverrides): Promise<[string]>;
 
@@ -351,7 +351,7 @@ export interface IncomeMaker extends BaseContract {
 
   factory(overrides?: CallOverrides): Promise<string>;
 
-  incomeProportion(overrides?: CallOverrides): Promise<number>;
+  incomeProportion(overrides?: CallOverrides): Promise<BigNumber>;
 
   incomeSharingVault(overrides?: CallOverrides): Promise<string>;
 
@@ -407,7 +407,7 @@ export interface IncomeMaker extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<string>;
 
-    incomeProportion(overrides?: CallOverrides): Promise<number>;
+    incomeProportion(overrides?: CallOverrides): Promise<BigNumber>;
 
     incomeSharingVault(overrides?: CallOverrides): Promise<string>;
 
@@ -455,7 +455,7 @@ export interface IncomeMaker extends BaseContract {
       amount?: null
     ): EmergencyWithdrawEventFilter;
 
-    "IncomeProportionChanged(uint8,uint8)"(
+    "IncomeProportionChanged(uint256,uint256)"(
       oldProportion?: null,
       newProportion?: null
     ): IncomeProportionChangedEventFilter;

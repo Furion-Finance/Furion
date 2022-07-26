@@ -49,7 +49,7 @@ contract IncomeMaker is OwnableUpgradeable {
     address public incomeToken;
 
     // proportion allocated to income sharing vault, 0-100, 80 by default
-    uint8 public incomeProportion = 80;
+    uint public incomeProportion;
 
     // ---------------------------------------------------------------------------------------- //
     // *************************************** Events ***************************************** //
@@ -59,8 +59,8 @@ contract IncomeMaker is OwnableUpgradeable {
         address newToken
     );
     event IncomeProportionChanged(
-        uint8 oldProportion,
-        uint8 newProportion
+        uint oldProportion,
+        uint newProportion
     );
 
     event IncomeToToken(
@@ -96,6 +96,8 @@ contract IncomeMaker is OwnableUpgradeable {
         factory = IFurionSwapFactory(_factory);
 
         incomeSharingVault = _vault;
+
+        incomeProportion = 80; // default by 80
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -132,6 +134,12 @@ contract IncomeMaker is OwnableUpgradeable {
         uint amountIncome1 = _convertIncome(token1, amount1);
 
         amountIncome = amountIncome0 + amountIncome1;
+
+        // Transfer all incomeTokens to income sharing vault
+        IERC20(incomeToken).safeTransfer(
+            incomeSharingVault,
+            IERC20(incomeToken).balanceOf(address(this)) * incomeProportion / 100
+        );
     }
 
     /**
@@ -153,14 +161,16 @@ contract IncomeMaker is OwnableUpgradeable {
 
     function setIncomeToken(address _newIncomeToken) external onlyOwner {
         require(_newIncomeToken != address(0), "INCOME_MAKER: ZERO_ADDRESS");
-        incomeToken = _newIncomeToken;
         emit IncomeTokenChanged(incomeToken, _newIncomeToken);
+
+        incomeToken = _newIncomeToken;
     }
 
     function setIncomeProportion(uint8 _newIncomeProportion) external onlyOwner {
         require(_newIncomeProportion <= 100, "INCOME_MAKER: EXCEED_PROPORTION_RANGE");
-        incomeProportion = _newIncomeProportion;
         emit IncomeProportionChanged(incomeProportion, _newIncomeProportion);
+
+        incomeProportion = _newIncomeProportion;
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -185,12 +195,6 @@ contract IncomeMaker is OwnableUpgradeable {
 
             emit IncomeToToken(_otherToken, incomeToken, _amountToken, amountIncome);
         }
-        
-        // Transfer all incomeTokens to income sharing vault
-        IERC20(incomeToken).safeTransfer(
-            incomeSharingVault,
-            IERC20(incomeToken).balanceOf(address(this)) * incomeProportion / 100
-        );
     }
 
     /**

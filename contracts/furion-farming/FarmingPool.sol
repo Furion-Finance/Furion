@@ -217,6 +217,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
 
         if (_basicFurionPerSecond == 0) {
             isFarming[_poolId] = false;
+            poolList[_poolId].basicFurionPerSecond = 0;
             emit FarmingPoolStopped(_poolId, block.timestamp);
         } else {
             poolList[_poolId].basicFurionPerSecond = _basicFurionPerSecond;
@@ -231,18 +232,16 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
      * @notice Update the FurionPerSecond for a bundle of pools (used for daily updating farming rate)
      * @param _poolId Id collection of the farming pool
      * @param _basicFurionPerSecond New basic reward amount per second
-     * @param _withUpdate Whether update all pools
      */
     function setFurionRewards(
         uint256[] calldata _poolId,
-        uint256[] calldata _basicFurionPerSecond,
-        bool _withUpdate
+        uint256[] calldata _basicFurionPerSecond
     ) public onlyOwner whenNotPaused{
         uint256 length = _poolId.length;
         require(length <= 9, "FARMING_POOL: MORE_THAN_NINE");
 
         for (uint256 i = 0; i < length; ) {
-            setFurionReward(_poolId[i], _basicFurionPerSecond[i], _withUpdate);
+            setFurionReward(_poolId[i], _basicFurionPerSecond[i], false);
 
             unchecked {
                 ++i;

@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  IFurionToken,
-  IFurionTokenInterface,
-} from "../../../../contracts/tokens/interfaces/IFurionToken";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { IFurionToken, IFurionTokenInterface } from "../../../../contracts/tokens/interfaces/IFurionToken";
 
 const _abi = [
   {
@@ -325,10 +323,7 @@ export class IFurionToken__factory {
   static createInterface(): IFurionTokenInterface {
     return new utils.Interface(_abi) as IFurionTokenInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IFurionToken {
+  static connect(address: string, signerOrProvider: Signer | Provider): IFurionToken {
     return new Contract(address, _abi, signerOrProvider) as IFurionToken;
   }
 }

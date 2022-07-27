@@ -3,13 +3,6 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
 import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
@@ -24,6 +17,8 @@ import type {
   utils,
 } from "ethers";
 
+import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../common";
+
 export interface GreeterInterface extends utils.Interface {
   functions: {
     "greet()": FunctionFragment;
@@ -32,27 +27,16 @@ export interface GreeterInterface extends utils.Interface {
     "throwError()": FunctionFragment;
   };
 
-  getFunction(
-    nameOrSignatureOrTopic: "greet" | "greeting" | "setGreeting" | "throwError"
-  ): FunctionFragment;
+  getFunction(nameOrSignatureOrTopic: "greet" | "greeting" | "setGreeting" | "throwError"): FunctionFragment;
 
   encodeFunctionData(functionFragment: "greet", values?: undefined): string;
   encodeFunctionData(functionFragment: "greeting", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "setGreeting",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "throwError",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "setGreeting", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "throwError", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "greet", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "greeting", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setGreeting",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "setGreeting", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "throwError", data: BytesLike): Result;
 
   events: {};
@@ -68,16 +52,12 @@ export interface Greeter extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -91,7 +71,7 @@ export interface Greeter extends BaseContract {
 
     setGreeting(
       _greeting: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     throwError(overrides?: CallOverrides): Promise<[void]>;
@@ -103,7 +83,7 @@ export interface Greeter extends BaseContract {
 
   setGreeting(
     _greeting: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   throwError(overrides?: CallOverrides): Promise<void>;
@@ -113,10 +93,7 @@ export interface Greeter extends BaseContract {
 
     greeting(overrides?: CallOverrides): Promise<string>;
 
-    setGreeting(
-      _greeting: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setGreeting(_greeting: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     throwError(overrides?: CallOverrides): Promise<void>;
   };
@@ -130,7 +107,7 @@ export interface Greeter extends BaseContract {
 
     setGreeting(
       _greeting: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     throwError(overrides?: CallOverrides): Promise<BigNumber>;
@@ -143,7 +120,7 @@ export interface Greeter extends BaseContract {
 
     setGreeting(
       _greeting: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     throwError(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  Ownable,
-  OwnableInterface,
-} from "../../../contracts/utils/Ownable";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { Ownable, OwnableInterface } from "../../../contracts/utils/Ownable";
 
 const _abi = [
   {
@@ -70,10 +68,7 @@ export class Ownable__factory {
   static createInterface(): OwnableInterface {
     return new utils.Interface(_abi) as OwnableInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): Ownable {
+  static connect(address: string, signerOrProvider: Signer | Provider): Ownable {
     return new Contract(address, _abi, signerOrProvider) as Ownable;
   }
 }

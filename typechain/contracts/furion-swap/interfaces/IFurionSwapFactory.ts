@@ -3,13 +3,6 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../../common";
 import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
@@ -24,6 +17,8 @@ import type {
   Signer,
   utils,
 } from "ethers";
+
+import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../../../common";
 
 export interface IFurionSwapFactoryInterface extends utils.Interface {
   functions: {
@@ -44,57 +39,27 @@ export interface IFurionSwapFactoryInterface extends utils.Interface {
       | "getPair"
       | "incomeMaker"
       | "incomeMakerProportion"
-      | "isFurionPairs"
+      | "isFurionPairs",
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "allPairs",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allPairsLength",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createPair",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPair",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "incomeMaker",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "incomeMakerProportion",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "allPairs", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "allPairsLength", values?: undefined): string;
+  encodeFunctionData(functionFragment: "createPair", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "getPair", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "incomeMaker", values?: undefined): string;
+  encodeFunctionData(functionFragment: "incomeMakerProportion", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "isFurionPairs",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>],
   ): string;
 
   decodeFunctionResult(functionFragment: "allPairs", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "allPairsLength",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "allPairsLength", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "createPair", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getPair", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "incomeMaker",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "incomeMakerProportion",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isFurionPairs",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "incomeMaker", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "incomeMakerProportion", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isFurionPairs", data: BytesLike): Result;
 
   events: {};
 }
@@ -109,16 +74,12 @@ export interface IFurionSwapFactory extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -126,23 +87,20 @@ export interface IFurionSwapFactory extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    allPairs(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { _pair: string }>;
+    allPairs(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string] & { _pair: string }>;
 
     allPairsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     createPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     getPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[string]>;
 
     incomeMaker(overrides?: CallOverrides): Promise<[string]>;
@@ -152,28 +110,21 @@ export interface IFurionSwapFactory extends BaseContract {
     isFurionPairs(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[boolean]>;
   };
 
-  allPairs(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  allPairs(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
   createPair(
     _token0: PromiseOrValue<string>,
     _token1: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  getPair(
-    _token0: PromiseOrValue<string>,
-    _token1: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  getPair(_token0: PromiseOrValue<string>, _token1: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>;
 
   incomeMaker(overrides?: CallOverrides): Promise<string>;
 
@@ -182,27 +133,24 @@ export interface IFurionSwapFactory extends BaseContract {
   isFurionPairs(
     _token0: PromiseOrValue<string>,
     _token1: PromiseOrValue<string>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<boolean>;
 
   callStatic: {
-    allPairs(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    allPairs(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     createPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     getPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<string>;
 
     incomeMaker(overrides?: CallOverrides): Promise<string>;
@@ -212,30 +160,27 @@ export interface IFurionSwapFactory extends BaseContract {
     isFurionPairs(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<boolean>;
   };
 
   filters: {};
 
   estimateGas: {
-    allPairs(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    allPairs(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     allPairsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     createPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     getPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     incomeMaker(overrides?: CallOverrides): Promise<BigNumber>;
@@ -245,40 +190,35 @@ export interface IFurionSwapFactory extends BaseContract {
     isFurionPairs(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    allPairs(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    allPairs(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allPairsLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     createPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     getPair(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     incomeMaker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    incomeMakerProportion(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    incomeMakerProportion(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isFurionPairs(
       _token0: PromiseOrValue<string>,
       _token1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
   };
 }

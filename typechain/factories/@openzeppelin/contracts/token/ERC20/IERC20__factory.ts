@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  IERC20,
-  IERC20Interface,
-} from "../../../../../@openzeppelin/contracts/token/ERC20/IERC20";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { IERC20, IERC20Interface } from "../../../../../@openzeppelin/contracts/token/ERC20/IERC20";
 
 const _abi = [
   {

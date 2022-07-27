@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  IFarmingPool,
-  IFarmingPoolInterface,
-} from "../../../../contracts/furion-farming/interfaces/IFarmingPool";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { IFarmingPool, IFarmingPoolInterface } from "../../../../contracts/furion-farming/interfaces/IFarmingPool";
 
 const _abi = [
   {
@@ -198,10 +196,7 @@ export class IFarmingPool__factory {
   static createInterface(): IFarmingPoolInterface {
     return new utils.Interface(_abi) as IFarmingPoolInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IFarmingPool {
+  static connect(address: string, signerOrProvider: Signer | Provider): IFarmingPool {
     return new Contract(address, _abi, signerOrProvider) as IFarmingPool;
   }
 }

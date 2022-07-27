@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   IERC20PermitWithMultipleMinters,
   IERC20PermitWithMultipleMintersInterface,
 } from "../../../../contracts/utils/interfaces/IERC20PermitWithMultipleMinters";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -326,18 +327,9 @@ const _abi = [
 export class IERC20PermitWithMultipleMinters__factory {
   static readonly abi = _abi;
   static createInterface(): IERC20PermitWithMultipleMintersInterface {
-    return new utils.Interface(
-      _abi
-    ) as IERC20PermitWithMultipleMintersInterface;
+    return new utils.Interface(_abi) as IERC20PermitWithMultipleMintersInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IERC20PermitWithMultipleMinters {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as IERC20PermitWithMultipleMinters;
+  static connect(address: string, signerOrProvider: Signer | Provider): IERC20PermitWithMultipleMinters {
+    return new Contract(address, _abi, signerOrProvider) as IERC20PermitWithMultipleMinters;
   }
 }

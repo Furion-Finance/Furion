@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   OwnableUpgradeable,
   OwnableUpgradeableInterface,
 } from "../../../../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -83,10 +84,7 @@ export class OwnableUpgradeable__factory {
   static createInterface(): OwnableUpgradeableInterface {
     return new utils.Interface(_abi) as OwnableUpgradeableInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): OwnableUpgradeable {
+  static connect(address: string, signerOrProvider: Signer | Provider): OwnableUpgradeable {
     return new Contract(address, _abi, signerOrProvider) as OwnableUpgradeable;
   }
 }

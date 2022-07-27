@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   ContextUpgradeable,
   ContextUpgradeableInterface,
 } from "../../../../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -31,10 +32,7 @@ export class ContextUpgradeable__factory {
   static createInterface(): ContextUpgradeableInterface {
     return new utils.Interface(_abi) as ContextUpgradeableInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ContextUpgradeable {
+  static connect(address: string, signerOrProvider: Signer | Provider): ContextUpgradeable {
     return new Contract(address, _abi, signerOrProvider) as ContextUpgradeable;
   }
 }

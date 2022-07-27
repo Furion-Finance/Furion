@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  IVeERC20,
-  IVeERC20Interface,
-} from "../../../../contracts/furion-staking/interfaces/IVeERC20";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { IVeERC20, IVeERC20Interface } from "../../../../contracts/furion-staking/interfaces/IVeERC20";
 
 const _abi = [
   {
@@ -50,10 +48,7 @@ export class IVeERC20__factory {
   static createInterface(): IVeERC20Interface {
     return new utils.Interface(_abi) as IVeERC20Interface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IVeERC20 {
+  static connect(address: string, signerOrProvider: Signer | Provider): IVeERC20 {
     return new Contract(address, _abi, signerOrProvider) as IVeERC20;
   }
 }

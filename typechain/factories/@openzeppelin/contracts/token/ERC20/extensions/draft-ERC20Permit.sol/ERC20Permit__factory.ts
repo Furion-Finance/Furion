@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   ERC20Permit,
   ERC20PermitInterface,
 } from "../../../../../../../@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol/ERC20Permit";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -363,10 +364,7 @@ export class ERC20Permit__factory {
   static createInterface(): ERC20PermitInterface {
     return new utils.Interface(_abi) as ERC20PermitInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ERC20Permit {
+  static connect(address: string, signerOrProvider: Signer | Provider): ERC20Permit {
     return new Contract(address, _abi, signerOrProvider) as ERC20Permit;
   }
 }

@@ -3,13 +3,14 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider, TransactionRequest } from "@ethersproject/providers";
+import { Contract, ContractFactory, Overrides, Signer, utils } from "ethers";
+
 import type { PromiseOrValue } from "../../../common";
 import type {
   VeERC20Upgradeable,
   VeERC20UpgradeableInterface,
 } from "../../../contracts/furion-staking/VeERC20Upgradeable";
-import type { Provider, TransactionRequest } from "@ethersproject/providers";
-import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 
 const _abi = [
   {
@@ -139,13 +140,10 @@ const _abi = [
 const _bytecode =
   "0x608060405234801561001057600080fd5b50610263806100206000396000f3fe608060405234801561001057600080fd5b50600436106100675760003560e01c8063313ce56711610050578063313ce5671461009c57806370a08231146100ab57806395d89b41146100e157600080fd5b806306fdde031461006c57806318160ddd1461008a575b600080fd5b6100746100e9565b604051610081919061018a565b60405180910390f35b6035545b604051908152602001610081565b60405160128152602001610081565b61008e6100b93660046101df565b73ffffffffffffffffffffffffffffffffffffffff1660009081526033602052604090205490565b61007461017b565b6060603680546100f89061021c565b80601f01602080910402602001604051908101604052809291908181526020018280546101249061021c565b80156101715780601f1061014657610100808354040283529160200191610171565b820191906000526020600020905b81548152906001019060200180831161015457829003601f168201915b5050505050905090565b6060603780546100f89061021c565b600060208083528351808285015260005b818110156101b75785810183015185820160400152820161019b565b818111156101c9576000604083870101525b50601f01601f1916929092016040019392505050565b6000602082840312156101f157600080fd5b813573ffffffffffffffffffffffffffffffffffffffff8116811461021557600080fd5b9392505050565b600181811c9082168061023057607f821691505b60208210810361025057634e487b7160e01b600052602260045260246000fd5b5091905056fea164736f6c634300080d000a";
 
-type VeERC20UpgradeableConstructorParams =
-  | [signer?: Signer]
-  | ConstructorParameters<typeof ContractFactory>;
+type VeERC20UpgradeableConstructorParams = [signer?: Signer] | ConstructorParameters<typeof ContractFactory>;
 
-const isSuperArgs = (
-  xs: VeERC20UpgradeableConstructorParams
-): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
+const isSuperArgs = (xs: VeERC20UpgradeableConstructorParams): xs is ConstructorParameters<typeof ContractFactory> =>
+  xs.length > 1;
 
 export class VeERC20Upgradeable__factory extends ContractFactory {
   constructor(...args: VeERC20UpgradeableConstructorParams) {
@@ -156,14 +154,10 @@ export class VeERC20Upgradeable__factory extends ContractFactory {
     }
   }
 
-  override deploy(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<VeERC20Upgradeable> {
+  override deploy(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<VeERC20Upgradeable> {
     return super.deploy(overrides || {}) as Promise<VeERC20Upgradeable>;
   }
-  override getDeployTransaction(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): TransactionRequest {
+  override getDeployTransaction(overrides?: Overrides & { from?: PromiseOrValue<string> }): TransactionRequest {
     return super.getDeployTransaction(overrides || {});
   }
   override attach(address: string): VeERC20Upgradeable {
@@ -178,10 +172,7 @@ export class VeERC20Upgradeable__factory extends ContractFactory {
   static createInterface(): VeERC20UpgradeableInterface {
     return new utils.Interface(_abi) as VeERC20UpgradeableInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): VeERC20Upgradeable {
+  static connect(address: string, signerOrProvider: Signer | Provider): VeERC20Upgradeable {
     return new Contract(address, _abi, signerOrProvider) as VeERC20Upgradeable;
   }
 }

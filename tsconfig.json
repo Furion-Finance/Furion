@@ -18,5 +18,5 @@
   },
   "exclude": ["node_modules"],
   "files": ["./hardhat.config.ts"],
-  "include": ["typechain/**/*", "tasks/**/*", "test/**/*"]
+  "include": ["./typechain/**/*", "./tasks/**/*", "./test/**/*", "./deploy/**/*", "./hardhat.config.ts"]
 }

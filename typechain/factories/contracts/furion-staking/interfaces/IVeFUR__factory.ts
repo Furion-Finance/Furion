@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  IVeFUR,
-  IVeFURInterface,
-} from "../../../../contracts/furion-staking/interfaces/IVeFUR";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { IVeFUR, IVeFURInterface } from "../../../../contracts/furion-staking/interfaces/IVeFUR";
 
 const _abi = [
   {

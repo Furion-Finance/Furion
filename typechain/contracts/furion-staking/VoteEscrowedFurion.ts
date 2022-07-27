@@ -3,18 +3,7 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../common";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { EventFragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   BaseContract,
@@ -28,6 +17,8 @@ import type {
   Signer,
   utils,
 } from "ethers";
+
+import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../../common";
 
 export interface VoteEscrowedFurionInterface extends utils.Interface {
   functions: {
@@ -98,176 +89,83 @@ export interface VoteEscrowedFurionInterface extends utils.Interface {
       | "users"
       | "whitelist"
       | "withdraw"
-      | "withdrawLocked"
+      | "withdrawLocked",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "SCALE", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "addWhitelist",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "addWhitelist", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "burnVeFUR",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
   ): string;
   encodeFunctionData(functionFragment: "claim", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "claimable",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "claimable", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "depositMaxTime",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "deposit", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "depositMaxTime", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "furion", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "generationRate",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "generationRate", values?: undefined): string;
+  encodeFunctionData(functionFragment: "initialize", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "lockVeFUR",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "locked",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "maxCapRatio",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "locked", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "maxCapRatio", values?: undefined): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "removeWhitelist",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setGenerationRate",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setMaxCapRatio",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "removeWhitelist", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+  encodeFunctionData(functionFragment: "setGenerationRate", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "setMaxCapRatio", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
+  encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "unlockVeFUR",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "users",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "whitelist",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawLocked",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "users", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "whitelist", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "withdraw", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "withdrawLocked", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "SCALE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "addWhitelist",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "addWhitelist", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnVeFUR", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimable", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "depositMaxTime",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "depositMaxTime", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "furion", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "generationRate",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "generationRate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lockVeFUR", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "locked", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "maxCapRatio",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "maxCapRatio", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "removeWhitelist",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setGenerationRate",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setMaxCapRatio",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "removeWhitelist", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setGenerationRate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setMaxCapRatio", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "unlockVeFUR",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "unlockVeFUR", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "users", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "whitelist", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawLocked",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "withdrawLocked", data: BytesLike): Result;
 
   events: {
     "Burn(address,uint256)": EventFragment;
@@ -321,10 +219,7 @@ export interface BurnVeFUREventObject {
   user: string;
   amount: BigNumber;
 }
-export type BurnVeFUREvent = TypedEvent<
-  [string, string, BigNumber],
-  BurnVeFUREventObject
->;
+export type BurnVeFUREvent = TypedEvent<[string, string, BigNumber], BurnVeFUREventObject>;
 
 export type BurnVeFUREventFilter = TypedEventFilter<BurnVeFUREvent>;
 
@@ -349,10 +244,7 @@ export interface DepositMaxTimeEventObject {
   amount: BigNumber;
   lockUntil: BigNumber;
 }
-export type DepositMaxTimeEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  DepositMaxTimeEventObject
->;
+export type DepositMaxTimeEvent = TypedEvent<[string, BigNumber, BigNumber], DepositMaxTimeEventObject>;
 
 export type DepositMaxTimeEventFilter = TypedEventFilter<DepositMaxTimeEvent>;
 
@@ -360,13 +252,9 @@ export interface GenerationRateChangedEventObject {
   oldRate: BigNumber;
   newRate: BigNumber;
 }
-export type GenerationRateChangedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  GenerationRateChangedEventObject
->;
+export type GenerationRateChangedEvent = TypedEvent<[BigNumber, BigNumber], GenerationRateChangedEventObject>;
 
-export type GenerationRateChangedEventFilter =
-  TypedEventFilter<GenerationRateChangedEvent>;
+export type GenerationRateChangedEventFilter = TypedEventFilter<GenerationRateChangedEvent>;
 
 export interface InitializedEventObject {
   version: number;
@@ -380,10 +268,7 @@ export interface LockVeFUREventObject {
   user: string;
   amount: BigNumber;
 }
-export type LockVeFUREvent = TypedEvent<
-  [string, string, BigNumber],
-  LockVeFUREventObject
->;
+export type LockVeFUREvent = TypedEvent<[string, string, BigNumber], LockVeFUREventObject>;
 
 export type LockVeFUREventFilter = TypedEventFilter<LockVeFUREvent>;
 
@@ -391,13 +276,9 @@ export interface MaxCapRatioChangedEventObject {
   oldMaxCapRatio: BigNumber;
   newMaxCapRatio: BigNumber;
 }
-export type MaxCapRatioChangedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  MaxCapRatioChangedEventObject
->;
+export type MaxCapRatioChangedEvent = TypedEvent<[BigNumber, BigNumber], MaxCapRatioChangedEventObject>;
 
-export type MaxCapRatioChangedEventFilter =
-  TypedEventFilter<MaxCapRatioChangedEvent>;
+export type MaxCapRatioChangedEventFilter = TypedEventFilter<MaxCapRatioChangedEvent>;
 
 export interface MintEventObject {
   beneficiary: string;
@@ -411,13 +292,9 @@ export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface PausedEventObject {
   account: string;
@@ -431,10 +308,7 @@ export interface UnlockVeFUREventObject {
   user: string;
   amount: BigNumber;
 }
-export type UnlockVeFUREvent = TypedEvent<
-  [string, string, BigNumber],
-  UnlockVeFUREventObject
->;
+export type UnlockVeFUREvent = TypedEvent<[string, string, BigNumber], UnlockVeFUREventObject>;
 
 export type UnlockVeFUREventFilter = TypedEventFilter<UnlockVeFUREvent>;
 
@@ -448,32 +322,22 @@ export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 export interface WhiteListAddedEventObject {
   newWhiteList: string;
 }
-export type WhiteListAddedEvent = TypedEvent<
-  [string],
-  WhiteListAddedEventObject
->;
+export type WhiteListAddedEvent = TypedEvent<[string], WhiteListAddedEventObject>;
 
 export type WhiteListAddedEventFilter = TypedEventFilter<WhiteListAddedEvent>;
 
 export interface WhiteListRemoVEFEventObject {
   oldWhiteList: string;
 }
-export type WhiteListRemoVEFEvent = TypedEvent<
-  [string],
-  WhiteListRemoVEFEventObject
->;
+export type WhiteListRemoVEFEvent = TypedEvent<[string], WhiteListRemoVEFEventObject>;
 
-export type WhiteListRemoVEFEventFilter =
-  TypedEventFilter<WhiteListRemoVEFEvent>;
+export type WhiteListRemoVEFEventFilter = TypedEventFilter<WhiteListRemoVEFEvent>;
 
 export interface WithdrawEventObject {
   user: string;
   amount: BigNumber;
 }
-export type WithdrawEvent = TypedEvent<
-  [string, BigNumber],
-  WithdrawEventObject
->;
+export type WithdrawEvent = TypedEvent<[string, BigNumber], WithdrawEventObject>;
 
 export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
@@ -487,16 +351,12 @@ export interface VoteEscrowedFurion extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -508,39 +368,31 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     addWhitelist(
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     burnVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    claim(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    claim(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    claimable(
-      _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    claimable(_user: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     depositMaxTime(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     furion(overrides?: CallOverrides): Promise<[string]>;
@@ -549,19 +401,16 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     initialize(
       _furion: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     lockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    locked(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    locked(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxCapRatio(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -569,29 +418,25 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     removeWhitelist(
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     setGenerationRate(
       _generationRate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     setMaxCapRatio(
       _maxCapRatio: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -600,22 +445,20 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     unlockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     users(
       arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber] & {
         amount: BigNumber;
@@ -625,58 +468,45 @@ export interface VoteEscrowedFurion extends BaseContract {
       }
     >;
 
-    whitelist(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    whitelist(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
 
     withdraw(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    withdrawLocked(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    withdrawLocked(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
   };
 
   SCALE(overrides?: CallOverrides): Promise<BigNumber>;
 
   addWhitelist(
     _account: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  balanceOf(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
   burnVeFUR(
     _to: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  claim(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  claim(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-  claimable(
-    _user: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  claimable(_user: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
   deposit(
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   depositMaxTime(
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   furion(overrides?: CallOverrides): Promise<string>;
@@ -685,19 +515,16 @@ export interface VoteEscrowedFurion extends BaseContract {
 
   initialize(
     _furion: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   lockVeFUR(
     _to: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  locked(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  locked(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
   maxCapRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -705,29 +532,25 @@ export interface VoteEscrowedFurion extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  pause(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   removeWhitelist(
     _account: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   setGenerationRate(
     _generationRate: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   setMaxCapRatio(
     _maxCapRatio: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -736,22 +559,20 @@ export interface VoteEscrowedFurion extends BaseContract {
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   unlockVeFUR(
     _to: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  unpause(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   users(
     arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [BigNumber, BigNumber, BigNumber, BigNumber] & {
       amount: BigNumber;
@@ -761,77 +582,51 @@ export interface VoteEscrowedFurion extends BaseContract {
     }
   >;
 
-  whitelist(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  whitelist(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
   withdraw(
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  withdrawLocked(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  withdrawLocked(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   callStatic: {
     SCALE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addWhitelist(
-      _account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    addWhitelist(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     burnVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     claim(overrides?: CallOverrides): Promise<void>;
 
-    claimable(
-      _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    claimable(_user: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
-    deposit(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    deposit(_amount: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
-    depositMaxTime(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    depositMaxTime(_amount: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     furion(overrides?: CallOverrides): Promise<string>;
 
     generationRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-    initialize(
-      _furion: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    initialize(_furion: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     lockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    locked(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    locked(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxCapRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -843,43 +638,31 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
-    removeWhitelist(
-      _account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    removeWhitelist(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    setGenerationRate(
-      _generationRate: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setGenerationRate(_generationRate: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
-    setMaxCapRatio(
-      _maxCapRatio: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setMaxCapRatio(_maxCapRatio: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     unlockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
 
     users(
       arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber, BigNumber, BigNumber] & {
         amount: BigNumber;
@@ -889,77 +672,43 @@ export interface VoteEscrowedFurion extends BaseContract {
       }
     >;
 
-    whitelist(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    whitelist(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
-    withdraw(
-      _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    withdraw(_amount: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     withdrawLocked(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
-    "Burn(address,uint256)"(
-      account?: PromiseOrValue<string> | null,
-      value?: null
-    ): BurnEventFilter;
-    Burn(
-      account?: PromiseOrValue<string> | null,
-      value?: null
-    ): BurnEventFilter;
+    "Burn(address,uint256)"(account?: PromiseOrValue<string> | null, value?: null): BurnEventFilter;
+    Burn(account?: PromiseOrValue<string> | null, value?: null): BurnEventFilter;
 
     "BurnVeFUR(address,address,uint256)"(
       caller?: PromiseOrValue<string> | null,
       user?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
     ): BurnVeFUREventFilter;
     BurnVeFUR(
       caller?: PromiseOrValue<string> | null,
       user?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
     ): BurnVeFUREventFilter;
 
-    "Claimed(address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): ClaimedEventFilter;
-    Claimed(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): ClaimedEventFilter;
+    "Claimed(address,uint256)"(user?: PromiseOrValue<string> | null, amount?: null): ClaimedEventFilter;
+    Claimed(user?: PromiseOrValue<string> | null, amount?: null): ClaimedEventFilter;
 
-    "Deposit(address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DepositEventFilter;
-    Deposit(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): DepositEventFilter;
+    "Deposit(address,uint256)"(user?: PromiseOrValue<string> | null, amount?: null): DepositEventFilter;
+    Deposit(user?: PromiseOrValue<string> | null, amount?: null): DepositEventFilter;
 
     "DepositMaxTime(address,uint256,uint256)"(
       user?: PromiseOrValue<string> | null,
       amount?: null,
-      lockUntil?: null
+      lockUntil?: null,
     ): DepositMaxTimeEventFilter;
-    DepositMaxTime(
-      user?: PromiseOrValue<string> | null,
-      amount?: null,
-      lockUntil?: null
-    ): DepositMaxTimeEventFilter;
+    DepositMaxTime(user?: PromiseOrValue<string> | null, amount?: null, lockUntil?: null): DepositMaxTimeEventFilter;
 
-    "GenerationRateChanged(uint256,uint256)"(
-      oldRate?: null,
-      newRate?: null
-    ): GenerationRateChangedEventFilter;
-    GenerationRateChanged(
-      oldRate?: null,
-      newRate?: null
-    ): GenerationRateChangedEventFilter;
+    "GenerationRateChanged(uint256,uint256)"(oldRate?: null, newRate?: null): GenerationRateChangedEventFilter;
+    GenerationRateChanged(oldRate?: null, newRate?: null): GenerationRateChangedEventFilter;
 
     "Initialized(uint8)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
@@ -967,39 +716,27 @@ export interface VoteEscrowedFurion extends BaseContract {
     "LockVeFUR(address,address,uint256)"(
       caller?: PromiseOrValue<string> | null,
       user?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
     ): LockVeFUREventFilter;
     LockVeFUR(
       caller?: PromiseOrValue<string> | null,
       user?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
     ): LockVeFUREventFilter;
 
-    "MaxCapRatioChanged(uint256,uint256)"(
-      oldMaxCapRatio?: null,
-      newMaxCapRatio?: null
-    ): MaxCapRatioChangedEventFilter;
-    MaxCapRatioChanged(
-      oldMaxCapRatio?: null,
-      newMaxCapRatio?: null
-    ): MaxCapRatioChangedEventFilter;
+    "MaxCapRatioChanged(uint256,uint256)"(oldMaxCapRatio?: null, newMaxCapRatio?: null): MaxCapRatioChangedEventFilter;
+    MaxCapRatioChanged(oldMaxCapRatio?: null, newMaxCapRatio?: null): MaxCapRatioChangedEventFilter;
 
-    "Mint(address,uint256)"(
-      beneficiary?: PromiseOrValue<string> | null,
-      value?: null
-    ): MintEventFilter;
-    Mint(
-      beneficiary?: PromiseOrValue<string> | null,
-      value?: null
-    ): MintEventFilter;
+    "Mint(address,uint256)"(beneficiary?: PromiseOrValue<string> | null, value?: null): MintEventFilter;
+    Mint(beneficiary?: PromiseOrValue<string> | null, value?: null): MintEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      newOwner?: PromiseOrValue<string> | null,
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
       previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      newOwner?: PromiseOrValue<string> | null,
     ): OwnershipTransferredEventFilter;
 
     "Paused(address)"(account?: null): PausedEventFilter;
@@ -1008,12 +745,12 @@ export interface VoteEscrowedFurion extends BaseContract {
     "UnlockVeFUR(address,address,uint256)"(
       caller?: PromiseOrValue<string> | null,
       user?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
     ): UnlockVeFUREventFilter;
     UnlockVeFUR(
       caller?: PromiseOrValue<string> | null,
       user?: PromiseOrValue<string> | null,
-      amount?: null
+      amount?: null,
     ): UnlockVeFUREventFilter;
 
     "Unpaused(address)"(account?: null): UnpausedEventFilter;
@@ -1022,19 +759,11 @@ export interface VoteEscrowedFurion extends BaseContract {
     "WhiteListAdded(address)"(newWhiteList?: null): WhiteListAddedEventFilter;
     WhiteListAdded(newWhiteList?: null): WhiteListAddedEventFilter;
 
-    "WhiteListRemoVEF(address)"(
-      oldWhiteList?: null
-    ): WhiteListRemoVEFEventFilter;
+    "WhiteListRemoVEF(address)"(oldWhiteList?: null): WhiteListRemoVEFEventFilter;
     WhiteListRemoVEF(oldWhiteList?: null): WhiteListRemoVEFEventFilter;
 
-    "Withdraw(address,uint256)"(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): WithdrawEventFilter;
-    Withdraw(
-      user?: PromiseOrValue<string> | null,
-      amount?: null
-    ): WithdrawEventFilter;
+    "Withdraw(address,uint256)"(user?: PromiseOrValue<string> | null, amount?: null): WithdrawEventFilter;
+    Withdraw(user?: PromiseOrValue<string> | null, amount?: null): WithdrawEventFilter;
   };
 
   estimateGas: {
@@ -1042,39 +771,31 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     addWhitelist(
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     burnVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    claim(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    claim(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    claimable(
-      _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    claimable(_user: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     depositMaxTime(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     furion(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1083,19 +804,16 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     initialize(
       _furion: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     lockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    locked(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    locked(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxCapRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1103,29 +821,25 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     removeWhitelist(
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     setGenerationRate(
       _generationRate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     setMaxCapRatio(
       _maxCapRatio: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1134,37 +848,27 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     unlockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    users(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    users(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    whitelist(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    whitelist(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     withdraw(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    withdrawLocked(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    withdrawLocked(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1172,39 +876,31 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     addWhitelist(
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    balanceOf(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    balanceOf(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     burnVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    claim(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    claim(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    claimable(
-      _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    claimable(_user: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     deposit(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     depositMaxTime(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     furion(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1213,19 +909,16 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     initialize(
       _furion: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     lockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    locked(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    locked(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxCapRatio(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1233,29 +926,25 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeWhitelist(
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     setGenerationRate(
       _generationRate: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     setMaxCapRatio(
       _maxCapRatio: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1264,36 +953,26 @@ export interface VoteEscrowedFurion extends BaseContract {
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     unlockVeFUR(
       _to: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    users(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    users(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    whitelist(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    whitelist(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdraw(
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    withdrawLocked(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    withdrawLocked(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
   };
 }

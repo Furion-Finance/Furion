@@ -3,12 +3,10 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  IWETH,
-  IWETHInterface,
-} from "../../../../contracts/tokens/interfaces/IWETH";
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
+
+import type { IWETH, IWETHInterface } from "../../../../contracts/tokens/interfaces/IWETH";
 
 const _abi = [
   {

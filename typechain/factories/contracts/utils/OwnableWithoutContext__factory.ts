@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   OwnableWithoutContext,
   OwnableWithoutContextInterface,
 } from "../../../contracts/utils/OwnableWithoutContext";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -70,14 +71,7 @@ export class OwnableWithoutContext__factory {
   static createInterface(): OwnableWithoutContextInterface {
     return new utils.Interface(_abi) as OwnableWithoutContextInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): OwnableWithoutContext {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as OwnableWithoutContext;
+  static connect(address: string, signerOrProvider: Signer | Provider): OwnableWithoutContext {
+    return new Contract(address, _abi, signerOrProvider) as OwnableWithoutContext;
   }
 }

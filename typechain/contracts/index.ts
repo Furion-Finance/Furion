@@ -9,6 +9,7 @@ import type * as furionSwap from "./furion-swap";
 import type * as incomeSharing from "./income-sharing";
 import type * as libraries from "./libraries";
 import type * as mock from "./mock";
+import type * as proxy from "./proxy";
 import type * as tokens from "./tokens";
 import type * as utils from "./utils";
 
@@ -23,6 +24,8 @@ export type { incomeSharing };
 export type { libraries };
 
 export type { mock };
+
+export type { proxy };
 
 export type { tokens };
 

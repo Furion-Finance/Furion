@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   PausableUpgradeable,
   PausableUpgradeableInterface,
 } from "../../../../@openzeppelin/contracts-upgradeable/security/PausableUpgradeable";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -70,10 +71,7 @@ export class PausableUpgradeable__factory {
   static createInterface(): PausableUpgradeableInterface {
     return new utils.Interface(_abi) as PausableUpgradeableInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): PausableUpgradeable {
+  static connect(address: string, signerOrProvider: Signer | Provider): PausableUpgradeable {
     return new Contract(address, _abi, signerOrProvider) as PausableUpgradeable;
   }
 }

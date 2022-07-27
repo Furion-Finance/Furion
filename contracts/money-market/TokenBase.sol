@@ -579,76 +579,140 @@ contract TokenBase is
             ),
             "TokenBase: Liquidation disallowed by risk manager"
         );
-        // Ensure market is up to date
+        // Ensure borrow market is up to date
         require(
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
         );
-
-        /* Verify cTokenCollateral market's block number equals current block number */
+        // Ensure collateral market is also up to date
         require(
             collateral.lastAccrualBlock() == block.number,
             "TokenBase: Collateral market state not yet updated"
         );
-        /* Fail if borrower = liquidator */
+        // Fail if borrower = liquidator
         require(
             _borrower != _liquidator,
             "TokenBase: Cannot liquidate yourself"
         );
-        /* Fail if repayAmount = 0 or -1 */
+        // Fail if repayAmount = 0 or -1
         require(
             _repayAmount > 0 && _repayAmount != type(uint256).max,
             "TokenBase: Invalid repay amount"
         );
 
-        /* Fail if repayBorrow fails */
-        uint256 actualRepayAmount = repayBorrowInternal(
-            _liquidator,
-            _borrower,
-            _repayAmount
-        );
+        // Fail if repayBorrow fails
+        repayBorrowInternal(_liquidator, _borrower, _repayAmount);
+
+        // Reset liquidation tracker if there are no more bad debts
+        riskManager.closeLiquidation(_borrower);
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
         // (No safe failures beyond this point)
 
         /* We calculate the number of collateral tokens that will be seized */
-        (uint256 amountSeizeError, uint256 seizeTokens) = riskManager
-            .liquidateCalculateSeizeTokens(
-                address(this),
-                _fTokenCollateral,
-                actualRepayAmount
-            );
-        require(
-            amountSeizeError == NO_ERROR,
-            "LIQUIDATE_COMPTROLLER_CALCULATE_AMOUNT_SEIZE_FAILED"
+        uint256 seizeTokens = riskManager.liquidateCalculateSeizeTokens(
+            _borrower,
+            address(this),
+            _fTokenCollateral,
+            _repayAmount
         );
 
-        /* Revert if borrower collateral token balance < seizeTokens */
-        require(
-            cTokenCollateral.balanceOf(borrower) >= seizeTokens,
-            "LIQUIDATE_SEIZE_TOO_MUCH"
-        );
-
-        // If this is also the collateral, run seizeInternal to avoid re-entrancy, otherwise make an external call
-        if (address(cTokenCollateral) == address(this)) {
-            seizeInternal(address(this), liquidator, borrower, seizeTokens);
+        // Call seize functions of fTokenCollateral contract for token seizure.
+        // If this is also the  collateral, run seizeInternal to avoid re-entrancy,
+        // otherwise make an external call
+        if (_fTokenCollateral == address(this)) {
+            seizeInternal(address(this), _liquidator, _borrower, seizeTokens);
         } else {
-            require(
-                cTokenCollateral.seize(liquidator, borrower, seizeTokens) ==
-                    NO_ERROR,
-                "token seizure failed"
-            );
+            collateral.seize(_liquidator, _borrower, seizeTokens);
         }
 
-        /* We emit a LiquidateBorrow event */
+        // We emit a LiquidateBorrow event
         emit LiquidateBorrow(
             _liquidator,
             _borrower,
-            actualRepayAmount,
+            _repayAmount,
             _fTokenCollateral,
             seizeTokens
         );
+    }
+
+    /**
+     * @notice Transfers collateral tokens (this market) to the liquidator.
+     * @dev Called only during an in-kind liquidation, or by liquidateBorrow during
+     *  the liquidation of another fToken. Its absolutely critical to use msg.sender
+     *  as the seizer fToken and not a parameter.
+     * @param _seizer The contract calling the function for seizing the collateral
+     *   (i.e. borrowed fToken)
+     * @param _liquidator The account receiving seized collateral
+     * @param _borrower The account having collateral seized
+     * @param _seizeTokens The number of fTokens to seize
+     */
+    function seizeInternal(
+        address _seizer,
+        address _liquidator,
+        address _borrower,
+        uint256 _seizeTokens
+    ) internal {
+        // Params: fTokenCollateral, fTokenBorrowed, liquidator, borrower
+        require(
+            riskManager.seizeAllowed(
+                address(this),
+                _seizer,
+                _liquidator,
+                _borrower,
+                _seizeTokens
+            ),
+            "TokenBase: Token seizure disallowed by risk manager"
+        );
+
+        // Fail if borrower = liquidator, already checked in `liquidaetBorrowInterna()`
+        // require(borrower != liquidator);
+
+        /*
+         * We calculate the new borrower and liquidator token balances, failing on underflow/overflow:
+         *  borrowerTokensNew = accountTokens[borrower] - seizeTokens
+         *  liquidatorTokensNew = accountTokens[liquidator] + seizeTokens
+         */
+        // mul_: uint, exp -> uint
+        uint256 protocolSeizeTokens = mul_(
+            _seizeTokens,
+            Exp({mantissa: protocolSeizeShareMantissa})
+        );
+        uint256 liquidatorSeizeTokens = _seizeTokens - protocolSeizeTokens;
+        // Convert amount of fToken for reserve to underlying asset
+        Exp memory exchangeRate = Exp({mantissa: exchangeRate()});
+        // mul_ScalarTruncate: exp, uint -> uint
+        uint256 protocolSeizeAmount = mul_ScalarTruncate(
+            exchangeRate,
+            protocolSeizeTokens
+        );
+        uint256 totalReservesNew = totalReserves + protocolSeizeAmount;
+
+        /////////////////////////
+        // EFFECTS & INTERACTIONS
+        // (No safe failures beyond this point)
+
+        // We write the calculated values into storage
+        totalReserves = totalReservesNew;
+        // Indirect token transfer through minting and burning
+        _burn(_borrower, _seizeTokens);
+        _mint(_liquidator, liquidatorSeizeTokens);
+
+        emit TokenSeized(_borrower, _liquidator, liquidatorSeizeTokens);
+        emit ReservesAdded(
+            address(this),
+            protocolSeizeAmount,
+            totalReservesNew
+        );
+    }
+
+    function seize(
+        address _liquidator,
+        address _borrower,
+        uint256 _seizeTokens
+    ) external override {
+        seizeInternal(msg.sender, _liquidator, _borrower, _seizeTokens);
     }
 
     /***************************** ERC20 Override *****************************/

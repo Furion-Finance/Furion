@@ -22,8 +22,13 @@ contract TokenBaseStorage {
     // Max borrow rate per block (0.0005%)
     uint256 internal constant BORROW_RATE_MAX_MANTISSA = 5e12;
 
+    // Maximum fraction of interest that can be set aside for reserves
+    uint256 internal constant RESERVE_FACTOR_MAX_MANTISSA = 1e18; // 100%
+
     // 50 underlying = 1 fToken
     uint256 internal initialExchangeRateMantissa = 50e18;
+
+    uint256 public reserveFactorMantissa;
 
     // Block number that interest is last accrued at
     uint256 public lastAccrualBlock;
@@ -44,6 +49,9 @@ contract TokenBaseStorage {
     }
 
     mapping(address => BorrowSnapshot) internal accountBorrows;
+
+    // Percentage of seized tokens that goes to market reserve, 0 by default
+    uint256 public protocolSeizeShareMantissa;
 }
 
 contract FErc20Storage {

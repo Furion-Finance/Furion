@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./ExponentialNoError.sol";
 import "./interfaces/IPriceOracle.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract RiskManagerStorage is ExponentialNoError {
     bool public constant IS_RISK_MANAGER = true;
@@ -17,6 +18,13 @@ contract RiskManagerStorage is ExponentialNoError {
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 9e17; // 90%
 
+    uint256 internal constant COLLATERAL_FACTOR_MAX_BOOST_MANTISSA = 2.5e16; // 2.5%
+
+    uint256 internal constant COLLATERAL_FACTOR_BOOST_INCREASE_MANTISSA = 1e15; // 0.1%
+
+    uint256 internal constant COLLATERAL_FACTOR_BOOST_REQUIRED_TOKEN =
+        1000000e18; // 1000000 veFUR
+
     uint256 internal constant LIQUIDATION_INCENTIVE_MIN_MANTISSA = 1.05e18; // 105%
 
     uint256 internal constant LIQUIDATION_INCENTIVE_MAX_MANTISSA = 1.1e18; // 110%
@@ -26,6 +34,8 @@ contract RiskManagerStorage is ExponentialNoError {
 
     /// @notice Pending administrator for this contract
     address public pendingAdmin;
+
+    IERC20 public veToken;
 
     /// @notice Oracle which gives the price of underlying assets
     IPriceOracle public oracle;

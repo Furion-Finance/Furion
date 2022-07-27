@@ -200,6 +200,10 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         emit NewPriceOracle(oldOracle, _newOracle);
     }
 
+    function setVeToken(address _newVetoken) external onlyAdmin {
+        veToken = IERC20(_newVetoken);
+    }
+
     function setCloseFactor(uint256 _newCloseFactorMantissa)
         external
         onlyAdmin
@@ -263,10 +267,18 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
      * @param _fToken The address of the market (token) to list
      * @param _tier Tier of the market
      */
-    function supportMarket(address _fToken, uint256 _tier) external onlyAdmin {
+    function supportMarket(
+        address _fToken,
+        uint256 _collateralFactorMantissa,
+        uint256 _tier
+    ) external onlyAdmin {
         require(
             !markets[_fToken].isListed,
             "RiskManager: Market already listed"
+        );
+        require(
+            _collateralFactorMantissa <= COLLATERAL_FACTOR_MAX_MANTISSA,
+            "RiskManager: Invalid collateral factor"
         );
         require(_tier <= maxTier, "RiskManager: Invalid tier");
 
@@ -274,7 +286,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
 
         Market storage newMarket = markets[_fToken];
         newMarket.isListed = true;
-        newMarket.collateralFactorMantissa = 0;
+        newMarket.collateralFactorMantissa = _collateralFactorMantissa;
         newMarket.tier = _tier;
 
         emit MarketListed(_fToken);
@@ -596,6 +608,23 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         }
     }
 
+    function collateralFactorBoost(address _account)
+        public
+        view
+        returns (uint256 boostMantissa)
+    {
+        uint256 veBalance = veToken.balanceOf(_account);
+        // How many 0.1% the collateral factor will be increased by.
+        // Result is rounded down by default which is fine
+        uint256 multiplier = veBalance / COLLATERAL_FACTOR_BOOST_REQUIRED_TOKEN;
+
+        boostMantissa = COLLATERAL_FACTOR_BOOST_INCREASE_MANTISSA * multiplier;
+
+        if (boostMantissa > COLLATERAL_FACTOR_MAX_BOOST_MANTISSA) {
+            boostMantissa = COLLATERAL_FACTOR_MAX_BOOST_MANTISSA;
+        }
+    }
+
     /**
      * @notice Determine the current account liquidity wrt collateral requirements
      * @return liquidities Hypothetical spare liquidity for each asset tier from low to high
@@ -675,8 +704,11 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             }
             */
 
+            uint256 boostMantissa = collateralFactorBoost(_account);
+
             vars.collateralFactor = Exp({
-                mantissa: markets[asset].collateralFactorMantissa
+                mantissa: markets[asset].collateralFactorMantissa +
+                    boostMantissa
             });
             vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
 
@@ -708,6 +740,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             if (asset == _fToken) {
                 // Redeem effect
                 // Collateral reduced after redemption
+                // mul_: uint, exp -> uint
                 tl.tierCollateralValues[assetTier - 1] -= mul_(
                     _redeemToken,
                     vars.collateralValuePerToken
@@ -715,6 +748,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
 
                 // Add amount to hypothetically borrow
                 // sumBorrowPlusEffects += oraclePrice * borrowAmount
+                // mul_: uint, exp -> uint
                 tl.tierBorrowValues[assetTier - 1] += mul_(
                     _borrowAmount,
                     vars.oraclePrice

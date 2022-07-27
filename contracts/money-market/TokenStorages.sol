@@ -2,11 +2,12 @@
 
 pragma solidity ^0.8.0;
 
+import "./ExponentialNoError.sol";
 import "./interfaces/IRiskManager.sol";
 import "./interfaces/IInterestRateModel.sol";
 
 // name, symbol, decimals, totalSupply, balances, allowances in ERC20 contract
-contract TokenBaseStorage {
+contract TokenBaseStorage is ExponentialNoError {
     bool public constant isFToken = true;
 
     IRiskManager riskManager;

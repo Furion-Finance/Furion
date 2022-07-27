@@ -2,7 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-contract RiskManagerStorage {
+import "./ExponentialNoError.sol";
+import "./interfaces/IPriceOracle.sol";
+
+contract RiskManagerStorage is ExponentialNoError {
     bool public constant IS_RISK_MANAGER = true;
 
     // closeFactorMantissa must be strictly greater than this value

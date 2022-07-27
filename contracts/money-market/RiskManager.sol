@@ -4,9 +4,8 @@ pragma solidity ^0.8.0;
 
 import "./RiskManagerStorage.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "./ExponentialNoError.sol";
 
-contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
+contract RiskManager is RiskManagerStorage, Initializable {
     function initialize() public initializer {
         admin = msg.sender;
     }

@@ -7,14 +7,8 @@ import "./TokenStorages.sol";
 import "./interfaces/ITokenBase.sol";
 import "./interfaces/IRiskManager.sol";
 import "./interfaces/IInterestRateModel.sol";
-import "./ExponentialNoError.sol";
 
-contract TokenBase is
-    ERC20PermitUpgradeable,
-    TokenBaseStorage,
-    ITokenBase,
-    ExponentialNoError
-{
+contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
     function __TokenBase_init(
         address _riskManager,
         address _interestRateModel,

@@ -175,7 +175,9 @@ abstract contract TokenBase is
      * @return The total borrows with interest
      */
     function totalBorrowsCurrent() external returns (uint256) {
+        // Update market state
         accrueInterest();
+
         return totalBorrows;
     }
 
@@ -190,6 +192,12 @@ abstract contract TokenBase is
      * @notice Return the borrow balance of account based on stored data
      * @param _account The address whose balance should be calculated
      * @return The calculated balance
+     *
+     * NOTE: Despite being free to call, it may not be accurate when called externally
+     * by non-Furion contracts because lastAccrualBlock will not be equal to current
+     * block number provided that accrueInterest() is not called beforehand, meaning
+     * that market is not up-to-date when the function is called. Call 'current' version
+     * functions for accurate results.
      */
     function borrowBalanceStored(address _account)
         public
@@ -200,7 +208,8 @@ abstract contract TokenBase is
         BorrowSnapshot memory snapshot = accountBorrows[_account];
 
         /* If borrowBalance = 0 then borrowIndex is likely also 0.
-         * Rather than failing the calculation with a division by 0, we immediately return 0 in this case.
+         * Rather than failing the calculation with a division by 0, we immediately
+         * return 0 in this case.
          */
         if (snapshot.principal == 0) {
             return 0;
@@ -223,6 +232,12 @@ abstract contract TokenBase is
      * @notice Calculates the exchange rate from the underlying to the fToken
      * @dev This function does not accrue interest before calculating the exchange rate
      * @return calculated exchange rate scaled by 1e18
+     *
+     * NOTE: Despite being free to call, it may not be accurate when called externally
+     * by non-Furion contracts because lastAccrualBlock will not be equal to current
+     * block number provided that accrueInterest() is not called beforehand, meaning
+     * that market is not up-to-date when the function is called. Call 'current' version
+     * functions for accurate results.
      */
     function exchangeRateStored() public view returns (uint256) {
         uint256 _totalSupply = totalSupply();
@@ -748,6 +763,12 @@ abstract contract TokenBase is
     /***************************** ERC20 Override *****************************/
 
     /**
+     * Transferring invokes transferAllowed check which further invokes redeemAllowed
+     * check. Therefore, market should be up-to-date before transfer to make sure
+     * liquidity calculation in redeemAllowed is accurate.
+     */
+
+    /**
      * @dev ERC20 transfer funtions with risk manager trasfer check
      */
     function transfer(address to, uint256 amount)
@@ -755,6 +776,9 @@ abstract contract TokenBase is
         override
         returns (bool)
     {
+        // Update market state
+        accrueInterest();
+
         address owner = _msgSender();
         // Risk manager transferAllowed
         require(
@@ -771,6 +795,9 @@ abstract contract TokenBase is
         address to,
         uint256 amount
     ) public override returns (bool) {
+        // Update market state
+        accrueInterest();
+
         // Risk manager transferAllowed
         require(
             riskManager.transferAllowed(address(this), from, amount),

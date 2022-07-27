@@ -21,7 +21,7 @@ contract FEther is TokenBase {
      * @notice Sender supplies ETH into the market and receives fETH in exchange
      * @dev Reverts upon any failure
      */
-    function supply() external {
+    function supply() external payable {
         // Params: supplier, supply amount
         supplyInternal(msg.sender, msg.value);
     }
@@ -59,7 +59,7 @@ contract FEther is TokenBase {
      * @notice Sender repays their own borrow
      * @dev Reverts upon any failure
      */
-    function repayBorrow() external {
+    function repayBorrow() external payable {
         // Params: payer, borrower, repay amount
         repayBorrowInternal(msg.sender, msg.sender, msg.value);
     }
@@ -69,12 +69,35 @@ contract FEther is TokenBase {
      * @dev Reverts upon any failure
      * @param _borrower the account with the debt being payed off
      */
-    function repayBorrowBehalf(address _borrower) external {
+    function repayBorrowBehalf(address _borrower) external payable {
         // Params: payer, borrower, repay amount
         repayBorrowInternal(msg.sender, _borrower, msg.value);
     }
 
-    function doTransferIn(address _from, address _amount) internal override {
+    function liquidateBorrow(address _borrower, address _fTokenCollateral)
+        external
+        payable
+    {
+        liquidateBorrowInternal(
+            msg.sender,
+            _borrower,
+            msg.value,
+            _fTokenCollateral
+        );
+    }
+
+    /******************************* Safe Token *******************************/
+
+    /**
+     * @notice Gets balance of this contract in terms of Ether, before this message
+     * @dev This excludes the value of the current message, if any
+     * @return The quantity of Ether owned by this contract
+     */
+    function getCash() public view override returns (uint256) {
+        return address(this).balance;
+    }
+
+    function doTransferIn(address _from, uint256 _amount) internal override {
         require(msg.sender == _from, "FEther: Not owner of account");
         require(msg.value == _amount, "FEther: Not enough ETH supplied");
     }

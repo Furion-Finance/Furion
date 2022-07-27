@@ -8,7 +8,7 @@ import "./interfaces/IInterestRateModel.sol";
 
 // name, symbol, decimals, totalSupply, balances, allowances in ERC20 contract
 contract TokenBaseStorage is ExponentialNoError {
-    bool public constant isFToken = true;
+    bool public constant IS_FTOKEN = true;
 
     IRiskManager riskManager;
 

@@ -4,8 +4,11 @@ pragma solidity ^0.8.0;
 
 import "./RiskManagerStorage.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "./interfaces/ITokenBase.sol";
+import "./interfaces/IRiskManager.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-contract RiskManager is RiskManagerStorage, Initializable {
+contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
     function initialize() public initializer {
         admin = msg.sender;
     }
@@ -18,6 +21,10 @@ contract RiskManager is RiskManagerStorage, Initializable {
     modifier onlyListed(address _fToken) {
         require(markets[_fToken].isListed, "RiskManager: Market is not listed");
         _;
+    }
+
+    function isRiskManager() public pure returns (bool) {
+        return IS_RISK_MANAGER;
     }
 
     /**
@@ -52,7 +59,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         uint256 len = _fTokens.length;
 
         for (uint256 i; i < len; ) {
-            addToMarketInternal(_fToken, msg.sender);
+            addToMarketInternal(_fTokens[i], msg.sender);
 
             unchecked {
                 ++i;
@@ -79,7 +86,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         //  that is, only when we need to perform liquidity checks
         //  and not whenever we want to check if an account is in a particular market
         marketToJoin.isMember[_borrower] = true;
-        accountAssets[_borrower].push(_fToken);
+        marketsEntered[_borrower].push(_fToken);
 
         emit MarketEntered(_fToken, _borrower);
     }
@@ -91,18 +98,17 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * or be providing necessary collateral for an outstanding borrow.
      */
     function exitMarket(address _fToken) external override {
-        ITokenBase fToken = ITokenBase(_fToken);
-
         /// Get fToken balance and amount of underlying asset borrowed
-        (uint256 oErr, uint256 tokensHeld, uint256 amountOwed, ) = fToken
+        (uint256 tokensHeld, uint256 amountOwed, ) = ITokenBase(_fToken)
             .getAccountSnapshot(msg.sender);
-        require(oErr == 0, "exitMarket: getAccountSnapshot failed"); // semi-opaque error code
         // Fail if the sender has a borrow balance
         require(amountOwed != 0, "RiskManager: Borrow balance is not zero");
 
         // Fail if the sender is not permitted to redeem all of their tokens
-        uint256 allowed = redeemAllowed(cTokenAddress, msg.sender, tokensHeld);
-        require(allowed == 0, "RiskManager: Cannot withdrawa all tokens");
+        require(
+            redeemAllowed(_fToken, msg.sender, tokensHeld),
+            "RiskManager: Cannot withdrawa all tokens"
+        );
 
         Market storage marketToExit = markets[_fToken];
 
@@ -146,11 +152,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
      *  call `acceptAdmin` to finalize the transfer.
      * @param _newPendingAdmin New pending admin.
      */
-    function setPendingAdmin(address _newPendingAdmin)
-        external
-        override
-        onlyAdmin
-    {
+    function setPendingAdmin(address _newPendingAdmin) external onlyAdmin {
         // Save current value, if any, for inclusion in log
         address oldPendingAdmin = pendingAdmin;
 
@@ -165,7 +167,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
      * @dev Admin function for pending admin to accept role and update admin
      */
-    function acceptAdmin() external override {
+    function acceptAdmin() external {
         // Check caller is pendingAdmin
         require(msg.sender == pendingAdmin, "TokenBase: Not pending admin");
 
@@ -225,7 +227,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         });
 
         // Check collateral factor <= 0.9
-        Exp memory limit = Exp({mantissa: collateralFactorMaxMantissa});
+        Exp memory limit = Exp({mantissa: COLLATERAL_FACTOR_MAX_MANTISSA});
         require(
             lessThanExp(newCollateralFactorExp, limit),
             "RiskManager: Collateral factor larger than limit"
@@ -239,7 +241,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
 
         // Set market's collateral factor to new collateral factor, remember old value
         uint256 oldCollateralFactorMantissa = market.collateralFactorMantissa;
-        market.collateralFactorMantissa = newCollateralFactorMantissa;
+        market.collateralFactorMantissa = _newCollateralFactorMantissa;
 
         // Emit event with asset, old collateral factor, and new collateral factor
         emit NewCollateralFactor(
@@ -280,7 +282,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
 
     function setMintPaused(address _fToken, bool _state)
         external
-        onlyListed
+        onlyListed(_fToken)
         onlyAdmin
         returns (bool)
     {
@@ -291,7 +293,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
 
     function setBorrowPaused(address _fToken, bool _state)
         external
-        onlyListed
+        onlyListed(_fToken)
         onlyAdmin
         returns (bool)
     {
@@ -300,7 +302,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         return _state;
     }
 
-    function setTransferPaused(bool state) external onlyAdmin returns (bool) {
+    function setTransferPaused(bool _state) external onlyAdmin returns (bool) {
         transferGuardianPaused = _state;
         emit ActionPaused("Transfer", _state);
         return _state;
@@ -315,11 +317,19 @@ contract RiskManager is RiskManagerStorage, Initializable {
     /********************************* Hooks *********************************/
 
     /**
+     * NOTE: Although the hooks have 'view' state mutability, it is important to
+     * note that they may not be accurate when called externally by non-Furion
+     * contracts because accrueInterest() is not called and lastAccrualBlock may
+     * not be the same as current block number. In other words, market state may
+     * not be up-to-date.
+     */
+
+    /**
      * @dev Checks if the account should be allowed to supply tokens in the given market.
      */
     function supplyAllowed(address _fToken) external view returns (bool) {
         // Pausing is a very serious situation - we revert to sound the alarms
-        require(!mintGuardianPaused[cToken], "RiskManager: Minting is paused");
+        require(!mintGuardianPaused[_fToken], "RiskManager: Minting is paused");
 
         return true;
     }
@@ -327,23 +337,23 @@ contract RiskManager is RiskManagerStorage, Initializable {
     /**
      * @dev Checks if the account should be allowed to redeem fTokens for underlying
      *  asset in the given market.
-     * @param _redeemToken Amount of fTokens used for redemption.
+     * @param _redeemTokens Amount of fTokens used for redemption.
      */
     function redeemAllowed(
         address _fToken,
         address _redeemer,
-        uint256 _redeemToken
-    ) external view onlyListed(_fToken) returns (bool) {
+        uint256 _redeemTokens
+    ) public view onlyListed(_fToken) returns (bool) {
         // Can freely redeem if redeemer never entered market, as liquidity calculation is not affected
         if (!markets[_fToken].isMember[_redeemer]) {
             return true;
         }
 
         // Otherwise, perform a hypothetical liquidity check to guard against shortfall
-        (, uint256 shortfall, ) = getHypotheticalAccountLiquidity(
-            redeemer,
+        (, uint256 shortfall) = getHypotheticalAccountLiquidity(
+            _redeemer,
             _fToken,
-            redeemTokens,
+            _redeemTokens,
             0
         );
         require(shortfall == 0, "RiskManager: Insufficient liquidity");
@@ -371,7 +381,10 @@ contract RiskManager is RiskManagerStorage, Initializable {
         uint256 _borrowAmount
     ) external override onlyListed(_fToken) returns (bool) {
         // Pausing is a very serious situation - we revert to sound the alarms
-        require(!borrowGuardianPaused[cToken], "RiskManager: Borrow is paused");
+        require(
+            !borrowGuardianPaused[_fToken],
+            "RiskManager: Borrow is paused"
+        );
 
         if (!markets[_fToken].isMember[_borrower]) {
             // only fToken contract may call borrowAllowed if borrower not in market
@@ -392,11 +405,11 @@ contract RiskManager is RiskManagerStorage, Initializable {
             "RiskManager: Oracle price is 0"
         );
 
-        (, uint256 shortfall, ) = getHypotheticalAccountLiquidityInternal(
-            borrower,
+        (, uint256 shortfall) = getHypotheticalAccountLiquidity(
+            _borrower,
             _fToken,
             0,
-            borrowAmount
+            _borrowAmount
         );
         require(shortfall == 0, "RiskManager: Bad debt found, cannot borrow");
 
@@ -424,7 +437,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
      */
     function repayBorrowAllowed(address _fToken)
         external
-        override
+        view
         onlyListed(_fToken)
         returns (bool)
     {
@@ -443,7 +456,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         address _fTokenCollateral,
         address _borrower,
         uint256 _repayAmount
-    ) external override returns (bool) {
+    ) external view returns (bool) {
         require(
             liquidatableTime[_borrower] != 0,
             "RiskManager: Liquidation not yet initiated"
@@ -455,15 +468,13 @@ contract RiskManager is RiskManagerStorage, Initializable {
             "RiskManager: Market is not listed"
         );
 
-        uint256 borrowBalance = ITokenBase(_fTokenBorrowed).borrowBalance(
+        // Stored version used because accrueInterest() has been called at the
+        // beginning of liquidateBorrowInternal()
+        uint256 borrowBalance = ITokenBase(_fTokenBorrowed).borrowBalanceStored(
             _borrower
         );
 
-        (
-            ,
-            uint256 shortfall,
-            uint256 highestColalteralTier
-        ) = getAccountLiquidity(_borrower);
+        (, uint256 shortfall) = getAccountLiquidity(_borrower);
         // The borrower must have shortfall in order to be liquidatable
         require(shortfall > 0, "RiskManager: Insufficient shortfall");
 
@@ -490,22 +501,21 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @notice Checks if the seizing of assets should be allowed to occur
      * @param _fTokenCollateral Asset which was used as collateral and will be seized
      * @param _fTokenBorrowed Asset which was borrowed by the borrower
-     * @param _liquidator The address repaying the borrow and seizing the collateral
      * @param _borrower The address of the borrower
      */
     function seizeAllowed(
         address _fTokenCollateral,
         address _fTokenBorrowed,
-        address _liquidator,
         address _borrower,
         uint256 _seizeTokens
-    ) external override returns (bool) {
+    ) external view returns (bool) {
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!seizeGuardianPaused, "RiskManager: Seize is paused");
 
         // Revert if borrower collateral token balance < seizeTokens
         require(
-            ITokenBase(_fTokenCollateral).balanceOf(_borrower) >= _seizeTokens,
+            IERC20Upgradeable(_fTokenCollateral).balanceOf(_borrower) >=
+                _seizeTokens,
             "RiskManager: Seize token amount exceeds collateral"
         );
 
@@ -516,8 +526,8 @@ contract RiskManager is RiskManagerStorage, Initializable {
         );
 
         require(
-            ITokenBase(_fTokenCollateral).riskManager() ==
-                ITokenBase(_fTokenBorrowed).riskManager(),
+            ITokenBase(_fTokenCollateral).getRiskManager() ==
+                ITokenBase(_fTokenBorrowed).getRiskManager(),
             "RiskManager: Risk manager mismatch"
         );
 
@@ -528,15 +538,13 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @notice Checks if the account should be allowed to transfer tokens in the given market
      * @param _fToken The market to verify the transfer against
      * @param _src The account which sources the tokens
-     * @param _dst The account which receives the tokens
      * @param _amount The number of fTokens to transfer
      */
     function transferAllowed(
         address _fToken,
         address _src,
-        address _dst,
         uint256 _amount
-    ) external override returns (bool) {
+    ) external view returns (bool) {
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!transferGuardianPaused, "transfer is paused");
 
@@ -562,7 +570,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
             "RiskManager: Already initiated liquidation"
         );
 
-        (, uint256 shortfall, ) = getAccountLiquidity(_borrower);
+        (, uint256 shortfall) = getAccountLiquidity(_account);
         // The borrower must have shortfall in order to be liquidatable
         require(shortfall > 0, "RiskManager: Insufficient shortfall");
 
@@ -572,9 +580,15 @@ contract RiskManager is RiskManagerStorage, Initializable {
     /**
      * @notice Account no longer susceptible to liquidation
      * @param _account Address of account to reset tracker
+     *
+     * NOTE: The modifier checks if function caller is fToken contract. Only listed
+     * fTokens will have isLited set as true.
      */
-    function closeLiquidation(address _account) internal {
-        (, uint256 shortfall, ) = riskManager.getAccountLiquidity(_borrower);
+    function closeLiquidation(address _account)
+        external
+        onlyListed(msg.sender)
+    {
+        (, uint256 shortfall) = getAccountLiquidity(_account);
 
         // Reset tracker only if there are no more bad debts
         if (shortfall == 0) {
@@ -584,23 +598,20 @@ contract RiskManager is RiskManagerStorage, Initializable {
 
     /**
      * @notice Determine the current account liquidity wrt collateral requirements
-     * @return (hypothetical spare liquidity for each asset tier from low to high,
-     *          account shortfall below collateral requirements)
+     * @return liquidities Hypothetical spare liquidity for each asset tier from low to high
+     * @return shortfall Account shortfall below collateral requirements
      */
-    function getAccountLiquidity(address _account, uint256 _tier)
+    function getAccountLiquidity(address _account)
         public
         view
-        returns (
-            uint256[] memory liquidities,
-            uint256 shortfall,
-            uint256 highestCollateralTier
-        )
+        returns (uint256[] memory liquidities, uint256 shortfall)
+    //uint256 highestCollateralTier
     {
         // address(0) -> no iteractions with market
         (
             liquidities,
-            shortfall,
-            highestCollateralTier
+            shortfall
+            //highestCollateralTier
         ) = getHypotheticalAccountLiquidity(_account, address(0), 0, 0);
     }
 
@@ -613,15 +624,11 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @param _borrowAmount The amount of underlying to hypothetically borrow
      * @dev Note that we calculate the exchangeRateStored for each collateral
      *  cToken using stored data, without calculating accumulated interest.
-     * @return (hypothetical spare liquidity for each asset tier from low to high,
-     *          hypothetical account shortfall below collateral requirements,
-     *          highest collateral tier)
+     * @return liquidities Hypothetical spare liquidity for each asset tier from low to high
+     * @return shortfall Hypothetical account shortfall below collateral requirements
      *
-     * NOTE: liquidities here mean accumulated liquidities, [tier 3 liquidity,
-     * tier 3 + 2 liquidity, tier 3 + 2 + 1 liquidity]
-     *
-     * 'highestCollateralTier' is for checking if liquidation starts from most
-     * stable / valuable assets. The smaller the number, the higher the tier
+     * NOTE: liquidities return sequence [tier 1 liquidity, tier 2 liquidity,
+     * tier 3 liquidity]
      */
     function getHypotheticalAccountLiquidity(
         address _account,
@@ -631,22 +638,24 @@ contract RiskManager is RiskManagerStorage, Initializable {
     )
         public
         view
-        returns (
-            uint256[] memory liquidities,
-            uint256 shortfall,
-            uint256 highestCollateralTier
-        )
+        returns (uint256[] memory liquidities, uint256 shortfall)
+    //uint256 highestCollateralTier
     {
+        /*
         // First assume highest collateral tier is isolation tier, because if
         // left uninitialized, it will remain to be the unvalid 0 tier
         highestCollateralTier = 3;
+        */
 
         // Holds all our calculation results, see { RiskManagerStorage }
         AccountLiquidityLocalVars memory vars;
+        TierLiquidity memory tl;
+
+        uint256 maxTierMem = maxTier;
 
         // For each asset the account is in
         // Loop through to calculate colalteral and borrow values for each tier
-        address[] memory assets = marketsEntered[account];
+        address[] memory assets = marketsEntered[_account];
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             uint256 assetTier = markets[asset].tier;
@@ -656,13 +665,15 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 vars.tokenBalance,
                 vars.borrowBalance,
                 vars.exchangeRateMantissa
-            ) = asset.getAccountSnapshot(_account);
+            ) = ITokenBase(asset).getAccountSnapshot(_account);
 
+            /*
             // If the asset is used as collateral, and has higher tier than the
             // current highestCollateralTier
             if (vars.tokenBalance > 0 && assetTier < highestCollateralTier) {
                 highestCollateralTier = assetTier;
             }
+            */
 
             vars.collateralFactor = Exp({
                 mantissa: markets[asset].collateralFactorMantissa
@@ -683,42 +694,30 @@ contract RiskManager is RiskManagerStorage, Initializable {
                 vars.collateralFactor
             );
 
-            vars
-                .tierLiquidity[assetTier]
-                .tierCollateralValue = mul_ScalarTruncateAddUInt(
+            tl.tierCollateralValues[assetTier - 1] += mul_(
                 vars.tokenBalance,
-                vars.collateralValuePerToken,
-                vars.tierLiquidity[assetTier].tierCollateralValue
+                vars.collateralValuePerToken
             );
 
-            vars
-                .tierLiquidity[assetTier]
-                .tierBorrowValue = mul_ScalarTruncateAddUInt(
+            tl.tierBorrowValues[assetTier - 1] += mul_(
                 vars.borrowBalance,
-                vars.oraclePrice,
-                vars.tierLiquidity[assetTier].tierBorrowValue
+                vars.oraclePrice
             );
 
             // Calculate effects of interacting with fToken
             if (asset == _fToken) {
                 // Redeem effect
-                // sumBorrowPlusEffects += tokensToDenom * redeemTokens
-                vars
-                    .tierLiquidity[assetTier]
-                    .tierCollateralValue = mul_ScalarTruncateSubUInt(
+                // Collateral reduced after redemption
+                tl.tierCollateralValues[assetTier - 1] -= mul_(
                     _redeemToken,
-                    vars.collateralValuePerToken,
-                    vars.tierLiquidity[assetTier].tierCollateralValue
+                    vars.collateralValuePerToken
                 );
 
                 // Add amount to hypothetically borrow
                 // sumBorrowPlusEffects += oraclePrice * borrowAmount
-                vars
-                    .tierLiquidity[assetTier]
-                    .tierBorrowValue = mul_ScalarTruncateAddUInt(
+                tl.tierBorrowValues[assetTier - 1] += mul_(
                     _borrowAmount,
-                    vars.oraclePrice,
-                    vars.tierLiquidity[assetTier].tierBorrowValue
+                    vars.oraclePrice
                 );
             }
 
@@ -732,27 +731,27 @@ contract RiskManager is RiskManagerStorage, Initializable {
         // borrow, instead of collateral tier collateral -> isolation tier borrow).
         // Therefore, we calculate starting from lowest tier (i.e. highest tier number).
         //
-        // e.g. First iteration (tempShortfall = 0):
+        // e.g. First iteration (accumulatedShortfall = 0):
         // isolation tier collateral > isolation tier borrow, push difference
         // to liquidities array; isolation collateral < isolation tier borrow,
-        // add difference to `tempShortfall` and see if higher tier collaterals
+        // add difference to `accumulatedShortfall` and see if higher tier collaterals
         // can back all borrows.
-        // Second iteration (Assume tempShortfall > 0):
-        // cross-tier collateral > cross-tier borrow + tempShortfall, push difference
-        // to liquidities array; cross-tier collateral < cross-tier borrow + tempShortfall,
-        // accumulate tier shortfall to tempShortfall and see if there are enough
+        // Second iteration (Assume accumulatedShortfall > 0):
+        // cross-tier collateral > cross-tier borrow + accumulatedShortfall, push difference
+        // to liquidities array; cross-tier collateral < cross-tier borrow + accumulatedShortfall,
+        // accumulate tier shortfall to accumulatedShortfall and see if there are enough
         // collateral tier collateral to back the total shortfall
-        for (uint256 i = maxTier; i > 0; ) {
-            uint256 collateral = vars.tierLiquidity[i].tierCollateralValue;
-            uint256 borrow = vars.tierLiquidity[i].tierBorrowValue;
-            uint256 threshold = borrow + vars.tempShortfall;
+        for (uint256 i = maxTierMem; i > 0; ) {
+            uint256 collateral = tl.tierCollateralValues[i - 1];
+            uint256 borrow = tl.tierBorrowValues[i - 1];
+            uint256 threshold = borrow + vars.accumulatedShortfall;
 
             if (collateral >= threshold) {
-                liquidities.push(collateral - threshold);
-                vars.tempShortfall = 0;
+                liquidities[i - 1] = collateral - threshold;
+                vars.accumulatedShortfall = 0;
             } else {
-                vars.tempShortfall += (threshold - collateral);
-                liquidities.push(0);
+                vars.accumulatedShortfall = threshold - collateral;
+                liquidities[i - 1] = 0;
             }
 
             unchecked {
@@ -761,7 +760,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
         }
 
         // Return value
-        shortfall = vars.tempShortfall;
+        shortfall = vars.accumulatedShortfall;
     }
 
     /**
@@ -770,7 +769,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
      * @param _fTokenBorrowed The address of the borrowed cToken
      * @param _fTokenCollateral The address of the collateral cToken
      * @param _repayAmount The amount of fTokenBorrowed underlying to convert into cTokenCollateral tokens
-     * @return Number of fTokenCollateral tokens to be seized in a liquidation
+     * @return seizeTokens Number of fTokenCollateral tokens to be seized in a liquidation
      */
     function liquidateCalculateSeizeTokens(
         address _borrower,
@@ -796,9 +795,6 @@ contract RiskManager is RiskManagerStorage, Initializable {
          *  seizeTokens = seizeAmount / exchangeRate
          *   = actualRepayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
          */
-        uint256 collateralExchangeRateMantissa = ITokenBase(_fTokenCollateral)
-            .exchangeRate(); // Note: reverts on error
-
         uint256 amountAfterDiscount = mul_ScalarTruncate(
             Exp({mantissa: liquidateCalculateDiscount(_borrower)}),
             _repayAmount
@@ -807,15 +803,21 @@ contract RiskManager is RiskManagerStorage, Initializable {
             Exp({mantissa: priceBorrowedMantissa}),
             amountAfterDiscount
         );
+
+        // Stored version used because accrueInterest() already called at the
+        // beginning of liquidateBorrowInternal()
+        uint256 collateralExchangeRateMantissa = ITokenBase(_fTokenCollateral)
+            .exchangeRateStored(); // Note: reverts on error
+
         //   (value / underyling) * exchangeRate
         // = (value /underlying) * (underlying / token)
         // = value per token
         Exp memory valuePerToken = mul_(
             Exp({mantissa: priceCollateralMantissa}),
-            Exp({mantissa: exchangeRateMantissa})
+            Exp({mantissa: collateralExchangeRateMantissa})
         );
 
-        seizeTokens = div_(actualRepayAmount, valuePerToken);
+        seizeTokens = div_(valueAfterDiscount, valuePerToken);
     }
 
     /**
@@ -824,6 +826,7 @@ contract RiskManager is RiskManagerStorage, Initializable {
      */
     function liquidateCalculateDiscount(address _borrower)
         public
+        view
         returns (uint256 discountMantissa)
     {
         uint256 startBlock = liquidatableTime[_borrower];

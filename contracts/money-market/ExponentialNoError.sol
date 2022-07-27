@@ -57,7 +57,7 @@ contract ExponentialNoError {
     /**
      * @dev Multiply an Exp by a scalar, truncate, then minus an unsigned integer, returning an unsigned integer.
      */
-    function mul_ScalarTruncateMinusUInt(
+    function mul_ScalarTruncateSubUInt(
         Exp memory _a,
         uint256 _scalar,
         uint256 _minus

@@ -8,7 +8,11 @@ import "./interfaces/ITokenBase.sol";
 import "./interfaces/IRiskManager.sol";
 import "./interfaces/IInterestRateModel.sol";
 
-contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
+abstract contract TokenBase is
+    ERC20PermitUpgradeable,
+    TokenBaseStorage,
+    ITokenBase
+{
     function __TokenBase_init(
         address _riskManager,
         address _interestRateModel,
@@ -19,7 +23,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         __ERC20_init(_name, _symbol);
 
         require(
-            IRiskManager(_riskManager).IS_RISK_MANAGER(),
+            IRiskManager(_riskManager).isRiskManager(),
             "TokenBase: Not risk manager contract"
         );
         riskManager = IRiskManager(_riskManager);
@@ -28,7 +32,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         borrowIndex = 1e18;
 
         require(
-            IInterestRateModel.IS_INTEREST_RATE_MODEL(),
+            IInterestRateModel(_interestRateModel).isInterestRateModel(),
             "TokenBase: Not interst rate model contract"
         );
         interestRateModel = IInterestRateModel(_interestRateModel);
@@ -89,6 +93,18 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
 
     /********************************** Core **********************************/
 
+    function isFToken() public pure returns (bool) {
+        return IS_FTOKEN;
+    }
+
+    function getLastAccrualBlock() public view returns (uint256) {
+        return lastAccrualBlock;
+    }
+
+    function getRiskManager() public view returns (address) {
+        return address(riskManager);
+    }
+
     /**
      * @notice Get the underlying balance
      * @dev This also accrues interest in a transaction
@@ -100,7 +116,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         override
         returns (uint256)
     {
-        Exp memory exchangeRate = Exp({mantissa: exchangeRate()});
+        Exp memory exchangeRate = Exp({mantissa: exchangeRateCurrent()});
         return mul_ScalarTruncate(exchangeRate, balanceOf(_account));
     }
 
@@ -120,7 +136,11 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             uint256
         )
     {
-        return (balanceOf(_account), borrowBalance(_account), exchangeRate());
+        return (
+            balanceOf(_account),
+            borrowBalanceStored(_account),
+            exchangeRateStored()
+        );
     }
 
     /**
@@ -145,8 +165,8 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             interestRateModel.getSupplyRate(
                 getCash(),
                 totalBorrows,
-                totalReserves
-                //reserveFactorMantissa
+                totalReserves,
+                reserveFactorMantissa
             );
     }
 
@@ -154,9 +174,16 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
      * @notice Returns the current total borrows plus accrued interest
      * @return The total borrows with interest
      */
-    function totalBorrowsCurrent() external override returns (uint256) {
+    function totalBorrowsCurrent() external returns (uint256) {
         accrueInterest();
         return totalBorrows;
+    }
+
+    function borrowBalanceCurrent(address _account) external returns (uint256) {
+        // Update market state
+        accrueInterest();
+
+        return borrowBalanceStored(_account);
     }
 
     /**
@@ -164,10 +191,11 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
      * @param _account The address whose balance should be calculated
      * @return The calculated balance
      */
-    function borrowBalance(address _account) public returns (uint256) {
-        // Update market state
-        accrueInterest();
-
+    function borrowBalanceStored(address _account)
+        public
+        view
+        returns (uint256)
+    {
         // Get borrowBalance and borrowIndex
         BorrowSnapshot memory snapshot = accountBorrows[_account];
 
@@ -184,16 +212,20 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         return (snapshot.principal * borrowIndex) / snapshot.interestIndex;
     }
 
+    function exchangeRateCurrent() public returns (uint256) {
+        // Update market state
+        accrueInterest();
+
+        return exchangeRateStored();
+    }
+
     /**
      * @notice Calculates the exchange rate from the underlying to the fToken
      * @dev This function does not accrue interest before calculating the exchange rate
      * @return calculated exchange rate scaled by 1e18
      */
-    function exchangeRate() internal virtual returns (uint256) {
-        // Update market state
-        accrueInterest();
-
-        uint256 _totalSupply = totalSupply;
+    function exchangeRateStored() public view returns (uint256) {
+        uint256 _totalSupply = totalSupply();
         if (_totalSupply == 0) {
             /*
              * If there are no tokens minted:
@@ -221,7 +253,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
      * @dev This calculates interest accrued from the last checkpointed block
      *    up to the current block and writes new checkpoint to storage.
      */
-    function accrueInterest() public virtual override {
+    function accrueInterest() public {
         /* Remember the initial block number */
         uint256 currentBlockNumber = block.number;
         uint256 _lastAccrualBlock = lastAccrualBlock;
@@ -309,16 +341,18 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         accrueInterest();
 
         require(
-            riskManager.supplyAllowed(address(this), _supplier, _supplyAmount),
+            riskManager.supplyAllowed(address(this)),
             "TokenBase: Supply disallowed by risk manager"
         );
-        // Ensure market state is up to date
+        // Ensure market state is up-to-date
         require(
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
         );
 
-        Exp memory exchangeRate = Exp({mantissa: exchangeRate()});
+        // We can call the stored version here because accrueInterest() has already
+        // been called earlier
+        Exp memory exchangeRate = Exp({mantissa: exchangeRateStored()});
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -365,7 +399,9 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             "TokenBase: One of redeemTokens or redeemAmount must be zero"
         );
 
-        Exp memory exchangeRate = Exp({mantissa: exchangeRate()});
+        // We can call the stored version because accrueInterest() has already been
+        // called earlier
+        Exp memory exchangeRate = Exp({mantissa: exchangeRateStored()});
 
         uint256 redeemTokens;
         uint256 redeemAmount;
@@ -383,7 +419,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             riskManager.redeemAllowed(address(this), _redeemer, redeemTokens),
             "TokenBase: Redeem disallowed by risk manager"
         );
-        // Ensure market is up to date
+        // Ensure market is up-to-date
         require(
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
@@ -423,7 +459,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             riskManager.borrowAllowed(address(this), _borrower, _borrowAmount),
             "TokenBase: Borrow disallowed by risk manager"
         );
-        // Ensure market is up to date
+        // Ensure market is up-to-date
         require(
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
@@ -435,8 +471,11 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         );
 
         // We calculate the new borrower and total borrow balances, failing on overflow
-        uint256 borrowBalancePrev = borrowBalance(_borrower);
-        uint256 borrowBalanceNew = borrowBalance + _borrowAmount;
+        //
+        // stored version can be used here because accrueInterest() has already
+        // been called earlier
+        uint256 borrowBalancePrev = borrowBalanceStored(_borrower);
+        uint256 borrowBalanceNew = borrowBalancePrev + _borrowAmount;
         uint256 totalBorrowsNew = totalBorrows + _borrowAmount;
 
         /////////////////////////
@@ -473,7 +512,6 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
      * @param _payer the account paying off the borrow
      * @param _borrower the account with the debt being payed off
      * @param _repayAmount the amount of underlying tokens being returned, or -1 for the full outstanding amount
-     * @return (uint) the actual repayment amount.
      */
     function repayBorrowInternal(
         address _payer,
@@ -484,22 +522,20 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         accrueInterest();
 
         require(
-            riskManager.repayBorrowAllowed(
-                address(this),
-                _payer,
-                _borrower,
-                _repayAmount
-            ),
+            riskManager.repayBorrowAllowed(address(this)),
             "TokenBase: Repay disallowed by risk manager"
         );
-        // Ensure market is up to date
+        // Ensure market is up-to-date
         require(
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
         );
 
         // We fetch the amount the borrower owes, with accumulated interest
-        uint256 borrowBalancePrev = borrowBalance(_borrower);
+        //
+        // Stored version can be used here because accrueInterest() has already
+        // been called earlier
+        uint256 borrowBalancePrev = borrowBalanceStored(_borrower);
 
         // If repayAmount == max value of uint256, repay total amount owed,
         // else repay given amount
@@ -561,26 +597,27 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         accrueInterest();
 
         ITokenBase collateral = ITokenBase(_fTokenCollateral);
+        // Update collateeral asset market state
+        collateral.accrueInterest();
 
         /* Fail if liquidate not allowed */
         require(
             riskManager.liquidateBorrowAllowed(
                 address(this),
                 _fTokenCollateral,
-                _liquidator,
                 _borrower,
                 _repayAmount
             ),
             "TokenBase: Liquidation disallowed by risk manager"
         );
-        // Ensure borrow market is up to date
+        // Ensure borrow market is up-to-date
         require(
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
         );
-        // Ensure collateral market is also up to date
+        // Ensure collateral market is also up-to-date
         require(
-            collateral.lastAccrualBlock() == block.number,
+            collateral.getLastAccrualBlock() == block.number,
             "TokenBase: Collateral market state not yet updated"
         );
         // Fail if borrower = liquidator
@@ -653,7 +690,6 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
             riskManager.seizeAllowed(
                 address(this),
                 _seizer,
-                _liquidator,
                 _borrower,
                 _seizeTokens
             ),
@@ -675,7 +711,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         );
         uint256 liquidatorSeizeTokens = _seizeTokens - protocolSeizeTokens;
         // Convert amount of fToken for reserve to underlying asset
-        Exp memory exchangeRate = Exp({mantissa: exchangeRate()});
+        Exp memory exchangeRate = Exp({mantissa: exchangeRateStored()});
         // mul_ScalarTruncate: exp, uint -> uint
         uint256 protocolSeizeAmount = mul_ScalarTruncate(
             exchangeRate,
@@ -705,7 +741,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         address _liquidator,
         address _borrower,
         uint256 _seizeTokens
-    ) external override {
+    ) external {
         seizeInternal(msg.sender, _liquidator, _borrower, _seizeTokens);
     }
 
@@ -722,7 +758,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
         address owner = _msgSender();
         // Risk manager transferAllowed
         require(
-            riskManager.trasnferAllowed(address(this), owner, to, amount),
+            riskManager.transferAllowed(address(this), owner, amount),
             "TokenBase: Transfer disallowed by risk manager"
         );
 
@@ -737,7 +773,7 @@ contract TokenBase is ERC20PermitUpgradeable, TokenBaseStorage, ITokenBase {
     ) public override returns (bool) {
         // Risk manager transferAllowed
         require(
-            riskManager.trasnferAllowed(address(this), from, to, amount),
+            riskManager.transferAllowed(address(this), from, amount),
             "TokenBase: Transfer disallowed by risk manager"
         );
 

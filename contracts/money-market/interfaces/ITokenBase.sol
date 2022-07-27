@@ -55,6 +55,17 @@ interface ITokenBase {
         uint256 seizeTokens
     );
 
+    event TokenSeized(address from, address to, uint256 amount);
+
+    /**
+     * @notice Event emitted when the reserves are added
+     */
+    event ReservesAdded(
+        address benefactor,
+        uint256 addAmount,
+        uint256 newTotalReserves
+    );
+
     /*** Admin Events ***/
 
     /**
@@ -67,58 +78,52 @@ interface ITokenBase {
      */
     event NewAdmin(address oldAdmin, address newAdmin);
 
-    function balanceOfUnderlying(address _account)
-        external
-        virtual
-        returns (uint256);
+    function isFToken() external view returns (bool);
+
+    function balanceOfUnderlying(address _account) external returns (uint256);
 
     function getAccountSnapshot(address _account)
         external
         view
-        virtual
         returns (
-            uint256,
             uint256,
             uint256,
             uint256
         );
 
-    function borrowRatePerBlock() external view virtual returns (uint256);
+    function getLastAccrualBlock() external view returns (uint256);
 
-    function supplyRatePerBlock() external view virtual returns (uint256);
+    function getRiskManager() external view returns (address);
 
-    function totalBorrowsCurrent() external virtual returns (uint256);
+    function borrowRatePerBlock() external view returns (uint256);
 
-    function borrowBalanceCurrent(address _account)
-        external
-        virtual
-        returns (uint256);
+    function supplyRatePerBlock() external view returns (uint256);
+
+    //function totalBorrowsCurrent() external  returns (uint256);
+
+    function borrowBalanceCurrent(address _account) external returns (uint256);
 
     function borrowBalanceStored(address _account)
         external
         view
-        virtual
         returns (uint256);
 
-    function exchangeRateCurrent() external virtual returns (uint256);
+    function exchangeRateCurrent() external returns (uint256);
 
-    function exchangeRateStored() external view virtual returns (uint256);
+    function exchangeRateStored() external view returns (uint256);
 
-    function getCash() external view virtual returns (uint256);
+    function getCash() external view returns (uint256);
 
-    function accrueInterest() external virtual returns (uint256);
+    function accrueInterest() external;
 
     function seize(
         address _liquidator,
         address _borrower,
         uint256 _seizeTokens
-    ) external virtual returns (uint256);
+    ) external;
 
     /*** Admin ***/
-    function setPendingAdmin(address payable newPendingAdmin)
-        external
-        virtual
-        returns (uint256);
+    function setPendingAdmin(address newPendingAdmin) external;
 
-    function acceptAdmin() external virtual returns (uint256);
+    function acceptAdmin() external;
 }

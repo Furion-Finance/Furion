@@ -52,6 +52,32 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
         repayBorrowInternal(msg.sender, _borrower, _repayAmount);
     }
 
+    function liquidateBorrow(
+        address _borrower,
+        uint256 _repayAmount,
+        address _fTokenCollateral
+    ) external {
+        // Params: liquidator, borrower, repay amount, collateral token to be seized
+        liquidateBorrowInternal(
+            msg.sender,
+            _borrower,
+            _repayAmount,
+            _fTokenCollateral
+        );
+    }
+
+    /******************************* Safe Token *******************************/
+
+    /**
+     * @notice Gets balance of this contract in terms of the underlying
+     * @dev This excludes the value of the current message, if any
+     * @return The quantity of underlying tokens owned by this contract
+     */
+    function getCash() public view override returns (uint256) {
+        IERC20 underlyingToken = IERC20(underlying);
+        return underlyingToken.balanceOf(address(this));
+    }
+
     function doTransferIn(address _from, uint256 _amount) internal override {
         IERC20 underlyingToken = IERC20(underlying);
         underlyingToken.transferFrom(_from, address(this), _amount);

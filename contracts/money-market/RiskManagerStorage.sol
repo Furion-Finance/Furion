@@ -103,8 +103,7 @@ contract RiskManagerStorage is ExponentialNoError {
         uint256 borrowBalance;
         uint256 exchangeRateMantissa;
         uint256 oraclePriceMantissa;
-        mapping(uint256 => TierLiquidity) tierLiquidity;
-        uint256 tempShortfall;
+        uint256 accumulatedShortfall;
         Exp collateralFactor;
         Exp exchangeRate;
         Exp oraclePrice;
@@ -115,7 +114,7 @@ contract RiskManagerStorage is ExponentialNoError {
      * @dev Liquidity for individual tiers
      */
     struct TierLiquidity {
-        uint256 tierCollateralValue;
-        uint256 tierBorrowValue;
+        uint256[] tierCollateralValues;
+        uint256[] tierBorrowValues;
     }
 }

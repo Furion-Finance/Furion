@@ -199,18 +199,27 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
         emit NewPriceOracle(oldOracle, _newOracle);
     }
 
+    function setCloseFactor(uint256 _newCloseFactorMantissa)
+        external
+        onlyAdmin
+    {
+        uint256 oldCloseFactorMantissa = closeFactorMantissa;
+        closeFactorMantissa = _newCloseFactorMantissa;
+
+        emit NewCloseFactor(oldCloseFactorMantissa, closeFactorMantissa);
+    }
+
     /**
      * @notice Sets the collateralFactor for a market
      * @dev Admin function to set per-market collateralFactor
      * @param _fToken The market to set the factor on
      * @param _newCollateralFactorMantissa The new collateral factor, scaled by 1e18
-     * @return uint 0=success, otherwise a failure. (See ErrorReporter for details)
      */
     function setCollateralFactor(
         address _fToken,
         uint256 _newCollateralFactorMantissa
     ) external onlyAdmin onlyListed(_fToken) {
-        Market storage market = markets[address(cToken)];
+        Market storage market = markets[_fToken];
 
         Exp memory newCollateralFactorExp = Exp({
             mantissa: _newCollateralFactorMantissa
@@ -427,24 +436,27 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
      * @notice Checks if the liquidation should be allowed to occur
      * @param _fTokenBorrowed Asset which was borrowed by the borrower
      * @param _fTokenCollateral Asset which was used as collateral and will be seized
-     * @param _liquidator The address repaying the borrow and seizing the collateral
      * @param _borrower The address of the borrower
      * @param _repayAmount The amount of underlying being repaid
      */
     function liquidateBorrowAllowed(
         address _fTokenBorrowed,
         address _fTokenCollateral,
-        address _liquidator,
         address _borrower,
         uint256 _repayAmount
     ) external override returns (bool) {
+        require(
+            liquidatableTime[_borrower] != 0,
+            "RiskManager: Liquidation not yet initiated"
+        );
+
         require(
             markets[_fTokenBorrowed].isListed &&
                 markets[_fTokenCollateral].isListed,
             "RiskManager: Market is not listed"
         );
 
-        uint256 borrowBalance = ITokenBase(_fTokenBorrowed).borrowBalanceStored(
+        uint256 borrowBalance = ITokenBase(_fTokenBorrowed).borrowBalance(
             _borrower
         );
 
@@ -455,12 +467,15 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
         ) = getAccountLiquidity(_borrower);
         // The borrower must have shortfall in order to be liquidatable
         require(shortfall > 0, "RiskManager: Insufficient shortfall");
+
+        /*
         // Liquidation should start from highest tier collaterals
         // (i.e. first liquidate collateral tier collaterals then cross-tier...)
         require(
             markets[_fTokenCollateral].tier == highestCollateralTier,
             "RiskManager: Liquidation should start from highest tier"
         );
+        */
 
         // The liquidator may not repay more than what is allowed by the closeFactor
         uint256 maxClose = mul_ScalarTruncate(
@@ -483,10 +498,17 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
         address _fTokenCollateral,
         address _fTokenBorrowed,
         address _liquidator,
-        address _borrower
+        address _borrower,
+        uint256 _seizeTokens
     ) external override returns (bool) {
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!seizeGuardianPaused, "RiskManager: Seize is paused");
+
+        // Revert if borrower collateral token balance < seizeTokens
+        require(
+            ITokenBase(_fTokenCollateral).balanceOf(_borrower) >= _seizeTokens,
+            "RiskManager: Seize token amount exceeds collateral"
+        );
 
         require(
             markets[_fTokenBorrowed].isListed ||
@@ -529,9 +551,37 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
         return true;
     }
 
-    /************************* Liquidity Calculations *************************/
+    /****************************** Liquidation *******************************/
 
-    // See local var structure at { RiskManagerStorage } (Line 48-64)
+    /**
+     * @notice Mark an account as liquidatable, start dutch-auction
+     * @param _account Address of account to be marked liquidatable
+     */
+    function initiateLiquidation(address _account) external {
+        require(
+            liquidatableTime[_account] == 0,
+            "RiskManager: Already initiated liquidation"
+        );
+
+        (, uint256 shortfall, ) = getAccountLiquidity(_borrower);
+        // The borrower must have shortfall in order to be liquidatable
+        require(shortfall > 0, "RiskManager: Insufficient shortfall");
+
+        liquidatableTime[_account] = block.number;
+    }
+
+    /**
+     * @notice Account no longer susceptible to liquidation
+     * @param _account Address of account to reset tracker
+     */
+    function closeLiquidation(address _account) internal {
+        (, uint256 shortfall, ) = riskManager.getAccountLiquidity(_borrower);
+
+        // Reset tracker only if there are no more bad debts
+        if (shortfall == 0) {
+            liquidatableTime[_account] = 0;
+        }
+    }
 
     /**
      * @notice Determine the current account liquidity wrt collateral requirements
@@ -592,7 +642,7 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
         // left uninitialized, it will remain to be the unvalid 0 tier
         highestCollateralTier = 3;
 
-        // Holds all our calculation results
+        // Holds all our calculation results, see { RiskManagerStorage }
         AccountLiquidityLocalVars memory vars;
 
         // For each asset the account is in
@@ -713,5 +763,82 @@ contract RiskManager is RiskManagerStorage, Initializable, ExponentialNoError {
 
         // Return value
         shortfall = vars.tempShortfall;
+    }
+
+    /**
+     * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
+     * @dev Used in liquidation (called in fToken.liquidateBorrowInternal)
+     * @param _fTokenBorrowed The address of the borrowed cToken
+     * @param _fTokenCollateral The address of the collateral cToken
+     * @param _repayAmount The amount of fTokenBorrowed underlying to convert into cTokenCollateral tokens
+     * @return Number of fTokenCollateral tokens to be seized in a liquidation
+     */
+    function liquidateCalculateSeizeTokens(
+        address _borrower,
+        address _fTokenBorrowed,
+        address _fTokenCollateral,
+        uint256 _repayAmount
+    ) external view override returns (uint256 seizeTokens) {
+        // Read oracle prices for borrowed and collateral markets
+        uint256 priceBorrowedMantissa = oracle.getUnderlyingPrice(
+            _fTokenBorrowed
+        );
+        uint256 priceCollateralMantissa = oracle.getUnderlyingPrice(
+            _fTokenCollateral
+        );
+        require(
+            priceBorrowedMantissa > 0 && priceCollateralMantissa > 0,
+            "RiskManager: Oracle price is 0"
+        );
+
+        /*
+         * Get the exchange rate and calculate the number of collateral tokens to seize:
+         *  seizeAmount = actualRepayAmount * liquidationIncentive * priceBorrowed / priceCollateral
+         *  seizeTokens = seizeAmount / exchangeRate
+         *   = actualRepayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
+         */
+        uint256 collateralExchangeRateMantissa = ITokenBase(_fTokenCollateral)
+            .exchangeRate(); // Note: reverts on error
+
+        uint256 amountAfterDiscount = mul_ScalarTruncate(
+            Exp({mantissa: liquidateCalculateDiscount(_borrower)}),
+            _repayAmount
+        );
+        uint256 valueAfterDiscount = mul_ScalarTruncate(
+            Exp({mantissa: priceBorrowedMantissa}),
+            amountAfterDiscount
+        );
+        //   (value / underyling) * exchangeRate
+        // = (value /underlying) * (underlying / token)
+        // = value per token
+        Exp memory valuePerToken = mul_(
+            Exp({mantissa: priceCollateralMantissa}),
+            Exp({mantissa: exchangeRateMantissa})
+        );
+
+        seizeTokens = div_(actualRepayAmount, valuePerToken);
+    }
+
+    /**
+     * @notice Get the discount for liquidating borrower at current moment
+     * @param _borrower The account getting liquidated
+     */
+    function liquidateCalculateDiscount(address _borrower)
+        public
+        returns (uint256 discountMantissa)
+    {
+        uint256 startBlock = liquidatableTime[_borrower];
+        uint256 currentBlock = block.number;
+        // Solidity rounds down result by default, which is fine
+        uint256 discountIntervalPassed = (currentBlock - startBlock) /
+            discountInterval;
+
+        discountMantissa =
+            LIQUIDATION_INCENTIVE_MIN_MANTISSA +
+            discountIncreaseMantissa *
+            discountIntervalPassed;
+        if (discountMantissa > LIQUIDATION_INCENTIVE_MAX_MANTISSA) {
+            discountMantissa = LIQUIDATION_INCENTIVE_MAX_MANTISSA;
+        }
     }
 }

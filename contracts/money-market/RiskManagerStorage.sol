@@ -6,13 +6,17 @@ contract RiskManagerStorage {
     bool public constant IS_RISK_MANAGER = true;
 
     // closeFactorMantissa must be strictly greater than this value
-    uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 0.05e18; // 0.05
+    uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 5e16; // 5%
 
     // closeFactorMantissa must not exceed this value
-    uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 0.1e18; // 0.1
+    uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 9e17; // 90%
 
     // No collateralFactorMantissa may exceed this value
-    uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
+    uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 9e17; // 90%
+
+    uint256 internal constant LIQUIDATION_INCENTIVE_MIN_MANTISSA = 1.05e18; // 105%
+
+    uint256 internal constant LIQUIDATION_INCENTIVE_MAX_MANTISSA = 1.1e18; // 110%
 
     /// @notice Administrator for this contract
     address public admin;
@@ -22,6 +26,8 @@ contract RiskManagerStorage {
 
     /// @notice Oracle which gives the price of underlying assets
     IPriceOracle public oracle;
+
+    uint256 public closeFactorMantissa;
 
     /// @notice List of assets an account has entered, capped by maxAssets
     mapping(address => address[]) public marketsEntered;
@@ -48,7 +54,7 @@ contract RiskManagerStorage {
     }
 
     /**
-     * @notice Official mapping of fTokens -> Market metadata
+     * @notice Mapping of fTokens -> Market metadata
      * @dev Used e.g. to determine if a market is supported
      */
     mapping(address => Market) public markets;
@@ -69,6 +75,19 @@ contract RiskManagerStorage {
     bool public seizeGuardianPaused;
     mapping(address => bool) public mintGuardianPaused;
     mapping(address => bool) public borrowGuardianPaused;
+
+    /**
+     * @notice Mapping of account -> time when account became liquidatable
+     * @dev Records the block number when liquidation starts. Used for calculating
+     *  liquidation discount rate.
+     */
+    mapping(address => uint256) public liquidatableTime;
+
+    // After how many blocks will discount rate increase
+    uint256 discountInterval = 10;
+
+    // By how much discount rate increases each time
+    uint256 discountIncreaseMantissa = 0.01e18;
 
     /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.

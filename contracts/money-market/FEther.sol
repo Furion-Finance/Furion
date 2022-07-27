@@ -41,9 +41,9 @@ contract FEther is TokenBase {
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param _redeemAmount The amount of ETH to redeem
      */
-    function redeemUnderlying(uint256 redeemAmount) external {
+    function redeemUnderlying(uint256 _redeemAmount) external {
         // Params: redeemer, tokens supplied for redemption, amount of underlying to receive
-        redeemUnderlyingInternal(msg.sender, 0, _redeemAmount);
+        redeemInternal(msg.sender, 0, _redeemAmount);
     }
 
     /**
@@ -76,7 +76,7 @@ contract FEther is TokenBase {
 
     function doTransferIn(address _from, address _amount) internal override {
         require(msg.sender == _from, "FEther: Not owner of account");
-        require(msg.value == _supplyAmount, "FEther: Not enough ETH supplied");
+        require(msg.value == _amount, "FEther: Not enough ETH supplied");
     }
 
     function doTransferOut(address payable _to, uint256 _amount)

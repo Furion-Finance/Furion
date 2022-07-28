@@ -22,7 +22,7 @@ import { Signers } from "../types";
 // bob: 1000
 // alice: 1000
 
-describe("Project Pools", function () {
+describe("Separate Pools", function () {
   // Convert to smallest unit (10^18)
   function su(amount: string): BigNumberish {
     return ethers.utils.parseEther(amount);
@@ -83,7 +83,7 @@ describe("Project Pools", function () {
       );
 
       // Set factory
-      await this.checker.connect(this.signers.admin).setPPFactory(this.spf.address);
+      await this.checker.connect(this.signers.admin).setSPFactory(this.spf.address);
     });
 
     context("Deployment", async function () {
@@ -93,7 +93,7 @@ describe("Project Pools", function () {
     });
 
     context("Pool Creation", async function () {
-      it("should create a project pool with correct token metadata", async function () {
+      it("should create a separate pool with correct token metadata", async function () {
         const poolAddress = await this.spf.callStatic.createPool(this.nft.address);
         // Check event emission
         await expect(this.spf.createPool(this.nft.address)).to.emit(this.spf, "PoolCreated");
@@ -172,7 +172,7 @@ describe("Project Pools", function () {
       );
 
       // Set factory
-      await this.checker.connect(this.signers.admin).setPPFactory(this.spf.address);
+      await this.checker.connect(this.signers.admin).setSPFactory(this.spf.address);
 
       const poolAddress = await this.spf.callStatic.createPool(this.nft.address);
       await this.spf.createPool(this.nft.address);

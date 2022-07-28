@@ -12,10 +12,17 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
         address _underlying,
         address _riskManager,
         address _interestRateModel,
+        address _priceOracle,
         string memory _name,
         string memory _symbol
     ) public initializer {
-        __TokenBase_init(_riskManager, _interestRateModel, _name, _symbol);
+        __TokenBase_init(
+            _riskManager,
+            _interestRateModel,
+            _priceOracle,
+            _name,
+            _symbol
+        );
 
         underlying = _underlying;
     }
@@ -67,6 +74,10 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
     }
 
     /******************************* Safe Token *******************************/
+
+    function getUnderlying() public view override returns (address) {
+        return underlying;
+    }
 
     /**
      * @notice Gets balance of this contract in terms of the underlying

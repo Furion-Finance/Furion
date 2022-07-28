@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./ExponentialNoError.sol";
 import "./interfaces/IRiskManager.sol";
 import "./interfaces/IInterestRateModel.sol";
+import "./interfaces/IPriceOracle.sol";
 
 // name, symbol, decimals, totalSupply, balances, allowances in ERC20 contract
 contract TokenBaseStorage is ExponentialNoError {
@@ -13,6 +14,8 @@ contract TokenBaseStorage is ExponentialNoError {
     IRiskManager riskManager;
 
     IInterestRateModel interestRateModel;
+
+    IPriceOracle oracle;
 
     // Administrator for the market
     address public admin;

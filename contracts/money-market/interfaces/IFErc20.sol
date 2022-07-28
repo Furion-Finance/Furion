@@ -3,6 +3,8 @@
 pragma solidity ^0.8.0;
 
 interface IFErc20 {
+    function getUnderlying() external view returns (address);
+
     function supply(uint256 _mintAmount) external;
 
     function redeem(uint256 _redeemTokens) external;

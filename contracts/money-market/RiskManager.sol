@@ -52,6 +52,10 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         return markets[_fToken].isMember[_account];
     }
 
+    function checkListed(address _fToken) external view returns (bool) {
+        return markets[_fToken].isListed;
+    }
+
     /**
      * @dev Add assets to be included in account liquidity calculation
      */
@@ -329,7 +333,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
     /********************************* Hooks *********************************/
 
     /**
-     * NOTE: Although the hooks have 'view' state mutability, it is important to
+     * NOTE: Although the hooks are free to call externally, it is important to
      * note that they may not be accurate when called externally by non-Furion
      * contracts because accrueInterest() is not called and lastAccrualBlock may
      * not be the same as current block number. In other words, market state may

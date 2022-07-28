@@ -5,13 +5,15 @@ pragma solidity ^0.8.0;
 import "./TokenBase.sol";
 
 contract FEther is TokenBase {
-    function initialize(address _riskManager, address _interestRateModel)
-        public
-        initializer
-    {
+    function initialize(
+        address _riskManager,
+        address _interestRateModel,
+        address _priceOracle
+    ) public initializer {
         __TokenBase_init(
             _riskManager,
             _interestRateModel,
+            _priceOracle,
             "Furion Ether",
             "fETH"
         );

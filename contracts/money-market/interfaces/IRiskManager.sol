@@ -47,6 +47,8 @@ interface IRiskManager {
         view
         returns (address[] memory);
 
+    function checkListed(address _fToken) external view returns (bool);
+
     function enterMarkets(address[] memory _fTokens) external;
 
     function exitMarket(address _fToken) external;

@@ -19,9 +19,8 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     // Fees in this contract are in the form of F-* tokens
     address public owner;
 
-    // 0 - 100
-    uint128 swapFeeRate = 1;
-    uint128 lockFeeRate = 3;
+    uint256 buyFee = 100e18;
+    uint256 lockFee = 150e18;
 
     struct LockInfo {
         address locker;
@@ -115,17 +114,15 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Change fee rate for buying NFT after governance voting
      */
-    function setBuyFeeRate(uint128 _rate) external onlyOwner {
-        require(_rate >= 0 && _rate < 101, "SeparatePool: Invalid fee rate.");
-        swapFeeRate = _rate;
+    function setBuyFee(uint128 _newFee) external onlyOwner {
+        buyFee = _newFee;
     }
 
     /**
      * @dev Change fee rate for redeeming NFT after governance voting
      */
-    function setRedeemFeeRate(uint128 _rate) external onlyOwner {
-        require(_rate >= 0 && _rate < 101, "SeparatePool: Invalid fee rate.");
-        lockFeeRate = _rate;
+    function setLockFee(uint128 _newFee) external onlyOwner {
+        lockFee = _newFee;
     }
 
     /**
@@ -181,7 +178,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         require(length < 10, "SeparatePool: Can only buy 9 NFTs at once");
 
         uint256 burnTotal = SWAP_MINT_AMOUNT * length;
-        uint256 feeTotal = 100 ether * length;
+        uint256 feeTotal = buyFee * length;
         _burn(msg.sender, burnTotal);
         FUR.transferFrom(msg.sender, owner, feeTotal);
 
@@ -208,8 +205,8 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
         NFT.safeTransferFrom(msg.sender, address(this), _id);
 
-        // uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFeeRate) / 100;
-        uint256 fee = 150 ether * _lockCycle;
+        // uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFee) / 100;
+        uint256 fee = lockFee * _lockCycle;
         FUR.transferFrom(msg.sender, owner, fee);
 
         _mint(msg.sender, LOCK_MINT_AMOUNT);
@@ -315,7 +312,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
             uint256 fee = (SWAP_MINT_AMOUNT * swapFeeRate) / 100;
             transfer(owner, fee);
             */
-            FUR.transferFrom(msg.sender, owner, 100 ether);
+            FUR.transferFrom(msg.sender, owner, buyFee);
         }
 
         NFT.safeTransferFrom(address(this), msg.sender, _id);

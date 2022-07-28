@@ -34,10 +34,10 @@ contract AggregatePool is ERC20Permit {
     mapping(uint256 => address) private getToken;
 
     // Fees in FUR
-    uint112 public stakeFee = 100 * 10**18;
-    uint112 public unstakeFee = 100 * 10**18;
+    uint256 public stakeFee = 100e18;
+    uint256 public unstakeFee = 100e18;
     // Serves as ID for F-* tokens in this pool (ID for next token to be registered)
-    uint32 public tokenTypes;
+    uint256 public tokenTypes;
 
     event RegisteredToken(address tokenAddress);
     event StakedToken(
@@ -76,7 +76,7 @@ contract AggregatePool is ERC20Permit {
             }
         }
 
-        tokenTypes = uint32(length);
+        tokenTypes = length;
     }
 
     modifier onlyOwner() {
@@ -102,6 +102,14 @@ contract AggregatePool is ERC20Permit {
         // Total supply - balance of all contracts that locked FFT
         // return totalSupply() - balanceOf()
         return totalSupply();
+    }
+
+    function setStakeFee(uint256 _newStakeFee) external onlyOwner {
+        stakeFee = _newStakeFee;
+    }
+
+    function setUnstakeFee(uint256 _newUnstakeFee) external onlyOwner {
+        unstakeFee = _newUnstakeFee;
     }
 
     /**
@@ -141,7 +149,7 @@ contract AggregatePool is ERC20Permit {
         uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
 
         // Transfer FUR (fees)
-        FUR.transferFrom(msg.sender, owner, 100 ether);
+        FUR.transferFrom(msg.sender, owner, stakeFee);
         // Transfer pool tokens to be staked
         IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
         // Mint FFT
@@ -169,7 +177,7 @@ contract AggregatePool is ERC20Permit {
         uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
 
         // Transfer FUR (fees)
-        FUR.transferFrom(msg.sender, owner, uint256(unstakeFee));
+        FUR.transferFrom(msg.sender, owner, unstakeFee);
         // Burn FFT used for exchange
         _burn(msg.sender, _amount);
 

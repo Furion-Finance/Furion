@@ -15,6 +15,8 @@ import {
   MockUSD__factory,
 } from "../../typechain";
 
+// npx hardhat createPair --token0 0x7d162a62AcAf017A2Ea55cEaCB00c85EeAB4DC5b
+// --token1 0x4b9c28F574974e3B108bCB76856C5C2aa40bc14C --network localhost
 task("createPair", "Create new trading pair in FurionSwap")
   .addParam("token0", "Address of token A")
   .addParam("token1", "Address of token B")

@@ -15,13 +15,14 @@ import {
   MockUSD__factory,
 } from "../../typechain";
 
+// npx hardhat setIncomeMakerAddress --maker 0x0944729C5125576a7DB450F7F730dC5A2a1E1359 --network localhost
 task("setIncomeMakerAddress", "Set new address for FurionSwap's income maker")
-  .addParam("incomeMaker", "Address for the new income maker")
+  .addParam("maker", "Address for the new income maker")
   .setAction(async (taskArgs, hre) => {
     console.log("\n Setting new income maker for FurionSwap... \n");
 
     const { network } = hre;
-    const incomeMaker = taskArgs.incomeMaker;
+    const incomeMaker = taskArgs.maker;
 
     // Signers
     const [dev] = await hre.ethers.getSigners();

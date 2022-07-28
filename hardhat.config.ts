@@ -12,7 +12,9 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 
-import "./tasks/accounts";
+// tasks from FurionSwap
+import "./tasks/furion-swap/setCheckStates";
+import "./tasks/furion-swap/tradingPair";
 
 //import "./tasks/deploy";
 

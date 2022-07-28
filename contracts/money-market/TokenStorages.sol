@@ -53,6 +53,16 @@ contract TokenBaseStorage is ExponentialNoError {
 
     // Percentage of seized tokens that goes to market reserve, 0 by default
     uint256 public protocolSeizeShareMantissa;
+
+    struct LiquidationProtection {
+        address borrower;
+        address liquidator;
+        uint128 value;
+        uint128 tokenSeized;
+    }
+
+    // Block timestamp -> liquidation protectin detail
+    mapping(uint256 => LiquidationProtection) liquidationProtection;
 }
 
 contract FErc20Storage {

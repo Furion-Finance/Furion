@@ -79,7 +79,7 @@ interface IRiskManager {
         address _fTokenBorrowed,
         address _borrower,
         uint256 _seizeTokens
-    ) external view returns (bool);
+    ) external view returns (bool allowed, bool isCollateralTier);
 
     function transferAllowed(
         address _fToken,
@@ -96,5 +96,5 @@ interface IRiskManager {
         address _fTokenBorrowed,
         address _fTokenCollateral,
         uint256 _repayAmount
-    ) external view returns (uint256 seizeTokens);
+    ) external view returns (uint256 seizeTokens, uint256 repayValue);
 }

@@ -51,8 +51,7 @@ interface ITokenBase {
         address liquidator,
         address borrower,
         uint256 repayAmount,
-        address fTokenCollateral,
-        uint256 seizeTokens
+        address fTokenCollateral
     );
 
     event TokenSeized(address from, address to, uint256 amount);

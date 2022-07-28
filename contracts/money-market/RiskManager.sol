@@ -520,7 +520,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         address _fTokenBorrowed,
         address _borrower,
         uint256 _seizeTokens
-    ) external view returns (bool) {
+    ) external view returns (bool allowed, bool isCollateralTier) {
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!seizeGuardianPaused, "RiskManager: Seize is paused");
 
@@ -543,7 +543,13 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             "RiskManager: Risk manager mismatch"
         );
 
-        return true;
+        allowed = true;
+
+        if (markets[_fTokenCollateral].tier == 1) {
+            isCollateralTier = true;
+        } else {
+            isCollateralTier = false;
+        }
     }
 
     /**
@@ -802,7 +808,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
      * @dev Used in liquidation (called in fToken.liquidateBorrowInternal)
      * @param _fTokenBorrowed The address of the borrowed cToken
      * @param _fTokenCollateral The address of the collateral cToken
-     * @param _repayAmount The amount of fTokenBorrowed underlying to convert into cTokenCollateral tokens
+     * @param _repayAmount The amount of fTokenBorrowed underlying to convert into fTokenCollateral tokens
      * @return seizeTokens Number of fTokenCollateral tokens to be seized in a liquidation
      */
     function liquidateCalculateSeizeTokens(
@@ -810,7 +816,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         address _fTokenBorrowed,
         address _fTokenCollateral,
         uint256 _repayAmount
-    ) external view override returns (uint256 seizeTokens) {
+    ) external view override returns (uint256 seizeTokens, uint256 repayValue) {
         // Read oracle prices for borrowed and collateral markets
         uint256 priceBorrowedMantissa = oracle.getUnderlyingPrice(
             _fTokenBorrowed
@@ -823,7 +829,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             "RiskManager: Oracle price is 0"
         );
 
-        /*
+        /**
          * Get the exchange rate and calculate the number of collateral tokens to seize:
          *  seizeAmount = actualRepayAmount * liquidationIncentive * priceBorrowed / priceCollateral
          *  seizeTokens = seizeAmount / exchangeRate
@@ -851,7 +857,12 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             Exp({mantissa: collateralExchangeRateMantissa})
         );
 
+        // div_: uint, exp -> uint
         seizeTokens = div_(valueAfterDiscount, valuePerToken);
+        repayValue = mul_ScalarTruncate(
+            Exp({mantissa: priceBorrowedMantissa}),
+            _repayAmount
+        );
     }
 
     /**

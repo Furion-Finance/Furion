@@ -1,0 +1,10 @@
+{
+  "localhost": {
+    "1": {
+      "name": "USD",
+      "address": "0x0944729C5125576a7DB450F7F730dC5A2a1E1359",
+      "poolId": 1,
+      "reward": "2000.0"
+    }
+  }
+}

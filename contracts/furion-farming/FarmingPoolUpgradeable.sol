@@ -2,16 +2,14 @@
 
 pragma solidity ^0.8.10;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { 
-    ReentrancyGuardUpgradeable
-} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { IFurionToken } from "../tokens/interfaces/IFurionToken.sol";
-import { Math } from "../libraries/Math.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IFurionToken} from "../tokens/interfaces/IFurionToken.sol";
+import {Math} from "../libraries/Math.sol";
 
 /*
 //===================================//
@@ -96,21 +94,11 @@ contract FarmingPoolUpgradeable is
         uint256 pendingReward
     );
 
-
-    event NewPoolAdded(
-        address lpToken,
-        uint256 basicFurionPerSecond
-    );
+    event NewPoolAdded(address lpToken, uint256 basicFurionPerSecond);
     event FarmingPoolStarted(uint256 poolId, uint256 timestamp);
     event FarmingPoolStopped(uint256 poolId, uint256 timestamp);
-    event FurionRewardChanged(
-        uint256 poolId,
-        uint256 basicFurionPerSecond
-    );
-    event PoolUpdated(
-        uint256 poolId,
-        uint256 accFurionPerShare
-    );
+    event FurionRewardChanged(uint256 poolId, uint256 basicFurionPerSecond);
+    event PoolUpdated(uint256 poolId, uint256 accFurionPerShare);
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Constructor ************************************** //
@@ -216,7 +204,10 @@ contract FarmingPoolUpgradeable is
         bool _withUpdate
     ) public onlyOwner whenNotPaused {
         // Ensure there already exists this pool
-        require(poolList[_poolId].lastRewardTimestamp != 0, "FARMING_POOL: POOL_NOT_EXIST");
+        require(
+            poolList[_poolId].lastRewardTimestamp != 0,
+            "FARMING_POOL: POOL_NOT_EXIST"
+        );
 
         if (_withUpdate) massUpdatePools();
         else updatePool(_poolId);
@@ -232,10 +223,7 @@ contract FarmingPoolUpgradeable is
             emit FarmingPoolStopped(_poolId, block.timestamp);
         } else {
             poolList[_poolId].basicFurionPerSecond = _basicFurionPerSecond;
-            emit FurionRewardChanged(
-                _poolId,
-                _basicFurionPerSecond
-            );
+            emit FurionRewardChanged(_poolId, _basicFurionPerSecond);
         }
     }
 
@@ -245,11 +233,11 @@ contract FarmingPoolUpgradeable is
      * @param _basicFurionPerSecond New basic reward amount per second
      * @param _withUpdate Whether update all pools
      */
-    function setFurionReward(
+    function setFurionRewards(
         uint256[] calldata _poolId,
         uint256[] calldata _basicFurionPerSecond,
         bool _withUpdate
-    ) public onlyOwner whenNotPaused{
+    ) public onlyOwner whenNotPaused {
         uint256 length = _poolId.length;
         require(length <= 9, "FARMING_POOL: MORE_THAN_NINE");
 
@@ -284,8 +272,7 @@ contract FarmingPoolUpgradeable is
 
         // First distribute the reward if exists
         if (user.stakingBalance > 0) {
-            uint256 pending = user.stakingBalance *
-                pool.accFurionPerShare /
+            uint256 pending = (user.stakingBalance * pool.accFurionPerShare) /
                 SCALE -
                 user.rewardDebt;
 
@@ -305,7 +292,8 @@ contract FarmingPoolUpgradeable is
         user.stakingBalance += actualAmount;
 
         user.rewardDebt =
-            user.stakingBalance * pool.accFurionPerShare / SCALE;
+            (user.stakingBalance * pool.accFurionPerShare) /
+            SCALE;
 
         emit Stake(msg.sender, _poolId, actualAmount);
     }
@@ -325,14 +313,18 @@ contract FarmingPoolUpgradeable is
         PoolInfo storage pool = poolList[_poolId];
         UserInfo storage user = userInfo[_poolId][msg.sender];
 
-        require(user.stakingBalance >= _amount, "FARMING_POOL: NO_ENOUGH_STAKING_BALANCE");
+        require(
+            user.stakingBalance >= _amount,
+            "FARMING_POOL: NO_ENOUGH_STAKING_BALANCE"
+        );
 
         // Update if the pool is still farming
         // Users can withdraw even after the pool stopped
         if (isFarming[_poolId]) updatePool(_poolId);
 
-        uint256 pending = user.stakingBalance * pool.accFurionPerShare  /
-            SCALE - user.rewardDebt;
+        uint256 pending = (user.stakingBalance * pool.accFurionPerShare) /
+            SCALE -
+            user.rewardDebt;
 
         uint256 reward = _safeFurionTransfer(msg.sender, pending);
         emit Harvest(msg.sender, msg.sender, _poolId, reward);
@@ -346,7 +338,9 @@ contract FarmingPoolUpgradeable is
 
         user.stakingBalance -= actualAmount;
 
-        user.rewardDebt = user.stakingBalance * pool.accFurionPerShare / SCALE;
+        user.rewardDebt =
+            (user.stakingBalance * pool.accFurionPerShare) /
+            SCALE;
 
         emit Withdraw(msg.sender, _poolId, actualAmount);
     }
@@ -367,12 +361,15 @@ contract FarmingPoolUpgradeable is
         PoolInfo memory pool = poolList[_poolId];
         UserInfo storage user = userInfo[_poolId][msg.sender];
 
-        uint256 pendingReward = user.stakingBalance * pool.accFurionPerShare / SCALE - user.rewardDebt;
+        uint256 pendingReward = (user.stakingBalance * pool.accFurionPerShare) /
+            SCALE -
+            user.rewardDebt;
 
         require(pendingReward > 0, "FARMING_POOL: NO_PENDING_REWARD");
 
         // Update the reward debt
-        user.rewardDebt = user.stakingBalance * pool.accFurionPerShare /
+        user.rewardDebt =
+            (user.stakingBalance * pool.accFurionPerShare) /
             SCALE;
 
         // Transfer the reward
@@ -410,10 +407,7 @@ contract FarmingPoolUpgradeable is
 
         pool.lastRewardTimestamp = block.timestamp;
 
-        emit PoolUpdated(
-            _poolId,
-            pool.accFurionPerShare
-        );
+        emit PoolUpdated(_poolId, pool.accFurionPerShare);
     }
 
     /**
@@ -467,15 +461,15 @@ contract FarmingPoolUpgradeable is
                 // Deigs amount given to this pool
                 uint256 timePassed = block.timestamp -
                     poolInfo.lastRewardTimestamp;
-                uint256 basicReward = poolInfo.basicFurionPerSecond * timePassed;
+                uint256 basicReward = poolInfo.basicFurionPerSecond *
+                    timePassed;
                 // Update accFurionPerShare
                 // LPToken may have different decimals
                 accFurionPerShare += (basicReward * SCALE) / lpBalance;
             }
 
             // If the pool has stopped, not update the info
-            uint256 pending = user.stakingBalance *
-                accFurionPerShare /
+            uint256 pending = (user.stakingBalance * accFurionPerShare) /
                 SCALE -
                 user.rewardDebt;
 
@@ -527,10 +521,7 @@ contract FarmingPoolUpgradeable is
         whenNotPaused
     {
         // Can only be set before any pool is added
-        require(
-            _nextPoolId == 1,
-            "ALREADY_HAVING_POOLS"
-        );
+        require(_nextPoolId == 1, "ALREADY_HAVING_POOLS");
 
         startTimestamp = _startTimestamp;
         emit StartTimestampChanged(_startTimestamp);

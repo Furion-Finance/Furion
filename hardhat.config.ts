@@ -12,11 +12,15 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 
+// tasks from FarmingPool
+import "./tasks/furion-farming/farmingPool";
 // tasks from FurionSwap
 import "./tasks/furion-swap/setCheckStates";
 import "./tasks/furion-swap/tradingPair";
-
-//import "./tasks/deploy";
+// tasks from IncomeSharing
+import "./tasks/income-sharing/incomeMaker";
+// tasks from Tokens
+import "./tasks/tokens/mintBurn";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 

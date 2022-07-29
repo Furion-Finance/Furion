@@ -2,6 +2,7 @@ import { DeployFunction, ProxyOptions } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { readAddressList, storeAddressList } from "../scripts/contractAddress";
+import "../tasks/furion-farming/farmingPool";
 
 // Deploy Farming Pool
 // It is a proxy deployment
@@ -51,6 +52,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   // Store the address list after deployment
   storeAddressList(addressList);
+
+  // Run some afterwards tasks
+  await hre.run("addFarmingMinter");
 };
 
 func.tags = ["Farming"];

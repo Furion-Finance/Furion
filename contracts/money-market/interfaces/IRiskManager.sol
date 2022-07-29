@@ -35,10 +35,10 @@ interface IRiskManager {
     event NewPriceOracle(address oldPriceOracle, address newPriceOracle);
 
     /// @notice Emitted when an action is paused globally
-    event ActionPaused(string action, bool pauseState);
+    event ActionPausedGlobal(string action, bool pauseState);
 
     /// @notice Emitted when an action is paused on a market
-    event ActionPaused(address fToken, string action, bool pauseState);
+    event ActionPausedMarket(address fToken, string action, bool pauseState);
 
     function isRiskManager() external returns (bool);
 

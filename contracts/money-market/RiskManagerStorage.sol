@@ -119,12 +119,4 @@ contract RiskManagerStorage is ExponentialNoError {
         Exp oraclePrice;
         Exp collateralValuePerToken;
     }
-
-    /**
-     * @dev Liquidity for individual tiers
-     */
-    struct TierLiquidity {
-        uint256[] tierCollateralValues;
-        uint256[] tierBorrowValues;
-    }
 }

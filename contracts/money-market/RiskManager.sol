@@ -6,15 +6,19 @@ import "./RiskManagerStorage.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/ITokenBase.sol";
 import "./interfaces/IRiskManager.sol";
+import "./interfaces/IPriceOracle.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "hardhat/console.sol";
 
 contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
-    function initialize() public initializer {
+    function initialize(address _priceOracle) public initializer {
         admin = msg.sender;
 
         maxTier = 3;
         discountInterval = 10;
         discountIncreaseMantissa = 0.01e18;
+
+        oracle = IPriceOracle(_priceOracle);
     }
 
     modifier onlyAdmin() {
@@ -115,7 +119,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         // Fail if the sender is not permitted to redeem all of their tokens
         require(
             redeemAllowed(_fToken, msg.sender, tokensHeld),
-            "RiskManager: Cannot withdrawa all tokens"
+            "RiskManager: Cannot withdraw all tokens"
         );
 
         Market storage marketToExit = markets[_fToken];
@@ -692,9 +696,12 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
 
         // Holds all our calculation results, see { RiskManagerStorage }
         AccountLiquidityLocalVars memory vars;
-        TierLiquidity memory tl;
 
         uint256 maxTierMem = maxTier;
+
+        uint256[] memory tierCollateralValues = new uint256[](maxTierMem);
+        uint256[] memory tierBorrowValues = new uint256[](maxTierMem);
+        liquidities = new uint256[](maxTierMem);
 
         // For each asset the account is in
         // Loop through to calculate colalteral and borrow values for each tier
@@ -702,6 +709,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         for (uint256 i; i < assets.length; ) {
             address asset = assets[i];
             uint256 assetTier = markets[asset].tier;
+            console.log(assetTier);
 
             // Read the balances and exchange rate from the asset (market)
             (
@@ -718,12 +726,12 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             }
             */
 
-            uint256 boostMantissa = collateralFactorBoost(_account);
-
+            uint256 boostMantissa = 0; // collateralFactorBoost(_account);
             vars.collateralFactor = Exp({
                 mantissa: markets[asset].collateralFactorMantissa +
                     boostMantissa
             });
+
             vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
 
             // Get the normalized price of the underlying asset of fToken
@@ -740,12 +748,12 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
                 vars.collateralFactor
             );
 
-            tl.tierCollateralValues[assetTier - 1] += mul_(
+            tierCollateralValues[assetTier - 1] += mul_(
                 vars.tokenBalance,
                 vars.collateralValuePerToken
             );
 
-            tl.tierBorrowValues[assetTier - 1] += mul_(
+            tierBorrowValues[assetTier - 1] += mul_(
                 vars.borrowBalance,
                 vars.oraclePrice
             );
@@ -755,7 +763,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
                 // Redeem effect
                 // Collateral reduced after redemption
                 // mul_: uint, exp -> uint
-                tl.tierCollateralValues[assetTier - 1] -= mul_(
+                tierCollateralValues[assetTier - 1] -= mul_(
                     _redeemToken,
                     vars.collateralValuePerToken
                 );
@@ -763,7 +771,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
                 // Add amount to hypothetically borrow
                 // sumBorrowPlusEffects += oraclePrice * borrowAmount
                 // mul_: uint, exp -> uint
-                tl.tierBorrowValues[assetTier - 1] += mul_(
+                tierBorrowValues[assetTier - 1] += mul_(
                     _borrowAmount,
                     vars.oraclePrice
                 );
@@ -790,8 +798,8 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         // accumulate tier shortfall to accumulatedShortfall and see if there are enough
         // collateral tier collateral to back the total shortfall
         for (uint256 i = maxTierMem; i > 0; ) {
-            uint256 collateral = tl.tierCollateralValues[i - 1];
-            uint256 borrow = tl.tierBorrowValues[i - 1];
+            uint256 collateral = tierCollateralValues[i - 1];
+            uint256 borrow = tierBorrowValues[i - 1];
             uint256 threshold = borrow + vars.accumulatedShortfall;
 
             if (collateral >= threshold) {

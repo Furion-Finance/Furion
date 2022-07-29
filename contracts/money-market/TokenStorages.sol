@@ -11,11 +11,11 @@ import "./interfaces/IPriceOracle.sol";
 contract TokenBaseStorage is ExponentialNoError {
     bool public constant IS_FTOKEN = true;
 
-    IRiskManager riskManager;
+    IRiskManager public riskManager;
 
-    IInterestRateModel interestRateModel;
+    IInterestRateModel public interestRateModel;
 
-    IPriceOracle oracle;
+    IPriceOracle public oracle;
 
     // Administrator for the market
     address public admin;
@@ -30,7 +30,7 @@ contract TokenBaseStorage is ExponentialNoError {
     uint256 internal constant RESERVE_FACTOR_MAX_MANTISSA = 1e18; // 100%
 
     // 50 underlying = 1 fToken
-    uint256 internal initialExchangeRateMantissa = 50e18;
+    uint256 internal initialExchangeRateMantissa;
 
     uint256 public reserveFactorMantissa;
 

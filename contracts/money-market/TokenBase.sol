@@ -43,6 +43,8 @@ abstract contract TokenBase is
 
         oracle = IPriceOracle(_priceOracle);
 
+        initialExchangeRateMantissa = 50e18;
+
         admin = msg.sender;
     }
 

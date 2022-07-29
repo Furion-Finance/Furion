@@ -11,6 +11,10 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
     function initialize() public initializer {
         admin = msg.sender;
+
+        maxTier = 3;
+        discountInterval = 10;
+        discountIncreaseMantissa = 0.01e18;
     }
 
     modifier onlyAdmin() {
@@ -303,7 +307,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         returns (bool)
     {
         mintGuardianPaused[_fToken] = _state;
-        emit ActionPaused(_fToken, "Mint", _state);
+        emit ActionPausedMarket(_fToken, "Mint", _state);
         return _state;
     }
 
@@ -314,19 +318,19 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         returns (bool)
     {
         borrowGuardianPaused[_fToken] = _state;
-        emit ActionPaused(_fToken, "Borrow", _state);
+        emit ActionPausedMarket(_fToken, "Borrow", _state);
         return _state;
     }
 
     function setTransferPaused(bool _state) external onlyAdmin returns (bool) {
         transferGuardianPaused = _state;
-        emit ActionPaused("Transfer", _state);
+        emit ActionPausedGlobal("Transfer", _state);
         return _state;
     }
 
     function setSeizePaused(bool _state) external onlyAdmin returns (bool) {
         seizeGuardianPaused = _state;
-        emit ActionPaused("Seize", _state);
+        emit ActionPausedGlobal("Seize", _state);
         return _state;
     }
 

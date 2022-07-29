@@ -73,7 +73,7 @@ contract RiskManagerStorage is ExponentialNoError {
     mapping(address => Market) public markets;
 
     // Largest tier number that markets can have, i.e. number for worst tier
-    uint256 maxTier = 3;
+    uint256 maxTier;
 
     /**
      * @notice The Pause Guardian can pause certain actions as a safety mechanism.
@@ -97,10 +97,10 @@ contract RiskManagerStorage is ExponentialNoError {
     mapping(address => uint256) public liquidatableTime;
 
     // After how many blocks will discount rate increase
-    uint256 discountInterval = 10;
+    uint256 discountInterval;
 
     // By how much discount rate increases each time
-    uint256 discountIncreaseMantissa = 0.01e18;
+    uint256 discountIncreaseMantissa;
 
     /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.

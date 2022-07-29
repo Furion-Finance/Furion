@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   IERC20Metadata,
   IERC20MetadataInterface,
 } from "../../../../../../@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -240,10 +241,7 @@ export class IERC20Metadata__factory {
   static createInterface(): IERC20MetadataInterface {
     return new utils.Interface(_abi) as IERC20MetadataInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IERC20Metadata {
+  static connect(address: string, signerOrProvider: Signer | Provider): IERC20Metadata {
     return new Contract(address, _abi, signerOrProvider) as IERC20Metadata;
   }
 }

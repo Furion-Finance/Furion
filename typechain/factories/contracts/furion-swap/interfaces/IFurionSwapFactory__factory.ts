@@ -3,12 +3,13 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider } from "@ethersproject/providers";
+import { Contract, Signer, utils } from "ethers";
+
 import type {
   IFurionSwapFactory,
   IFurionSwapFactoryInterface,
 } from "../../../../contracts/furion-swap/interfaces/IFurionSwapFactory";
-import type { Provider } from "@ethersproject/providers";
-import { Contract, Signer, utils } from "ethers";
 
 const _abi = [
   {
@@ -148,10 +149,7 @@ export class IFurionSwapFactory__factory {
   static createInterface(): IFurionSwapFactoryInterface {
     return new utils.Interface(_abi) as IFurionSwapFactoryInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IFurionSwapFactory {
+  static connect(address: string, signerOrProvider: Signer | Provider): IFurionSwapFactory {
     return new Contract(address, _abi, signerOrProvider) as IFurionSwapFactory;
   }
 }

@@ -3,18 +3,7 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../common";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { EventFragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   BaseContract,
@@ -28,6 +17,8 @@ import type {
   Signer,
   utils,
 } from "ethers";
+
+import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../../common";
 
 export interface IncomeSharingVaultInterface extends utils.Interface {
   functions: {
@@ -74,71 +65,44 @@ export interface IncomeSharingVaultInterface extends utils.Interface {
       | "users"
       | "veFUR"
       | "withdraw"
-      | "withdrawAll"
+      | "withdrawAll",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "SCALE", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
   ): string;
   encodeFunctionData(
     functionFragment: "harvest",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "initialize", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "nextPool", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingReward",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "pools",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "pools", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
   encodeFunctionData(functionFragment: "roundTime", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setRewardSpeed",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "setRoundTime",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "startPool",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updatePool",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "users",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "setRoundTime", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "startPool", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "updatePool", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "users", values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "veFUR", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawAll",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "withdrawAll", values: [PromiseOrValue<BigNumberish>]): string;
 
   decodeFunctionResult(functionFragment: "SCALE", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
@@ -147,37 +111,19 @@ export interface IncomeSharingVaultInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "nextPool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "pendingReward",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "pendingReward", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pools", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "roundTime", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setRewardSpeed",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setRoundTime",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "setRewardSpeed", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setRoundTime", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "startPool", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "updatePool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "users", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "veFUR", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawAll",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "withdrawAll", data: BytesLike): Result;
 
   events: {
     "Deposit(address,uint256,uint256)": EventFragment;
@@ -211,10 +157,7 @@ export interface DepositEventObject {
   poolId: BigNumber;
   amount: BigNumber;
 }
-export type DepositEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  DepositEventObject
->;
+export type DepositEvent = TypedEvent<[string, BigNumber, BigNumber], DepositEventObject>;
 
 export type DepositEventFilter = TypedEventFilter<DepositEvent>;
 
@@ -223,10 +166,7 @@ export interface HarvestEventObject {
   poolId: BigNumber;
   amount: BigNumber;
 }
-export type HarvestEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  HarvestEventObject
->;
+export type HarvestEvent = TypedEvent<[string, BigNumber, BigNumber], HarvestEventObject>;
 
 export type HarvestEventFilter = TypedEventFilter<HarvestEvent>;
 
@@ -241,25 +181,17 @@ export interface NewRewardPoolStartEventObject {
   poolId: BigNumber;
   rewardToken: string;
 }
-export type NewRewardPoolStartEvent = TypedEvent<
-  [BigNumber, string],
-  NewRewardPoolStartEventObject
->;
+export type NewRewardPoolStartEvent = TypedEvent<[BigNumber, string], NewRewardPoolStartEventObject>;
 
-export type NewRewardPoolStartEventFilter =
-  TypedEventFilter<NewRewardPoolStartEvent>;
+export type NewRewardPoolStartEventFilter = TypedEventFilter<NewRewardPoolStartEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface PausedEventObject {
   account: string;
@@ -272,10 +204,7 @@ export interface PoolUpdatedEventObject {
   poolId: BigNumber;
   accRewardPerSecond: BigNumber;
 }
-export type PoolUpdatedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  PoolUpdatedEventObject
->;
+export type PoolUpdatedEvent = TypedEvent<[BigNumber, BigNumber], PoolUpdatedEventObject>;
 
 export type PoolUpdatedEventFilter = TypedEventFilter<PoolUpdatedEvent>;
 
@@ -283,10 +212,7 @@ export interface RewardSpeedSetEventObject {
   poolId: BigNumber;
   rewardPerSecond: BigNumber;
 }
-export type RewardSpeedSetEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  RewardSpeedSetEventObject
->;
+export type RewardSpeedSetEvent = TypedEvent<[BigNumber, BigNumber], RewardSpeedSetEventObject>;
 
 export type RewardSpeedSetEventFilter = TypedEventFilter<RewardSpeedSetEvent>;
 
@@ -294,13 +220,9 @@ export interface RoundTimeChangedEventObject {
   oldRoundTime: BigNumber;
   newRoundTime: BigNumber;
 }
-export type RoundTimeChangedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  RoundTimeChangedEventObject
->;
+export type RoundTimeChangedEvent = TypedEvent<[BigNumber, BigNumber], RoundTimeChangedEventObject>;
 
-export type RoundTimeChangedEventFilter =
-  TypedEventFilter<RoundTimeChangedEvent>;
+export type RoundTimeChangedEventFilter = TypedEventFilter<RoundTimeChangedEvent>;
 
 export interface UnpausedEventObject {
   account: string;
@@ -314,10 +236,7 @@ export interface WithdrawEventObject {
   poolId: BigNumber;
   amount: BigNumber;
 }
-export type WithdrawEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  WithdrawEventObject
->;
+export type WithdrawEvent = TypedEvent<[string, BigNumber, BigNumber], WithdrawEventObject>;
 
 export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
@@ -331,16 +250,12 @@ export interface IncomeSharingVault extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -353,18 +268,18 @@ export interface IncomeSharingVault extends BaseContract {
     deposit(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     initialize(
       _veFUR: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     nextPool(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -376,12 +291,12 @@ export interface IncomeSharingVault extends BaseContract {
     pendingReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     pools(
       arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [boolean, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         available: boolean;
@@ -393,57 +308,53 @@ export interface IncomeSharingVault extends BaseContract {
       }
     >;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     roundTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     setRewardSpeed(
       _poolId: PromiseOrValue<BigNumberish>,
       _rewardPerSecond: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     setRoundTime(
       _roundTime: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     startPool(
       _rewardToken: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     updatePool(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     users(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { totalAmount: BigNumber; rewardDebt: BigNumber }
-    >;
+      overrides?: CallOverrides,
+    ): Promise<[BigNumber, BigNumber] & { totalAmount: BigNumber; rewardDebt: BigNumber }>;
 
     veFUR(overrides?: CallOverrides): Promise<[string]>;
 
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     withdrawAll(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
   };
 
@@ -452,18 +363,18 @@ export interface IncomeSharingVault extends BaseContract {
   deposit(
     _poolId: PromiseOrValue<BigNumberish>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   harvest(
     _poolId: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   initialize(
     _veFUR: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   nextPool(overrides?: CallOverrides): Promise<BigNumber>;
@@ -475,12 +386,12 @@ export interface IncomeSharingVault extends BaseContract {
   pendingReward(
     _poolId: PromiseOrValue<BigNumberish>,
     _user: PromiseOrValue<string>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   pools(
     arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [boolean, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
       available: boolean;
@@ -492,57 +403,53 @@ export interface IncomeSharingVault extends BaseContract {
     }
   >;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   roundTime(overrides?: CallOverrides): Promise<BigNumber>;
 
   setRewardSpeed(
     _poolId: PromiseOrValue<BigNumberish>,
     _rewardPerSecond: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   setRoundTime(
     _roundTime: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   startPool(
     _rewardToken: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   updatePool(
     _poolId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   users(
     arg0: PromiseOrValue<BigNumberish>,
     arg1: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber] & { totalAmount: BigNumber; rewardDebt: BigNumber }
-  >;
+    overrides?: CallOverrides,
+  ): Promise<[BigNumber, BigNumber] & { totalAmount: BigNumber; rewardDebt: BigNumber }>;
 
   veFUR(overrides?: CallOverrides): Promise<string>;
 
   withdraw(
     _poolId: PromiseOrValue<BigNumberish>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   withdrawAll(
     _poolId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -551,19 +458,16 @@ export interface IncomeSharingVault extends BaseContract {
     deposit(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    initialize(
-      _veFUR: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    initialize(_veFUR: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     nextPool(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -574,12 +478,12 @@ export interface IncomeSharingVault extends BaseContract {
     pendingReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     pools(
       arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [boolean, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         available: boolean;
@@ -598,125 +502,72 @@ export interface IncomeSharingVault extends BaseContract {
     setRewardSpeed(
       _poolId: PromiseOrValue<BigNumberish>,
       _rewardPerSecond: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    setRoundTime(
-      _roundTime: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setRoundTime(_roundTime: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
-    startPool(
-      _rewardToken: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    startPool(_rewardToken: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
-    updatePool(
-      _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    updatePool(_poolId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     users(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { totalAmount: BigNumber; rewardDebt: BigNumber }
-    >;
+      overrides?: CallOverrides,
+    ): Promise<[BigNumber, BigNumber] & { totalAmount: BigNumber; rewardDebt: BigNumber }>;
 
     veFUR(overrides?: CallOverrides): Promise<string>;
 
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    withdrawAll(
-      _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    withdrawAll(_poolId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
-    "Deposit(address,uint256,uint256)"(
-      user?: null,
-      poolId?: null,
-      amount?: null
-    ): DepositEventFilter;
+    "Deposit(address,uint256,uint256)"(user?: null, poolId?: null, amount?: null): DepositEventFilter;
     Deposit(user?: null, poolId?: null, amount?: null): DepositEventFilter;
 
-    "Harvest(address,uint256,uint256)"(
-      user?: null,
-      poolId?: null,
-      amount?: null
-    ): HarvestEventFilter;
+    "Harvest(address,uint256,uint256)"(user?: null, poolId?: null, amount?: null): HarvestEventFilter;
     Harvest(user?: null, poolId?: null, amount?: null): HarvestEventFilter;
 
     "Initialized(uint8)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
 
-    "NewRewardPoolStart(uint256,address)"(
-      poolId?: null,
-      rewardToken?: null
-    ): NewRewardPoolStartEventFilter;
-    NewRewardPoolStart(
-      poolId?: null,
-      rewardToken?: null
-    ): NewRewardPoolStartEventFilter;
+    "NewRewardPoolStart(uint256,address)"(poolId?: null, rewardToken?: null): NewRewardPoolStartEventFilter;
+    NewRewardPoolStart(poolId?: null, rewardToken?: null): NewRewardPoolStartEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      newOwner?: PromiseOrValue<string> | null,
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
       previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      newOwner?: PromiseOrValue<string> | null,
     ): OwnershipTransferredEventFilter;
 
     "Paused(address)"(account?: null): PausedEventFilter;
     Paused(account?: null): PausedEventFilter;
 
-    "PoolUpdated(uint256,uint256)"(
-      poolId?: null,
-      accRewardPerSecond?: null
-    ): PoolUpdatedEventFilter;
-    PoolUpdated(
-      poolId?: null,
-      accRewardPerSecond?: null
-    ): PoolUpdatedEventFilter;
+    "PoolUpdated(uint256,uint256)"(poolId?: null, accRewardPerSecond?: null): PoolUpdatedEventFilter;
+    PoolUpdated(poolId?: null, accRewardPerSecond?: null): PoolUpdatedEventFilter;
 
-    "RewardSpeedSet(uint256,uint256)"(
-      poolId?: null,
-      rewardPerSecond?: null
-    ): RewardSpeedSetEventFilter;
-    RewardSpeedSet(
-      poolId?: null,
-      rewardPerSecond?: null
-    ): RewardSpeedSetEventFilter;
+    "RewardSpeedSet(uint256,uint256)"(poolId?: null, rewardPerSecond?: null): RewardSpeedSetEventFilter;
+    RewardSpeedSet(poolId?: null, rewardPerSecond?: null): RewardSpeedSetEventFilter;
 
-    "RoundTimeChanged(uint256,uint256)"(
-      oldRoundTime?: null,
-      newRoundTime?: null
-    ): RoundTimeChangedEventFilter;
-    RoundTimeChanged(
-      oldRoundTime?: null,
-      newRoundTime?: null
-    ): RoundTimeChangedEventFilter;
+    "RoundTimeChanged(uint256,uint256)"(oldRoundTime?: null, newRoundTime?: null): RoundTimeChangedEventFilter;
+    RoundTimeChanged(oldRoundTime?: null, newRoundTime?: null): RoundTimeChangedEventFilter;
 
     "Unpaused(address)"(account?: null): UnpausedEventFilter;
     Unpaused(account?: null): UnpausedEventFilter;
 
-    "Withdraw(address,uint256,uint256)"(
-      user?: null,
-      poolId?: null,
-      amount?: null
-    ): WithdrawEventFilter;
+    "Withdraw(address,uint256,uint256)"(user?: null, poolId?: null, amount?: null): WithdrawEventFilter;
     Withdraw(user?: null, poolId?: null, amount?: null): WithdrawEventFilter;
   };
 
@@ -726,18 +577,18 @@ export interface IncomeSharingVault extends BaseContract {
     deposit(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     initialize(
       _veFUR: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     nextPool(overrides?: CallOverrides): Promise<BigNumber>;
@@ -749,50 +600,45 @@ export interface IncomeSharingVault extends BaseContract {
     pendingReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    pools(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    pools(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     roundTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     setRewardSpeed(
       _poolId: PromiseOrValue<BigNumberish>,
       _rewardPerSecond: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     setRoundTime(
       _roundTime: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     startPool(
       _rewardToken: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     updatePool(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     users(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     veFUR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -800,12 +646,12 @@ export interface IncomeSharingVault extends BaseContract {
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     withdrawAll(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
   };
 
@@ -815,18 +661,18 @@ export interface IncomeSharingVault extends BaseContract {
     deposit(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     initialize(
       _veFUR: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     nextPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -838,50 +684,45 @@ export interface IncomeSharingVault extends BaseContract {
     pendingReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
-    pools(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    pools(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     roundTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setRewardSpeed(
       _poolId: PromiseOrValue<BigNumberish>,
       _rewardPerSecond: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     setRoundTime(
       _roundTime: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     startPool(
       _rewardToken: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     updatePool(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     users(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     veFUR(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -889,12 +730,12 @@ export interface IncomeSharingVault extends BaseContract {
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     withdrawAll(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -3,18 +3,7 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../common";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { EventFragment, FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   BaseContract,
@@ -29,6 +18,8 @@ import type {
   utils,
 } from "ethers";
 
+import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../../common";
+
 export declare namespace FarmingPoolUpgradeable {
   export type PoolInfoStruct = {
     lpToken: PromiseOrValue<string>;
@@ -37,12 +28,7 @@ export declare namespace FarmingPoolUpgradeable {
     accFurionPerShare: PromiseOrValue<BigNumberish>;
   };
 
-  export type PoolInfoStructOutput = [
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber
-  ] & {
+  export type PoolInfoStructOutput = [string, BigNumber, BigNumber, BigNumber] & {
     lpToken: string;
     basicFurionPerSecond: BigNumber;
     lastRewardTimestamp: BigNumber;
@@ -70,8 +56,8 @@ export interface FarmingPoolUpgradeableInterface extends utils.Interface {
     "poolList(uint256)": FunctionFragment;
     "poolMapping(address)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setFurionReward(uint256[],uint256[],bool)": FunctionFragment;
     "setFurionReward(uint256,uint256,bool)": FunctionFragment;
+    "setFurionRewards(uint256[],uint256[],bool)": FunctionFragment;
     "setStartTimestamp(uint256)": FunctionFragment;
     "stake(uint256,uint256)": FunctionFragment;
     "startTimestamp()": FunctionFragment;
@@ -102,8 +88,8 @@ export interface FarmingPoolUpgradeableInterface extends utils.Interface {
       | "poolList"
       | "poolMapping"
       | "renounceOwnership"
-      | "setFurionReward(uint256[],uint256[],bool)"
-      | "setFurionReward(uint256,uint256,bool)"
+      | "setFurionReward"
+      | "setFurionRewards"
       | "setStartTimestamp"
       | "stake"
       | "startTimestamp"
@@ -111,173 +97,89 @@ export interface FarmingPoolUpgradeableInterface extends utils.Interface {
       | "unpause"
       | "updatePool"
       | "userInfo"
-      | "withdraw"
+      | "withdraw",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "SCALE", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "_nextPoolId",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "_nextPoolId", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "add",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>],
   ): string;
   encodeFunctionData(functionFragment: "furion", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getPoolList",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "getPoolList", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getUserBalance",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
     functionFragment: "harvest",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isFarming",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "massUpdatePools",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "initialize", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "isFarming", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "massUpdatePools", values?: undefined): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingFurion",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
+  ): string;
+  encodeFunctionData(functionFragment: "poolList", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "poolMapping", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "setFurionReward",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>, PromiseOrValue<boolean>],
   ): string;
   encodeFunctionData(
-    functionFragment: "poolList",
-    values: [PromiseOrValue<BigNumberish>]
+    functionFragment: "setFurionRewards",
+    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[], PromiseOrValue<boolean>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "poolMapping",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFurionReward(uint256[],uint256[],bool)",
-    values: [
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<BigNumberish>[],
-      PromiseOrValue<boolean>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFurionReward(uint256,uint256,bool)",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<boolean>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setStartTimestamp",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "setStartTimestamp", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "stake",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
   ): string;
-  encodeFunctionData(
-    functionFragment: "startTimestamp",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
+  encodeFunctionData(functionFragment: "startTimestamp", values?: undefined): string;
+  encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "updatePool",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "updatePool", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
     functionFragment: "userInfo",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>],
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
   ): string;
 
   decodeFunctionResult(functionFragment: "SCALE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "_nextPoolId",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "_nextPoolId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "add", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "furion", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getPoolList",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUserBalance",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getPoolList", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getUserBalance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "harvest", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isFarming", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "massUpdatePools",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "massUpdatePools", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "pendingFurion",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "pendingFurion", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "poolList", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "poolMapping",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFurionReward(uint256[],uint256[],bool)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFurionReward(uint256,uint256,bool)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setStartTimestamp",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "poolMapping", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFurionReward", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFurionRewards", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setStartTimestamp", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "startTimestamp",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "startTimestamp", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "updatePool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "userInfo", data: BytesLike): Result;
@@ -318,37 +220,25 @@ export interface FarmingPoolStartedEventObject {
   poolId: BigNumber;
   timestamp: BigNumber;
 }
-export type FarmingPoolStartedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  FarmingPoolStartedEventObject
->;
+export type FarmingPoolStartedEvent = TypedEvent<[BigNumber, BigNumber], FarmingPoolStartedEventObject>;
 
-export type FarmingPoolStartedEventFilter =
-  TypedEventFilter<FarmingPoolStartedEvent>;
+export type FarmingPoolStartedEventFilter = TypedEventFilter<FarmingPoolStartedEvent>;
 
 export interface FarmingPoolStoppedEventObject {
   poolId: BigNumber;
   timestamp: BigNumber;
 }
-export type FarmingPoolStoppedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  FarmingPoolStoppedEventObject
->;
+export type FarmingPoolStoppedEvent = TypedEvent<[BigNumber, BigNumber], FarmingPoolStoppedEventObject>;
 
-export type FarmingPoolStoppedEventFilter =
-  TypedEventFilter<FarmingPoolStoppedEvent>;
+export type FarmingPoolStoppedEventFilter = TypedEventFilter<FarmingPoolStoppedEvent>;
 
 export interface FurionRewardChangedEventObject {
   poolId: BigNumber;
   basicFurionPerSecond: BigNumber;
 }
-export type FurionRewardChangedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  FurionRewardChangedEventObject
->;
+export type FurionRewardChangedEvent = TypedEvent<[BigNumber, BigNumber], FurionRewardChangedEventObject>;
 
-export type FurionRewardChangedEventFilter =
-  TypedEventFilter<FurionRewardChangedEvent>;
+export type FurionRewardChangedEventFilter = TypedEventFilter<FurionRewardChangedEvent>;
 
 export interface HarvestEventObject {
   staker: string;
@@ -356,10 +246,7 @@ export interface HarvestEventObject {
   poolId: BigNumber;
   pendingReward: BigNumber;
 }
-export type HarvestEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber],
-  HarvestEventObject
->;
+export type HarvestEvent = TypedEvent<[string, string, BigNumber, BigNumber], HarvestEventObject>;
 
 export type HarvestEventFilter = TypedEventFilter<HarvestEvent>;
 
@@ -374,10 +261,7 @@ export interface NewPoolAddedEventObject {
   lpToken: string;
   basicFurionPerSecond: BigNumber;
 }
-export type NewPoolAddedEvent = TypedEvent<
-  [string, BigNumber],
-  NewPoolAddedEventObject
->;
+export type NewPoolAddedEvent = TypedEvent<[string, BigNumber], NewPoolAddedEventObject>;
 
 export type NewPoolAddedEventFilter = TypedEventFilter<NewPoolAddedEvent>;
 
@@ -385,13 +269,9 @@ export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface PausedEventObject {
   account: string;
@@ -404,10 +284,7 @@ export interface PoolUpdatedEventObject {
   poolId: BigNumber;
   accFurionPerShare: BigNumber;
 }
-export type PoolUpdatedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  PoolUpdatedEventObject
->;
+export type PoolUpdatedEvent = TypedEvent<[BigNumber, BigNumber], PoolUpdatedEventObject>;
 
 export type PoolUpdatedEventFilter = TypedEventFilter<PoolUpdatedEvent>;
 
@@ -416,23 +293,16 @@ export interface StakeEventObject {
   poolId: BigNumber;
   amount: BigNumber;
 }
-export type StakeEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  StakeEventObject
->;
+export type StakeEvent = TypedEvent<[string, BigNumber, BigNumber], StakeEventObject>;
 
 export type StakeEventFilter = TypedEventFilter<StakeEvent>;
 
 export interface StartTimestampChangedEventObject {
   startTimestamp: BigNumber;
 }
-export type StartTimestampChangedEvent = TypedEvent<
-  [BigNumber],
-  StartTimestampChangedEventObject
->;
+export type StartTimestampChangedEvent = TypedEvent<[BigNumber], StartTimestampChangedEventObject>;
 
-export type StartTimestampChangedEventFilter =
-  TypedEventFilter<StartTimestampChangedEvent>;
+export type StartTimestampChangedEventFilter = TypedEventFilter<StartTimestampChangedEvent>;
 
 export interface UnpausedEventObject {
   account: string;
@@ -446,10 +316,7 @@ export interface WithdrawEventObject {
   poolId: BigNumber;
   amount: BigNumber;
 }
-export type WithdrawEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  WithdrawEventObject
->;
+export type WithdrawEvent = TypedEvent<[string, BigNumber, BigNumber], WithdrawEventObject>;
 
 export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
@@ -463,16 +330,12 @@ export interface FarmingPoolUpgradeable extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -488,60 +351,51 @@ export interface FarmingPoolUpgradeable extends BaseContract {
       _lpToken: PromiseOrValue<string>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     furion(overrides?: CallOverrides): Promise<[string]>;
 
-    getPoolList(
-      overrides?: CallOverrides
-    ): Promise<[FarmingPoolUpgradeable.PoolInfoStructOutput[]]>;
+    getPoolList(overrides?: CallOverrides): Promise<[FarmingPoolUpgradeable.PoolInfoStructOutput[]]>;
 
     getUserBalance(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     initialize(
       _furion: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    isFarming(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isFarming(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[boolean]>;
 
-    massUpdatePools(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    massUpdatePools(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     pendingFurion(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<[BigNumber]>;
 
     poolList(
       arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [string, BigNumber, BigNumber, BigNumber] & {
         lpToken: string;
@@ -551,60 +405,53 @@ export interface FarmingPoolUpgradeable extends BaseContract {
       }
     >;
 
-    poolMapping(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    poolMapping(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    "setFurionReward(uint256[],uint256[],bool)"(
-      _poolId: PromiseOrValue<BigNumberish>[],
-      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
-      _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    "setFurionReward(uint256,uint256,bool)"(
+    setFurionReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setFurionRewards(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     setStartTimestamp(
       _startTimestamp: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     startTimestamp(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
-    unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
     updatePool(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     userInfo(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber] & {
         rewardDebt: BigNumber;
@@ -615,7 +462,7 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
   };
 
@@ -627,60 +474,51 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     _lpToken: PromiseOrValue<string>,
     _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
     _withUpdate: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   furion(overrides?: CallOverrides): Promise<string>;
 
-  getPoolList(
-    overrides?: CallOverrides
-  ): Promise<FarmingPoolUpgradeable.PoolInfoStructOutput[]>;
+  getPoolList(overrides?: CallOverrides): Promise<FarmingPoolUpgradeable.PoolInfoStructOutput[]>;
 
   getUserBalance(
     _poolId: PromiseOrValue<BigNumberish>,
     _user: PromiseOrValue<string>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   harvest(
     _poolId: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   initialize(
     _furion: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  isFarming(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isFarming(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<boolean>;
 
-  massUpdatePools(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  massUpdatePools(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  pause(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   pendingFurion(
     _poolId: PromiseOrValue<BigNumberish>,
     _user: PromiseOrValue<string>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<BigNumber>;
 
   poolList(
     arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [string, BigNumber, BigNumber, BigNumber] & {
       lpToken: string;
@@ -690,60 +528,53 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     }
   >;
 
-  poolMapping(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  poolMapping(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-  "setFurionReward(uint256[],uint256[],bool)"(
-    _poolId: PromiseOrValue<BigNumberish>[],
-    _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
-    _withUpdate: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "setFurionReward(uint256,uint256,bool)"(
+  setFurionReward(
     _poolId: PromiseOrValue<BigNumberish>,
     _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
     _withUpdate: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
+  setFurionRewards(
+    _poolId: PromiseOrValue<BigNumberish>[],
+    _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
+    _withUpdate: PromiseOrValue<boolean>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   setStartTimestamp(
     _startTimestamp: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   stake(
     _poolId: PromiseOrValue<BigNumberish>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   startTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
-  unpause(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
   updatePool(
     _poolId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   userInfo(
     arg0: PromiseOrValue<BigNumberish>,
     arg1: PromiseOrValue<string>,
-    overrides?: CallOverrides
+    overrides?: CallOverrides,
   ): Promise<
     [BigNumber, BigNumber] & {
       rewardDebt: BigNumber;
@@ -754,7 +585,7 @@ export interface FarmingPoolUpgradeable extends BaseContract {
   withdraw(
     _poolId: PromiseOrValue<BigNumberish>,
     _amount: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -766,36 +597,28 @@ export interface FarmingPoolUpgradeable extends BaseContract {
       _lpToken: PromiseOrValue<string>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     furion(overrides?: CallOverrides): Promise<string>;
 
-    getPoolList(
-      overrides?: CallOverrides
-    ): Promise<FarmingPoolUpgradeable.PoolInfoStructOutput[]>;
+    getPoolList(overrides?: CallOverrides): Promise<FarmingPoolUpgradeable.PoolInfoStructOutput[]>;
 
     getUserBalance(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    initialize(
-      _furion: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    initialize(_furion: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
-    isFarming(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isFarming(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<boolean>;
 
     massUpdatePools(overrides?: CallOverrides): Promise<void>;
 
@@ -810,12 +633,12 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     pendingFurion(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     poolList(
       arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [string, BigNumber, BigNumber, BigNumber] & {
         lpToken: string;
@@ -825,56 +648,44 @@ export interface FarmingPoolUpgradeable extends BaseContract {
       }
     >;
 
-    poolMapping(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    poolMapping(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    "setFurionReward(uint256[],uint256[],bool)"(
-      _poolId: PromiseOrValue<BigNumberish>[],
-      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
-      _withUpdate: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setFurionReward(uint256,uint256,bool)"(
+    setFurionReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
-    setStartTimestamp(
-      _startTimestamp: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+    setFurionRewards(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: CallOverrides,
     ): Promise<void>;
+
+    setStartTimestamp(_startTimestamp: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
 
     startTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     unpause(overrides?: CallOverrides): Promise<void>;
 
-    updatePool(
-      _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    updatePool(_poolId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     userInfo(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber] & {
         rewardDebt: BigNumber;
@@ -885,106 +696,59 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<void>;
   };
 
   filters: {
-    "FarmingPoolStarted(uint256,uint256)"(
-      poolId?: null,
-      timestamp?: null
-    ): FarmingPoolStartedEventFilter;
-    FarmingPoolStarted(
-      poolId?: null,
-      timestamp?: null
-    ): FarmingPoolStartedEventFilter;
+    "FarmingPoolStarted(uint256,uint256)"(poolId?: null, timestamp?: null): FarmingPoolStartedEventFilter;
+    FarmingPoolStarted(poolId?: null, timestamp?: null): FarmingPoolStartedEventFilter;
 
-    "FarmingPoolStopped(uint256,uint256)"(
-      poolId?: null,
-      timestamp?: null
-    ): FarmingPoolStoppedEventFilter;
-    FarmingPoolStopped(
-      poolId?: null,
-      timestamp?: null
-    ): FarmingPoolStoppedEventFilter;
+    "FarmingPoolStopped(uint256,uint256)"(poolId?: null, timestamp?: null): FarmingPoolStoppedEventFilter;
+    FarmingPoolStopped(poolId?: null, timestamp?: null): FarmingPoolStoppedEventFilter;
 
-    "FurionRewardChanged(uint256,uint256)"(
-      poolId?: null,
-      basicFurionPerSecond?: null
-    ): FurionRewardChangedEventFilter;
-    FurionRewardChanged(
-      poolId?: null,
-      basicFurionPerSecond?: null
-    ): FurionRewardChangedEventFilter;
+    "FurionRewardChanged(uint256,uint256)"(poolId?: null, basicFurionPerSecond?: null): FurionRewardChangedEventFilter;
+    FurionRewardChanged(poolId?: null, basicFurionPerSecond?: null): FurionRewardChangedEventFilter;
 
     "Harvest(address,address,uint256,uint256)"(
       staker?: null,
       rewardReceiver?: null,
       poolId?: null,
-      pendingReward?: null
+      pendingReward?: null,
     ): HarvestEventFilter;
-    Harvest(
-      staker?: null,
-      rewardReceiver?: null,
-      poolId?: null,
-      pendingReward?: null
-    ): HarvestEventFilter;
+    Harvest(staker?: null, rewardReceiver?: null, poolId?: null, pendingReward?: null): HarvestEventFilter;
 
     "Initialized(uint8)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
 
-    "NewPoolAdded(address,uint256)"(
-      lpToken?: null,
-      basicFurionPerSecond?: null
-    ): NewPoolAddedEventFilter;
-    NewPoolAdded(
-      lpToken?: null,
-      basicFurionPerSecond?: null
-    ): NewPoolAddedEventFilter;
+    "NewPoolAdded(address,uint256)"(lpToken?: null, basicFurionPerSecond?: null): NewPoolAddedEventFilter;
+    NewPoolAdded(lpToken?: null, basicFurionPerSecond?: null): NewPoolAddedEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      newOwner?: PromiseOrValue<string> | null,
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(
       previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
+      newOwner?: PromiseOrValue<string> | null,
     ): OwnershipTransferredEventFilter;
 
     "Paused(address)"(account?: null): PausedEventFilter;
     Paused(account?: null): PausedEventFilter;
 
-    "PoolUpdated(uint256,uint256)"(
-      poolId?: null,
-      accFurionPerShare?: null
-    ): PoolUpdatedEventFilter;
-    PoolUpdated(
-      poolId?: null,
-      accFurionPerShare?: null
-    ): PoolUpdatedEventFilter;
+    "PoolUpdated(uint256,uint256)"(poolId?: null, accFurionPerShare?: null): PoolUpdatedEventFilter;
+    PoolUpdated(poolId?: null, accFurionPerShare?: null): PoolUpdatedEventFilter;
 
-    "Stake(address,uint256,uint256)"(
-      staker?: null,
-      poolId?: null,
-      amount?: null
-    ): StakeEventFilter;
+    "Stake(address,uint256,uint256)"(staker?: null, poolId?: null, amount?: null): StakeEventFilter;
     Stake(staker?: null, poolId?: null, amount?: null): StakeEventFilter;
 
-    "StartTimestampChanged(uint256)"(
-      startTimestamp?: null
-    ): StartTimestampChangedEventFilter;
-    StartTimestampChanged(
-      startTimestamp?: null
-    ): StartTimestampChangedEventFilter;
+    "StartTimestampChanged(uint256)"(startTimestamp?: null): StartTimestampChangedEventFilter;
+    StartTimestampChanged(startTimestamp?: null): StartTimestampChangedEventFilter;
 
     "Unpaused(address)"(account?: null): UnpausedEventFilter;
     Unpaused(account?: null): UnpausedEventFilter;
 
-    "Withdraw(address,uint256,uint256)"(
-      staker?: null,
-      poolId?: null,
-      amount?: null
-    ): WithdrawEventFilter;
+    "Withdraw(address,uint256,uint256)"(staker?: null, poolId?: null, amount?: null): WithdrawEventFilter;
     Withdraw(staker?: null, poolId?: null, amount?: null): WithdrawEventFilter;
   };
 
@@ -997,7 +761,7 @@ export interface FarmingPoolUpgradeable extends BaseContract {
       _lpToken: PromiseOrValue<string>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     furion(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1007,110 +771,93 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     getUserBalance(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     initialize(
       _furion: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    isFarming(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isFarming(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    massUpdatePools(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    massUpdatePools(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     pendingFurion(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
-    poolList(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    poolList(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    poolMapping(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    poolMapping(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    "setFurionReward(uint256[],uint256[],bool)"(
-      _poolId: PromiseOrValue<BigNumberish>[],
-      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
-      _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "setFurionReward(uint256,uint256,bool)"(
+    setFurionReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
+
+    setFurionRewards(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     setStartTimestamp(
       _startTimestamp: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     startTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
-    unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
     updatePool(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     userInfo(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber>;
 
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
   };
 
@@ -1123,7 +870,7 @@ export interface FarmingPoolUpgradeable extends BaseContract {
       _lpToken: PromiseOrValue<string>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     furion(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1133,110 +880,93 @@ export interface FarmingPoolUpgradeable extends BaseContract {
     getUserBalance(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     harvest(
       _poolId: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     initialize(
       _furion: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    isFarming(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isFarming(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    massUpdatePools(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    massUpdatePools(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    pause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    pause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pendingFurion(
       _poolId: PromiseOrValue<BigNumberish>,
       _user: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
-    poolList(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    poolList(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    poolMapping(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    poolMapping(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    "setFurionReward(uint256[],uint256[],bool)"(
-      _poolId: PromiseOrValue<BigNumberish>[],
-      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
-      _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setFurionReward(uint256,uint256,bool)"(
+    setFurionReward(
       _poolId: PromiseOrValue<BigNumberish>,
       _basicFurionPerSecond: PromiseOrValue<BigNumberish>,
       _withUpdate: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setFurionRewards(
+      _poolId: PromiseOrValue<BigNumberish>[],
+      _basicFurionPerSecond: PromiseOrValue<BigNumberish>[],
+      _withUpdate: PromiseOrValue<boolean>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     setStartTimestamp(
       _startTimestamp: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     stake(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     startTimestamp(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
-    unpause(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    unpause(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
     updatePool(
       _poolId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     userInfo(
       arg0: PromiseOrValue<BigNumberish>,
       arg1: PromiseOrValue<string>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<PopulatedTransaction>;
 
     withdraw(
       _poolId: PromiseOrValue<BigNumberish>,
       _amount: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -3,13 +3,14 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type { Provider, TransactionRequest } from "@ethersproject/providers";
+import { Contract, ContractFactory, Overrides, Signer, utils } from "ethers";
+
 import type { PromiseOrValue } from "../../../common";
 import type {
   ERC20PermitWithMultipleMinters,
   ERC20PermitWithMultipleMintersInterface,
 } from "../../../contracts/utils/ERC20PermitWithMultipleMinters";
-import type { Provider, TransactionRequest } from "@ethersproject/providers";
-import { Signer, utils, Contract, ContractFactory, Overrides } from "ethers";
 
 const _abi = [
   {
@@ -615,7 +616,7 @@ type ERC20PermitWithMultipleMintersConstructorParams =
   | ConstructorParameters<typeof ContractFactory>;
 
 const isSuperArgs = (
-  xs: ERC20PermitWithMultipleMintersConstructorParams
+  xs: ERC20PermitWithMultipleMintersConstructorParams,
 ): xs is ConstructorParameters<typeof ContractFactory> => xs.length > 1;
 
 export class ERC20PermitWithMultipleMinters__factory extends ContractFactory {
@@ -630,18 +631,14 @@ export class ERC20PermitWithMultipleMinters__factory extends ContractFactory {
   override deploy(
     name: PromiseOrValue<string>,
     symbol: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ERC20PermitWithMultipleMinters> {
-    return super.deploy(
-      name,
-      symbol,
-      overrides || {}
-    ) as Promise<ERC20PermitWithMultipleMinters>;
+    return super.deploy(name, symbol, overrides || {}) as Promise<ERC20PermitWithMultipleMinters>;
   }
   override getDeployTransaction(
     name: PromiseOrValue<string>,
     symbol: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): TransactionRequest {
     return super.getDeployTransaction(name, symbol, overrides || {});
   }
@@ -657,14 +654,7 @@ export class ERC20PermitWithMultipleMinters__factory extends ContractFactory {
   static createInterface(): ERC20PermitWithMultipleMintersInterface {
     return new utils.Interface(_abi) as ERC20PermitWithMultipleMintersInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): ERC20PermitWithMultipleMinters {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as ERC20PermitWithMultipleMinters;
+  static connect(address: string, signerOrProvider: Signer | Provider): ERC20PermitWithMultipleMinters {
+    return new Contract(address, _abi, signerOrProvider) as ERC20PermitWithMultipleMinters;
   }
 }

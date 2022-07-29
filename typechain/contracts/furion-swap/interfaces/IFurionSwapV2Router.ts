@@ -3,13 +3,6 @@
 /* tslint:disable */
 
 /* eslint-disable */
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../../../common";
 import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
@@ -25,6 +18,8 @@ import type {
   Signer,
   utils,
 } from "ethers";
+
+import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../../../common";
 
 export interface IFurionSwapV2RouterInterface extends utils.Interface {
   functions: {
@@ -55,7 +50,7 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       | "swapExactTokensForETH"
       | "swapExactTokensForTokens"
       | "swapTokensForExactETH"
-      | "swapTokensForExactTokens"
+      | "swapTokensForExactTokens",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "WETH", values?: undefined): string;
@@ -69,8 +64,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "addLiquidityETH",
@@ -80,8 +75,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
@@ -93,8 +88,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "removeLiquidityETH",
@@ -104,8 +99,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapETHForExactTokens",
@@ -113,8 +108,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactETHForTokens",
@@ -122,8 +117,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForETH",
@@ -132,8 +127,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapExactTokensForTokens",
@@ -142,8 +137,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapTokensForExactETH",
@@ -152,8 +147,8 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
   encodeFunctionData(
     functionFragment: "swapTokensForExactTokens",
@@ -162,52 +157,22 @@ export interface IFurionSwapV2RouterInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>[],
       PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+      PromiseOrValue<BigNumberish>,
+    ],
   ): string;
 
   decodeFunctionResult(functionFragment: "WETH", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "addLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "addLiquidityETH",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "addLiquidity", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "addLiquidityETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeLiquidityETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapETHForExactTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapExactETHForTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapExactTokensForETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapExactTokensForTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapTokensForExactETH",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "swapTokensForExactTokens",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "removeLiquidity", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "removeLiquidityETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapETHForExactTokens", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapExactETHForTokens", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapExactTokensForETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapExactTokensForTokens", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapTokensForExactETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "swapTokensForExactTokens", data: BytesLike): Result;
 
   events: {};
 }
@@ -222,16 +187,12 @@ export interface IFurionSwapV2Router extends BaseContract {
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
+    toBlock?: string | number | undefined,
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -250,7 +211,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     addLiquidityETH(
@@ -260,7 +221,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     factory(overrides?: CallOverrides): Promise<[string]>;
@@ -273,7 +234,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     removeLiquidityETH(
@@ -283,7 +244,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     swapETHForExactTokens(
@@ -291,7 +252,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     swapExactETHForTokens(
@@ -299,7 +260,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     swapExactTokensForETH(
@@ -308,7 +269,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     swapExactTokensForTokens(
@@ -317,7 +278,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     swapTokensForExactETH(
@@ -326,7 +287,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
     swapTokensForExactTokens(
@@ -335,7 +296,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
   };
 
@@ -350,7 +311,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _amountBMin: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   addLiquidityETH(
@@ -360,7 +321,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _amountETHMin: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   factory(overrides?: CallOverrides): Promise<string>;
@@ -373,7 +334,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _amountBMin: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   removeLiquidityETH(
@@ -383,7 +344,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _amountETHMin: PromiseOrValue<BigNumberish>,
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   swapETHForExactTokens(
@@ -391,7 +352,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _path: PromiseOrValue<string>[],
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   swapExactETHForTokens(
@@ -399,7 +360,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _path: PromiseOrValue<string>[],
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   swapExactTokensForETH(
@@ -408,7 +369,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _path: PromiseOrValue<string>[],
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   swapExactTokensForTokens(
@@ -417,7 +378,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _path: PromiseOrValue<string>[],
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   swapTokensForExactETH(
@@ -426,7 +387,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _path: PromiseOrValue<string>[],
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   swapTokensForExactTokens(
@@ -435,7 +396,7 @@ export interface IFurionSwapV2Router extends BaseContract {
     _path: PromiseOrValue<string>[],
     _to: PromiseOrValue<string>,
     _deadline: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
   callStatic: {
@@ -450,7 +411,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber, BigNumber] & {
         _amountA: BigNumber;
@@ -466,7 +427,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber, BigNumber] & {
         _amountToken: BigNumber;
@@ -485,10 +446,8 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { _amountA: BigNumber; _amountB: BigNumber }
-    >;
+      overrides?: CallOverrides,
+    ): Promise<[BigNumber, BigNumber] & { _amountA: BigNumber; _amountB: BigNumber }>;
 
     removeLiquidityETH(
       _token: PromiseOrValue<string>,
@@ -497,7 +456,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<
       [BigNumber, BigNumber] & {
         _amountToken: BigNumber;
@@ -510,7 +469,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactETHForTokens(
@@ -518,7 +477,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactTokensForETH(
@@ -527,7 +486,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapExactTokensForTokens(
@@ -536,7 +495,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapTokensForExactETH(
@@ -545,7 +504,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
 
     swapTokensForExactTokens(
@@ -554,7 +513,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
+      overrides?: CallOverrides,
     ): Promise<BigNumber[]>;
   };
 
@@ -572,7 +531,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     addLiquidityETH(
@@ -582,7 +541,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
@@ -595,7 +554,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     removeLiquidityETH(
@@ -605,7 +564,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     swapETHForExactTokens(
@@ -613,7 +572,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     swapExactETHForTokens(
@@ -621,7 +580,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     swapExactTokensForETH(
@@ -630,7 +589,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     swapExactTokensForTokens(
@@ -639,7 +598,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     swapTokensForExactETH(
@@ -648,7 +607,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
     swapTokensForExactTokens(
@@ -657,7 +616,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
   };
 
@@ -673,7 +632,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     addLiquidityETH(
@@ -683,7 +642,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -696,7 +655,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountBMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     removeLiquidityETH(
@@ -706,7 +665,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _amountETHMin: PromiseOrValue<BigNumberish>,
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     swapETHForExactTokens(
@@ -714,7 +673,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactETHForTokens(
@@ -722,7 +681,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForETH(
@@ -731,7 +690,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     swapExactTokensForTokens(
@@ -740,7 +699,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     swapTokensForExactETH(
@@ -749,7 +708,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
     swapTokensForExactTokens(
@@ -758,7 +717,7 @@ export interface IFurionSwapV2Router extends BaseContract {
       _path: PromiseOrValue<string>[],
       _to: PromiseOrValue<string>,
       _deadline: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
   };
 }

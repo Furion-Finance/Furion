@@ -110,7 +110,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         (uint256 tokensHeld, uint256 amountOwed, ) = ITokenBase(_fToken)
             .getAccountSnapshot(msg.sender);
         // Fail if the sender has a borrow balance
-        require(amountOwed != 0, "RiskManager: Borrow balance is not zero");
+        require(amountOwed == 0, "RiskManager: Borrow balance is not zero");
 
         // Fail if the sender is not permitted to redeem all of their tokens
         require(

@@ -82,11 +82,11 @@ contract RiskManagerStorage is ExponentialNoError {
      * Liquidation / seizing / transfer can only be paused globally, not by market.
      */
     address public pauseGuardian;
-    bool public _mintGuardianPaused;
+    bool public _supplyGuardianPaused;
     bool public _borrowGuardianPaused;
     bool public transferGuardianPaused;
     bool public seizeGuardianPaused;
-    mapping(address => bool) public mintGuardianPaused;
+    mapping(address => bool) public supplyGuardianPaused;
     mapping(address => bool) public borrowGuardianPaused;
 
     /**

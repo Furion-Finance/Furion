@@ -304,14 +304,14 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         emit MarketListed(_fToken);
     }
 
-    function setMintPaused(address _fToken, bool _state)
+    function setSupplyPaused(address _fToken, bool _state)
         external
         onlyListed(_fToken)
         onlyAdmin
         returns (bool)
     {
-        mintGuardianPaused[_fToken] = _state;
-        emit ActionPausedMarket(_fToken, "Mint", _state);
+        supplyGuardianPaused[_fToken] = _state;
+        emit ActionPausedMarket(_fToken, "Supply", _state);
         return _state;
     }
 
@@ -351,9 +351,17 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
     /**
      * @dev Checks if the account should be allowed to supply tokens in the given market.
      */
-    function supplyAllowed(address _fToken) external view returns (bool) {
+    function supplyAllowed(address _fToken)
+        external
+        view
+        onlyListed(_fToken)
+        returns (bool)
+    {
         // Pausing is a very serious situation - we revert to sound the alarms
-        require(!mintGuardianPaused[_fToken], "RiskManager: Minting is paused");
+        require(
+            !supplyGuardianPaused[_fToken],
+            "RiskManager: Supplying is paused"
+        );
 
         return true;
     }

@@ -109,10 +109,15 @@ contract RiskManagerStorage is ExponentialNoError {
      * `borrowBalance` is the amount of underlying that the account has borrowed.
      */
     struct AccountLiquidityLocalVars {
+        uint256 maxTierMem;
+        address asset;
+        uint256 assetTier;
         uint256 tokenBalance;
         uint256 borrowBalance;
         uint256 exchangeRateMantissa;
         uint256 oraclePriceMantissa;
+        uint256 collateral;
+        uint256 threshold;
         uint256 accumulatedShortfall;
         Exp collateralFactor;
         Exp exchangeRate;

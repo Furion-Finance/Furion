@@ -10,6 +10,7 @@ import "./interfaces/IInterestRateModel.sol";
 import "./interfaces/IPriceOracle.sol";
 import "./interfaces/IFErc20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 abstract contract TokenBase is
     ERC20PermitUpgradeable,
@@ -158,7 +159,7 @@ abstract contract TokenBase is
     function borrowRatePerBlock() external view override returns (uint256) {
         return
             interestRateModel.getBorrowRate(
-                getCash(),
+                getCashPrior(),
                 totalBorrows,
                 totalReserves
             );
@@ -171,7 +172,7 @@ abstract contract TokenBase is
     function supplyRatePerBlock() external view override returns (uint256) {
         return
             interestRateModel.getSupplyRate(
-                getCash(),
+                getCashPrior(),
                 totalBorrows,
                 totalReserves,
                 reserveFactorMantissa
@@ -260,7 +261,7 @@ abstract contract TokenBase is
              * Otherwise:
              *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
              */
-            uint256 totalCash = getCash();
+            uint256 totalCash = getCashPrior();
             uint256 cashPlusBorrowsMinusReserves = totalCash +
                 totalBorrows -
                 totalReserves;
@@ -269,6 +270,14 @@ abstract contract TokenBase is
 
             return exchangeRate;
         }
+    }
+
+    /**
+     * @notice Get cash balance of this fToken in the underlying asset
+     * @return The quantity of underlying asset owned by this contract
+     */
+    function getCash() external view override returns (uint256) {
+        return getCashPrior();
     }
 
     /**
@@ -287,7 +296,7 @@ abstract contract TokenBase is
         }
 
         /* Read the previous values out of storage */
-        uint256 cashPrior = getCash();
+        uint256 cashPrior = getCashPrior();
         uint256 borrowsPrior = totalBorrows;
         uint256 reservesPrior = totalReserves;
         uint256 borrowIndexPrior = borrowIndex;
@@ -372,6 +381,7 @@ abstract contract TokenBase is
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
         );
+        console.log(getCashPrior());
 
         // We can call the stored version here because accrueInterest() has already
         // been called earlier
@@ -449,7 +459,7 @@ abstract contract TokenBase is
         );
         // Fail gracefully if protocol has insufficient cash
         require(
-            getCash() > redeemAmount,
+            getCashPrior() > redeemAmount,
             "TokenBase: Market has insufficient cash"
         );
 
@@ -489,7 +499,7 @@ abstract contract TokenBase is
         );
         // Fail gracefully if protocol has insufficient cash
         require(
-            getCash() > _borrowAmount,
+            getCashPrior() > _borrowAmount,
             "TokenBase: Market has insufficient cash"
         );
 
@@ -1011,7 +1021,7 @@ abstract contract TokenBase is
      * @dev This excludes the value of the current message, if any
      * @return The quantity of underlying owned by this contract
      */
-    function getCash() public view virtual returns (uint256);
+    function getCashPrior() internal view virtual returns (uint256);
 
     /**
      * @dev Performs a transfer in (transfer assets from caller to this contract), reverting upon failure. Returns the amount actually transferred to the protocol, in case of a fee.

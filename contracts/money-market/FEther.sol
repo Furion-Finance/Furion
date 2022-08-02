@@ -95,8 +95,8 @@ contract FEther is TokenBase {
      * @dev This excludes the value of the current message, if any
      * @return The quantity of Ether owned by this contract
      */
-    function getCash() public view override returns (uint256) {
-        return address(this).balance;
+    function getCashPrior() internal view override returns (uint256) {
+        return address(this).balance - msg.value;
     }
 
     function doTransferIn(address _from, uint256 _amount) internal override {

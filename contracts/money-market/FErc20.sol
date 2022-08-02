@@ -84,7 +84,7 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
      * @dev This excludes the value of the current message, if any
      * @return The quantity of underlying tokens owned by this contract
      */
-    function getCash() public view override returns (uint256) {
+    function getCashPrior() internal view override returns (uint256) {
         IERC20 underlyingToken = IERC20(underlying);
         return underlyingToken.balanceOf(address(this));
     }

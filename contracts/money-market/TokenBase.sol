@@ -328,20 +328,21 @@ abstract contract TokenBase is
             Exp({mantissa: borrowRatePerBlockMantissa}),
             blockDelta
         );
-        uint256 interestAccumulated = mul_ScalarTruncate(
-            simpleInterestFactor,
-            borrowsPrior
-        );
-        uint256 totalBorrowsNew = interestAccumulated + borrowsPrior;
-        uint256 totalReservesNew = mul_ScalarTruncateAddUInt(
-            Exp({mantissa: reserveFactorMantissa}),
-            interestAccumulated,
-            reservesPrior
-        );
         uint256 borrowIndexNew = mul_ScalarTruncateAddUInt(
             simpleInterestFactor,
             borrowIndexPrior,
             borrowIndexPrior
+        );
+        // Need to use the same method used to calculate borrow balance (i.e. multiply
+        // by how much borrowIndex increased) of an account to prevent mismatch due
+        // to roudings during arithmetic operations
+        uint256 totalBorrowsNew = (borrowsPrior * borrowIndexNew) /
+            borrowIndexPrior;
+        uint256 interestAccumulated = totalBorrowsNew - borrowsPrior;
+        uint256 totalReservesNew = mul_ScalarTruncateAddUInt(
+            Exp({mantissa: reserveFactorMantissa}),
+            interestAccumulated,
+            reservesPrior
         );
 
         /////////////////////////
@@ -381,7 +382,6 @@ abstract contract TokenBase is
             lastAccrualBlock == block.number,
             "TokenBase: Market state not yet updated"
         );
-        console.log(getCashPrior());
 
         // We can call the stored version here because accrueInterest() has already
         // been called earlier
@@ -594,13 +594,20 @@ abstract contract TokenBase is
          *  accountBorrowsNew = accountBorrows - actualRepayAmount
          *  totalBorrowsNew = totalBorrows - actualRepayAmount
          */
-        uint256 borrowBalanceNew = borrowBalancePrev - actualRepayAmount;
-        uint256 totalBorrowsNew = totalBorrows - actualRepayAmount;
+        uint256 borrowBalanceNew = actualRepayAmount > borrowBalancePrev
+            ? 0
+            : borrowBalancePrev - actualRepayAmount;
+        uint256 totalBorrowsNew = actualRepayAmount > totalBorrows
+            ? 0
+            : totalBorrows - actualRepayAmount;
 
         /* We write the previously calculated values into storage */
         accountBorrows[_borrower].principal = borrowBalanceNew;
         accountBorrows[_borrower].interestIndex = borrowIndex;
         totalBorrows = totalBorrowsNew;
+
+        // Reset liquidation tracker if there are no more bad debts
+        riskManager.closeLiquidation(_borrower);
 
         /* We emit a RepayBorrow event */
         emit RepayBorrow(
@@ -666,9 +673,6 @@ abstract contract TokenBase is
 
         // Fail if repayBorrow fails
         repayBorrowInternal(_liquidator, _borrower, _repayAmount);
-
-        // Reset liquidation tracker if there are no more bad debts
-        riskManager.closeLiquidation(_borrower);
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -898,7 +902,9 @@ abstract contract TokenBase is
         // Contract immediately transfers received ETH to liquidator
         payable(lp.liquidator).transfer(valueAfterMultiplier);
         // Refund spare ETH
-        payable(msg.sender).transfer(spareEth);
+        if (spareEth > 0) {
+            payable(msg.sender).transfer(spareEth);
+        }
 
         // Transfer collateral fToken to borrower (msg.sender)
         uint256 tokenSeized256 = uint256(lp.tokenSeized);

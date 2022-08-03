@@ -100,6 +100,31 @@ abstract contract TokenBase is
         emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
     }
 
+    function setReserveFactor(uint256 _newReserveFactorMantissa)
+        external
+        onlyAdmin
+    {
+        accrueInterest();
+
+        // Ensure market state is up-to-date
+        require(
+            lastAccrualBlock == block.number,
+            "TokenBase: Market state not yet updated"
+        );
+        require(
+            _newReserveFactorMantissa < RESERVE_FACTOR_MAX_MANTISSA,
+            "TokenBase: Invalid reserve factor"
+        );
+
+        uint256 oldReserveFactorMantissa = reserveFactorMantissa;
+        reserveFactorMantissa = _newReserveFactorMantissa;
+
+        emit NewReserveFactor(
+            oldReserveFactorMantissa,
+            _newReserveFactorMantissa
+        );
+    }
+
     /********************************** Core **********************************/
 
     function isFToken() public pure returns (bool) {

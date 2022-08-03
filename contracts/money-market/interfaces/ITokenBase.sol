@@ -77,6 +77,8 @@ interface ITokenBase {
      */
     event NewAdmin(address oldAdmin, address newAdmin);
 
+    event NewReserveFactor(uint256 oldReserveFactor, uint256 newReserveFactor);
+
     function isFToken() external view returns (bool);
 
     function balanceOfUnderlying(address _account) external returns (uint256);

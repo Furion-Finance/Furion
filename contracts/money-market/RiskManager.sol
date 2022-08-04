@@ -443,7 +443,10 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             0,
             _borrowAmount
         );
-        require(shortfall == 0, "RiskManager: Bad debt found, cannot borrow");
+        require(
+            shortfall == 0,
+            "RiskManager: Shortfall created, cannot borrow"
+        );
 
         /*
         uint256 spareLiquidity;

@@ -29,6 +29,7 @@ contract SimplePriceOracle is IPriceOracle {
         }
     }
 
+    // Price of 1, not 1e18, underlying token in terms of ETH (mantissa)
     function getUnderlyingPrice(address _fToken)
         public
         view

@@ -113,8 +113,6 @@ interface ITokenBase {
 
     function exchangeRateStored() external view returns (uint256);
 
-    function getCash() external view returns (uint256);
-
     function accrueInterest() external;
 
     function seize(

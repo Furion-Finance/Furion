@@ -90,18 +90,11 @@ contract FEther is TokenBase {
 
     /******************************* Safe Token *******************************/
 
-    /**
-     * @notice Gets balance of this contract in terms of Ether, before this message
-     * @dev This excludes the value of the current message, if any
-     * @return The quantity of Ether owned by this contract
-     */
-    function getCashPrior() internal view override returns (uint256) {
-        return address(this).balance - msg.value;
-    }
-
     function doTransferIn(address _from, uint256 _amount) internal override {
         require(msg.sender == _from, "FEther: Not owner of account");
         require(msg.value == _amount, "FEther: Not enough ETH supplied");
+
+        totalCash += _amount;
     }
 
     function doTransferOut(address payable _to, uint256 _amount)
@@ -109,5 +102,7 @@ contract FEther is TokenBase {
         override
     {
         _to.transfer(_amount);
+
+        totalCash -= _amount;
     }
 }

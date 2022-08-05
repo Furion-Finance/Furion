@@ -40,6 +40,8 @@ contract TokenBaseStorage is ExponentialNoError {
     // Accumulator for calculating interest
     uint256 public borrowIndex;
 
+    uint256 public totalCash;
+
     uint256 public totalBorrows;
 
     uint256 public totalReserves;

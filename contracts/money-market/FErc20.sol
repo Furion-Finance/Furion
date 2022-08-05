@@ -79,19 +79,11 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
         return underlying;
     }
 
-    /**
-     * @notice Gets balance of this contract in terms of the underlying
-     * @dev This excludes the value of the current message, if any
-     * @return The quantity of underlying tokens owned by this contract
-     */
-    function getCashPrior() internal view override returns (uint256) {
-        IERC20 underlyingToken = IERC20(underlying);
-        return underlyingToken.balanceOf(address(this));
-    }
-
     function doTransferIn(address _from, uint256 _amount) internal override {
         IERC20 underlyingToken = IERC20(underlying);
         underlyingToken.transferFrom(_from, address(this), _amount);
+
+        totalCash += _amount;
     }
 
     function doTransferOut(address payable _to, uint256 _amount)
@@ -100,5 +92,7 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
     {
         IERC20 underlyingToken = IERC20(underlying);
         underlyingToken.transfer(_to, _amount);
+
+        totalCash -= _amount;
     }
 }

@@ -622,9 +622,6 @@ abstract contract TokenBase is
         accountBorrows[_borrower].interestIndex = borrowIndex;
         totalBorrows = totalBorrowsNew;
 
-        // Reset liquidation tracker if there are no more bad debts
-        riskManager.closeLiquidation(_borrower);
-
         /* We emit a RepayBorrow event */
         emit RepayBorrow(
             _payer,
@@ -702,6 +699,9 @@ abstract contract TokenBase is
         } else {
             collateral.seize(_liquidator, _borrower, _repayAmount);
         }
+
+        // Reset liquidation tracker if there are no more bad debts
+        riskManager.closeLiquidation(_borrower);
 
         // We emit a LiquidateBorrow event
         emit LiquidateBorrow(

@@ -841,7 +841,7 @@ abstract contract TokenBase is
      *  of the liquidation.
      * @param _timestamp Block timestamp of when the protection is initiated
      */
-    function claimLiquidationInternal(uint256 _timestamp) external {
+    function claimLiquidation(uint256 _timestamp) external {
         LiquidationProtection memory lp = liquidationProtection[_timestamp];
 
         require(

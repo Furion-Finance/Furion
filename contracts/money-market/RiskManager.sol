@@ -634,7 +634,7 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
 
         // Reset tracker only if there are no more bad debts
         if (shortfall == 0) {
-            liquidatableTime[_account] = 0;
+            delete liquidatableTime[_account];
         }
     }
 

@@ -1,14 +1,10 @@
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
-import { artifacts, ethers, waffle } from "hardhat";
-import type { Artifact } from "hardhat/types";
+import { ethers } from "hardhat";
 
-import type { Checker } from "../../src/types/contracts/Checker";
-import type { AggregatePoolFactory } from "../../src/types/contracts/aggregate-pool/AggregatePoolFactory";
-import type { SeparatePoolFactory } from "../../src/types/contracts/separate-pool/SeparatePoolFactory";
-import type { FurionTokenTest } from "../../src/types/contracts/test-only/FurionTokenTest";
-import type { NFTest } from "../../src/types/contracts/test-only/NFTest";
-import { Signers } from "../types";
+import { Signers } from "../../types";
+import { deployCheckerFixture } from "./Checker.fixture";
 
 describe("Checker", async function () {
   // Signers declaration
@@ -19,35 +15,17 @@ describe("Checker", async function () {
     this.signers.admin = signers[0];
     this.signers.bob = signers[1];
     this.signers.alice = signers[2];
+
+    this.loadFixture = loadFixture;
   });
 
   beforeEach(async function () {
-    const nftArtifact: Artifact = await artifacts.readArtifact("NFTest");
-    this.nft = <NFTest>await waffle.deployContract(this.signers.admin, nftArtifact, [[this.signers.admin.address]]);
-
-    // Deploy FUR
-    const furTArtifact: Artifact = await artifacts.readArtifact("FurionTokenTest");
-    this.furT = <FurionTokenTest>(
-      await waffle.deployContract(this.signers.admin, furTArtifact, [
-        [this.signers.admin.address, this.signers.bob.address, this.signers.alice.address],
-      ])
-    );
-
-    // Deploy checker
-    const checkerArtifact: Artifact = await artifacts.readArtifact("Checker");
-    this.checker = <Checker>await waffle.deployContract(this.signers.admin, checkerArtifact, []);
-
-    // Deploy project pool factory
-    const spfArtifact: Artifact = await artifacts.readArtifact("SeparatePoolFactory");
-    this.spf = <SeparatePoolFactory>(
-      await waffle.deployContract(this.signers.admin, spfArtifact, [this.checker.address, this.furT.address])
-    );
-
-    // Deploy root pool factory
-    const apfArtifact: Artifact = await artifacts.readArtifact("AggregatePoolFactory");
-    this.apf = <AggregatePoolFactory>(
-      await waffle.deployContract(this.signers.admin, apfArtifact, [this.checker.address, this.furT.address])
-    );
+    const { nft, furT, checker, spf, apf } = await this.loadFixture(deployCheckerFixture);
+    this.nft = nft;
+    this.furT = furT;
+    this.checker = checker;
+    this.spf = spf;
+    this.apf = apf;
   });
 
   it("should only allow owner to set factories", async function () {

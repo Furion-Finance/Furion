@@ -67,7 +67,7 @@ contract TokenBaseStorage is ExponentialNoError {
     }
 
     // Block timestamp -> liquidation protectin detail
-    mapping(uint256 => LiquidationProtection) liquidationProtection;
+    mapping(uint256 => LiquidationProtection) public liquidationProtection;
 }
 
 contract FErc20Storage {

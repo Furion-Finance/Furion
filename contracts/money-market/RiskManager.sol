@@ -509,17 +509,15 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
             _borrower
         );
 
-        (
-            ,
-            uint256 shortfall,
-            uint256 highestCollateralTier
-        ) = getAccountLiquidity(_borrower);
+        (, uint256 shortfall, uint256 highestBorrowTier) = getAccountLiquidity(
+            _borrower
+        );
         // The borrower must have shortfall in order to be liquidatable
         require(shortfall > 0, "RiskManager: Insufficient shortfall");
         // Liquidation should start from highest tier borrows
         // (i.e. first repay collateral tier borrows then cross-tier...)
         require(
-            markets[_fTokenBorrowed].tier == highestCollateralTier,
+            markets[_fTokenBorrowed].tier == highestBorrowTier,
             "RiskManager: Liquidation should start from highest tier"
         );
 
@@ -666,14 +664,14 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         returns (
             uint256[] memory liquidities,
             uint256 shortfall,
-            uint256 highestCollateralTier
+            uint256 highestBorrowTier
         )
     {
         // address(0) -> no iteractions with market
         (
             liquidities,
             shortfall,
-            highestCollateralTier
+            highestBorrowTier
         ) = getHypotheticalAccountLiquidity(_account, address(0), 0, 0);
     }
 
@@ -703,12 +701,12 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         returns (
             uint256[] memory liquidities,
             uint256 shortfall,
-            uint256 highestCollateralTier
+            uint256 highestBorrowTier
         )
     {
         // First assume highest collateral tier is isolation tier, because if
         // left uninitialized, it will remain to be the invalid 0 tier
-        highestCollateralTier = 3;
+        highestBorrowTier = 3;
 
         // Holds all our calculation results, see { RiskManagerStorage }
         AccountLiquidityLocalVars memory vars;
@@ -733,12 +731,10 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
                 vars.exchangeRateMantissa
             ) = ITokenBase(vars.asset).getAccountSnapshot(_account);
 
-            // If the asset is used as collateral, and has higher tier than the
-            // current highestCollateralTier
-            if (
-                vars.tokenBalance > 0 && vars.assetTier < highestCollateralTier
-            ) {
-                highestCollateralTier = vars.assetTier;
+            // If account borrowed in asset market, and has higher tier than the
+            // current highestBorrowTier
+            if (vars.borrowBalance > 0 && vars.assetTier < highestBorrowTier) {
+                highestBorrowTier = vars.assetTier;
             }
 
             vars.collateralFactor = Exp({

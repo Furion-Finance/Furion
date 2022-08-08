@@ -900,10 +900,6 @@ abstract contract TokenBase is
             lp.value != 0,
             "TokenBase: Liquidation protection closed / never existed"
         );
-        require(
-            msg.sender == lp.borrower,
-            "TokenBase: Not borrower of this liquidation"
-        );
 
         // 1.2x multiplier
         uint256 valueAfterMultiplier = (uint256(lp.value) * 120) / 100;
@@ -925,7 +921,7 @@ abstract contract TokenBase is
         // Transfer collateral fToken to borrower (msg.sender)
         uint256 tokenSeized256 = uint256(lp.tokenSeized);
         _burn(address(this), tokenSeized256);
-        _mint(msg.sender, tokenSeized256);
+        _mint(lp.borrower, tokenSeized256);
 
         delete liquidationProtection[_timestamp];
     }

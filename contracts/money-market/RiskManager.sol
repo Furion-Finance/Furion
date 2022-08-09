@@ -492,9 +492,15 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
         address _borrower,
         uint256 _repayAmount
     ) external view returns (bool) {
+        uint256 initiationBlockNumber = liquidatableTime[_borrower];
         require(
-            liquidatableTime[_borrower] != 0,
+            initiationBlockNumber > 0,
             "RiskManager: Liquidation not yet initiated"
+        );
+        // Cannot liquidate if auction has expired (60 blocks passed since last initiation)
+        require(
+            initiationBlockNumber + 60 > block.number,
+            "RiskManager: Reset auction required"
         );
 
         require(
@@ -601,12 +607,20 @@ contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
     /****************************** Liquidation *******************************/
 
     /**
-     * @notice Mark an account as liquidatable, start dutch-auction
-     * @param _account Address of account to be marked liquidatable
+     * @notice Mark an account as liquidatable, start dutch-auction.
+     * @param _account Address of account to be marked liquidatable.
+     *
+     * NOTE: Auction has to be reset if it didn't close within 60 blocks after
+     * initiation, either because shortfall is not cleared or there are price
+     * changes that cleared the shortfall which makes the account no longer
+     * subject to liquidation.
      */
     function initiateLiquidation(address _account) external {
+        uint256 initiationBlockNumber = liquidatableTime[_account];
+        // Either never initiated or auction has to be reset
         require(
-            liquidatableTime[_account] == 0,
+            initiationBlockNumber == 0 ||
+                block.number > initiationBlockNumber + 60,
             "RiskManager: Already initiated liquidation"
         );
 

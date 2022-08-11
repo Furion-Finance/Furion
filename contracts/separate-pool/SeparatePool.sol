@@ -4,17 +4,19 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract SeparatePool is ERC20Permit, IERC721Receiver {
+    address constant KITTIES = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
+    address constant PUNKS = 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB;
+
     uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
     uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
 
-    IERC721 NFT;
     IERC20 FUR;
 
     address public immutable factory;
+    address public immutable nft;
     // Pool admin/fee receiver
     // Fees in this contract are in the form of F-* tokens
     address public owner;
@@ -48,7 +50,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         string memory _tokenSymbol
     ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
-        NFT = IERC721(_nftAddress);
+        nft = _nftAddress;
         FUR = IERC20(_fur);
         owner = _owner;
     }
@@ -99,7 +101,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
      * @dev Compute NFT furion ID
      */
     function getFurionId(uint256 _id) public view returns (bytes32) {
-        return keccak256(abi.encodePacked(address(NFT), _id));
+        return keccak256(abi.encodePacked(nft, _id));
     }
 
     /**
@@ -151,7 +153,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         require(length < 10, "SeparatePool: Can only sell 9 NFTs at once");
 
         for (uint256 i; i < length; ) {
-            // Mint total amount all at once
+            // Mint total amount all at once, so _updateNow is false
             _sell(_ids[i], false);
 
             unchecked {
@@ -183,7 +185,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         FUR.transferFrom(msg.sender, owner, feeTotal);
 
         for (uint256 i; i < length; ) {
-            // Mint total amount all at once
+            // Mint total amount all at once, so _updateNow is false
             _buy(_ids[i], false);
 
             unchecked {
@@ -203,7 +205,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
         bytes32 fId = getFurionId(_id);
 
-        NFT.safeTransferFrom(msg.sender, address(this), _id);
+        _transferInNFT(_id);
 
         // uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFee) / 100;
         uint256 fee = lockFee * _lockCycle;
@@ -253,7 +255,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
         delete lockInfo[fId];
 
-        NFT.safeTransferFrom(address(this), msg.sender, _id);
+        _transferOutNFT(msg.sender, _id);
 
         emit RedeemedNFT(fId, msg.sender);
     }
@@ -289,7 +291,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
      *        multiple calls (batched)
      */
     function _sell(uint256 _id, bool _updateNow) private {
-        NFT.safeTransferFrom(msg.sender, address(this), _id);
+        _transferInNFT(_id);
 
         if (_updateNow) {
             _mint(msg.sender, SWAP_MINT_AMOUNT);
@@ -315,8 +317,79 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
             FUR.transferFrom(msg.sender, owner, buyFee);
         }
 
-        NFT.safeTransferFrom(address(this), msg.sender, _id);
+        _transferOutNFT(msg.sender, _id);
 
         emit BoughtNFT(getFurionId(_id), msg.sender);
+    }
+
+    function _transferInNFT(uint256 _id) internal {
+        bytes memory data;
+
+        if (nft == KITTIES) {
+            // CryptoKitties
+            data = abi.encodeWithSignature(
+                "transferFrom(address,address,uint256)",
+                msg.sender,
+                address(this),
+                _id
+            );
+        } else if (nft == PUNKS) {
+            // CryptoPunks
+            bytes memory punksIndexToOwner = abi.encodeWithSignature(
+                "punkIndexToAddress(uint256)",
+                _id
+            );
+            (bool _success, bytes memory result) = nft.staticcall(
+                punksIndexToOwner
+            );
+            address punkOwner = abi.decode(result, (address));
+            require(
+                _success && punkOwner == msg.sender,
+                "SeparatePool: Punk ownership check failed"
+            );
+            data = abi.encodeWithSignature("buyPunk(uint256)", _id);
+        } else {
+            // ERC 721
+            data = abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256)",
+                msg.sender,
+                address(this),
+                _id
+            );
+        }
+
+        (bool success, bytes memory returnData) = nft.call(data);
+        require(success, string(returnData));
+    }
+
+    function _transferOutNFT(address _dst, uint256 _id) internal {
+        bytes memory data;
+
+        if (nft == KITTIES) {
+            // CryptoKitties
+            data = abi.encodeWithSignature(
+                "transfer(address,uint256)",
+                _dst,
+                _id
+            );
+        } else if (nft == PUNKS) {
+            // CryptoPunks
+            data = abi.encodeWithSignature(
+                "transferPunk(address,uint256)",
+                _dst,
+                _id
+            );
+        } else {
+            // ERC 721
+            data = abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256)",
+                address(this),
+                _dst,
+                _id
+            );
+        }
+
+        (bool success, bytes memory returnData) = nft.call(data);
+        require(success, string(returnData));
     }
 }

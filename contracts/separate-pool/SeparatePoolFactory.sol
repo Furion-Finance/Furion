@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
+    address public immutable incomeMaker;
+
     // NFT address to pool address
     mapping(address => address) public getPool;
 
@@ -26,7 +28,12 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
         uint256 poolIndex
     );
 
-    constructor(address _checker, address _fur) {
+    constructor(
+        address _incomeMaker,
+        address _checker,
+        address _fur
+    ) {
+        incomeMaker = _incomeMaker;
         Checker = IChecker(_checker);
         fur = _fur;
     }
@@ -86,6 +93,7 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
         poolAddress = address(
             new SeparatePool{salt: _salt}(
                 _nftAddress,
+                incomeMaker,
                 fur,
                 owner(),
                 tokenName,

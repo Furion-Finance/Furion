@@ -10,13 +10,16 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     address constant KITTIES = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
     address constant PUNKS = 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB;
 
-    uint256 public constant SWAP_MINT_AMOUNT = 1000 * (10**18);
-    uint256 public constant LOCK_MINT_AMOUNT = 500 * (10**18);
+    uint256 public constant SWAP_MINT_AMOUNT = 1000e18;
+    uint256 public constant LOCK_MINT_AMOUNT = 500e18;
+    uint256 public constant RELEASE_MINT_AMOUNT = 200e18;
 
     IERC20 FUR;
 
     address public immutable factory;
     address public immutable nft;
+    // Transfer fee to income maker
+    address public immutable incomeMaker;
     // Pool admin/fee receiver
     // Fees in this contract are in the form of F-* tokens
     address public owner;
@@ -26,9 +29,12 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
     struct LockInfo {
         address locker;
-        uint96 releaseTime;
+        bool extended; // Can only extend once
+        uint256 releaseTime;
     }
     mapping(bytes32 => LockInfo) lockInfo;
+
+    uint16[] public inPool;
 
     event OwnerChanged(address oldOwner, address newOwner);
     event SoldNFT(bytes32 indexed fId, address indexed seller);
@@ -37,19 +43,21 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         bytes32 indexed fId,
         address indexed locker,
         uint256 timeOfLock,
-        uint256 periodInDays
+        uint256 expiryTime
     );
     event RedeemedNFT(bytes32 indexed fId, address indexed redeemer);
     event ReleasedNFT(bytes32 indexed fId);
 
     constructor(
         address _nftAddress,
+        address _incomeMaker,
         address _fur,
         address _owner,
         string memory _tokenName,
         string memory _tokenSymbol
     ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
+        incomeMaker = _incomeMaker;
         nft = _nftAddress;
         FUR = IERC20(_fur);
         owner = _owner;
@@ -75,7 +83,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
             "SeparatePool: You did not lock this NFT."
         );
         require(
-            lockInfo[fId].releaseTime > uint96(block.timestamp),
+            lockInfo[fId].releaseTime > block.timestamp,
             "SeparatePool: NFT has already been released to public pool."
         );
         _;
@@ -91,7 +99,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
             "SeparatePool: NFT is not locked."
         );
         require(
-            lockInfo[fId].releaseTime < uint96(block.timestamp),
+            lockInfo[fId].releaseTime < block.timestamp,
             "SeparatePool: Release time not yet reached."
         );
         _;
@@ -107,7 +115,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Release time getter for testing
      */
-    function getReleaseTime(uint256 _id) public view returns (uint96) {
+    function getReleaseTime(uint256 _id) public view returns (uint256) {
         bytes32 fId = getFurionId(_id);
 
         return lockInfo[fId].releaseTime;
@@ -182,7 +190,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         uint256 burnTotal = SWAP_MINT_AMOUNT * length;
         uint256 feeTotal = buyFee * length;
         _burn(msg.sender, burnTotal);
-        FUR.transferFrom(msg.sender, owner, feeTotal);
+        FUR.transferFrom(msg.sender, incomeMaker, feeTotal);
 
         for (uint256 i; i < length; ) {
             // Mint total amount all at once, so _updateNow is false
@@ -196,56 +204,51 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
     /**
      * @dev Lock NFT to pool and get 500 pool tokens
-     *
-     * @param _lockCycle 30 days is one cycle, pay fee for future cycles at
-     *        the moment of locking
      */
-    function lock(uint256 _id, uint256 _lockCycle) external {
-        require(_lockCycle != 0, "SeparatePool: Invalid lock cycle");
-
+    function lock(uint256 _id) external {
         bytes32 fId = getFurionId(_id);
 
         _transferInNFT(_id);
 
-        // uint256 fee = (LOCK_MINT_AMOUNT * _lockCycle * lockFee) / 100;
-        uint256 fee = lockFee * _lockCycle;
-        FUR.transferFrom(msg.sender, owner, fee);
+        uint256 fee = lockFee;
+        FUR.transferFrom(msg.sender, incomeMaker, fee);
 
         _mint(msg.sender, LOCK_MINT_AMOUNT);
 
-        /*
-        if (fee > LOCK_MINT_AMOUNT) {
-            transfer(owner, fee - LOCK_MINT_AMOUNT);
-        } else {
-            _mint(msg.sender, LOCK_MINT_AMOUNT - fee);
-            _mint(owner, fee);
-        }
-        */
-
         lockInfo[fId].locker = msg.sender;
-        lockInfo[fId].releaseTime = uint96(
-            block.timestamp + _lockCycle * 30 * 24 * 60 * 60
-        );
+        uint256 _releaseTime = block.timestamp + 30 * 24 * 60 * 60;
+        lockInfo[fId].releaseTime = _releaseTime;
 
-        emit LockedNFT(fId, msg.sender, block.timestamp, _lockCycle * 30);
+        emit LockedNFT(fId, msg.sender, block.timestamp, _releaseTime);
     }
 
     /**
-     * @dev EXTENDS release time by one cycle
+     * @notice Lockers can only extend release time once
+     * @dev EXTENDS release time by one month
      */
-    function payFee(uint256 _id) external redeemable(_id) {
+    function payFee(uint256 _id) external {
         bytes32 fId = getFurionId(_id);
 
-        /*
-        uint256 fee = (LOCK_MINT_AMOUNT * lockFeeRate) / 100;
-        transfer(owner, fee);
-        */
-        FUR.transferFrom(msg.sender, owner, 150 ether);
+        LockInfo memory li = lockInfo[fId];
 
-        lockInfo[fId].releaseTime += 30 * 24 * 60 * 60;
+        require(
+            li.locker == msg.sender,
+            "SeparatePool: You did not lock this NFT."
+        );
+        require(
+            li.releaseTime > block.timestamp,
+            "SeparatePool: NFT already released"
+        );
+        require(!li.extended, "SeparatePool: Already extended once");
+
+        FUR.transferFrom(msg.sender, incomeMaker, lockFee);
+
+        lockInfo[fId].extended = true;
+        lockInfo[fId].releaseTime += 30 days;
     }
 
     /**
+     * @notice Lockers must redeem NFT if it has already been extended
      * @dev Redeem locked NFT by paying 500 tokens
      */
     function redeem(uint256 _id) external redeemable(_id) {
@@ -261,7 +264,8 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Release NFT for swapping and mint remaining 500 pool tokens to locker
+     * @notice Only 200 pool tokens is minted to locker as a penalty
+     * @dev Release NFT for swapping and mint pool tokens to locker
      */
     function release(uint256 _id) external onlyOwner releasable(_id) {
         bytes32 fId = getFurionId(_id);
@@ -270,7 +274,8 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
         delete lockInfo[fId];
 
-        _mint(sendRemainingTo, LOCK_MINT_AMOUNT);
+        _mint(sendRemainingTo, RELEASE_MINT_AMOUNT);
+        _mint(incomeMaker, LOCK_MINT_AMOUNT - RELEASE_MINT_AMOUNT);
 
         emit ReleasedNFT(fId);
     }
@@ -310,11 +315,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         if (_updateNow) {
             _burn(msg.sender, SWAP_MINT_AMOUNT);
 
-            /*
-            uint256 fee = (SWAP_MINT_AMOUNT * swapFeeRate) / 100;
-            transfer(owner, fee);
-            */
-            FUR.transferFrom(msg.sender, owner, buyFee);
+            FUR.transferFrom(msg.sender, incomeMaker, buyFee);
         }
 
         _transferOutNFT(msg.sender, _id);
@@ -360,6 +361,8 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
         (bool success, bytes memory returnData) = nft.call(data);
         require(success, string(returnData));
+
+        inPool.push(uint16(_id));
     }
 
     function _transferOutNFT(address _dst, uint256 _id) internal {
@@ -391,5 +394,26 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
 
         (bool success, bytes memory returnData) = nft.call(data);
         require(success, string(returnData));
+
+        _removeElement(_id);
+    }
+
+    /**
+     * @notice Remove ID of NFT that is no longer in pool from inPool array
+     */
+    function _removeElement(uint256 _idToRemove) internal {
+        uint256 length = inPool.length;
+
+        for (uint256 i; i < length; ) {
+            if (inPool[i] == uint16(_idToRemove)) {
+                inPool[i] = inPool[length - 1];
+                inPool.pop();
+                break;
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 }

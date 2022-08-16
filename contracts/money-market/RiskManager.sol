@@ -10,7 +10,7 @@ import "./interfaces/IPriceOracle.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "hardhat/console.sol";
 
-contract RiskManager is RiskManagerStorage, Initializable, IRiskManager {
+contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
     function initialize(address _priceOracle) public initializer {
         admin = msg.sender;
 

@@ -193,7 +193,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         FUR.transferFrom(msg.sender, incomeMaker, feeTotal);
 
         for (uint256 i; i < length; ) {
-            // Mint total amount all at once, so _updateNow is false
+            // Collected fee all at once, so _updateNow is false
             _buy(_ids[i], false);
 
             unchecked {
@@ -206,20 +206,31 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
      * @dev Lock NFT to pool and get 500 pool tokens
      */
     function lock(uint256 _id) external {
-        bytes32 fId = getFurionId(_id);
+        _lock(_id, true);
+    }
 
-        _transferInNFT(_id);
+    /**
+     * @dev Lock multiple NFTs of same collection
+     */
+    function lock(uint256[] calldata _ids) external {
+        // Number of NFTs to buy
+        uint256 length = _ids.length;
+        require(length < 10, "SeparatePool: Can only buy 9 NFTs at once");
 
-        uint256 fee = lockFee;
-        FUR.transferFrom(msg.sender, incomeMaker, fee);
+        uint256 mintTotal = LOCK_MINT_AMOUNT * length;
+        uint256 feeTotal = buyFee * length;
+        FUR.transferFrom(msg.sender, incomeMaker, feeTotal);
 
-        _mint(msg.sender, LOCK_MINT_AMOUNT);
+        for (uint256 i; i < length; ) {
+            // Collected fee all at once, so _updateNow is false
+            _lock(_ids[i], false);
 
-        lockInfo[fId].locker = msg.sender;
-        uint256 _releaseTime = block.timestamp + 30 * 24 * 60 * 60;
-        lockInfo[fId].releaseTime = _releaseTime;
+            unchecked {
+                ++i;
+            }
+        }
 
-        emit LockedNFT(fId, msg.sender, block.timestamp, _releaseTime);
+        _mint(msg.sender, mintTotal);
     }
 
     /**
@@ -306,7 +317,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Buy NFT from pool by paying (1000 + fee) pool tokens
+     * @dev Buy NFT from pool by paying 1000 pool tokens
      *
      * @param _updateNow Determines if burning is done immediately or skipped
      *        because of batch purchase
@@ -321,6 +332,24 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         _transferOutNFT(msg.sender, _id);
 
         emit BoughtNFT(getFurionId(_id), msg.sender);
+    }
+
+    function _lock(uint256 _id, bool _updateNow) private {
+        _transferInNFT(_id);
+
+        if (_updateNow) {
+            FUR.transferFrom(msg.sender, incomeMaker, lockFee);
+
+            _mint(msg.sender, LOCK_MINT_AMOUNT);
+        }
+
+        bytes32 fId = getFurionId(_id);
+
+        lockInfo[fId].locker = msg.sender;
+        uint256 _releaseTime = block.timestamp + 30 * 24 * 60 * 60;
+        lockInfo[fId].releaseTime = _releaseTime;
+
+        emit LockedNFT(fId, msg.sender, block.timestamp, _releaseTime);
     }
 
     function _transferInNFT(uint256 _id) internal {

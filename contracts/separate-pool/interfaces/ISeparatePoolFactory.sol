@@ -3,11 +3,14 @@
 pragma solidity ^0.8.0;
 
 interface ISeparatePoolFactory {
-    function getPool(address _nftAddress) external view returns (address);
+    function numOfPools() external view returns (uint256 totalPools);
 
-    function allPools(uint256 _index) external view returns (address);
+    function getAllNfts() external view returns (address[] memory nftsWithPool);
 
-    function allPoolsLength() external view returns (uint256 totalPools);
+    function getAllPools()
+        external
+        view
+        returns (address[] memory poolAddresses);
 
     function createPool(address _nftAddress)
         external

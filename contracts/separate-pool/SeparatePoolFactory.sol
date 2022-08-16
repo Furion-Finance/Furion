@@ -12,15 +12,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
     address public immutable incomeMaker;
 
+    // Addresses of NFTs with a pool
+    address[] public allNfts;
     // NFT address to pool address
     mapping(address => address) public getPool;
 
     IChecker Checker;
     address public fur;
-    address[] public allPools;
-
-    // Record of all nft addresses for root pool
-    // address[] public allNfts;
 
     event PoolCreated(
         address nftAddress,
@@ -39,11 +37,37 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
     }
 
     /**
-     * @dev Get total number of pools
+     * @dev Get total number of NFTs with a separate pool
      */
-    function allPoolsLength() external view returns (uint256 totalPools) {
-        totalPools = allPools.length;
-        return totalPools;
+    function numOfPools() external view returns (uint256 totalPools) {
+        totalPools = allNfts.length;
+    }
+
+    /**
+     * @dev Get addresses of nft collections that has a separate pool
+     */
+    function getAllNfts()
+        external
+        view
+        returns (address[] memory nftsWithPool)
+    {
+        nftsWithPool = allNfts;
+    }
+
+    /**
+     * @dev Get addresses of all separate pools
+     */
+    function getAllPools()
+        external
+        view
+        returns (address[] memory poolAddresses)
+    {
+        for (uint256 i; i < allNfts.length; ) {
+            address nftAddress = allNfts[i];
+            poolAddresses[i] = getPool[nftAddress];
+        }
+
+        return poolAddresses;
     }
 
     /**
@@ -57,8 +81,8 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
 
         _transferOwnership(_newOwner);
 
-        for (uint256 i; i < allPools.length; ) {
-            ISeparatePool(allPools[i]).changeOwner(_newOwner);
+        for (uint256 i; i < allNfts.length; ) {
+            ISeparatePool(getPool[allNfts[i]]).changeOwner(_newOwner);
 
             unchecked {
                 ++i;
@@ -101,11 +125,11 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
             )
         );
 
+        allNfts.push(_nftAddress);
         getPool[_nftAddress] = poolAddress;
-        //allPools.push(poolAddress);
         Checker.addToken(poolAddress);
 
-        emit PoolCreated(_nftAddress, poolAddress, allPools.length);
+        emit PoolCreated(_nftAddress, poolAddress, allNfts.length);
     }
 
     /**

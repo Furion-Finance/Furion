@@ -6,6 +6,7 @@ import "./ExponentialNoError.sol";
 import "./interfaces/IRiskManager.sol";
 import "./interfaces/IInterestRateModel.sol";
 import "./interfaces/IPriceOracle.sol";
+import "../IChecker.sol";
 
 // name, symbol, decimals, totalSupply, balances, allowances in ERC20 contract
 contract TokenBaseStorage is ExponentialNoError {
@@ -16,6 +17,8 @@ contract TokenBaseStorage is ExponentialNoError {
     IInterestRateModel public interestRateModel;
 
     IPriceOracle public oracle;
+
+    IChecker public checker;
 
     // Administrator for the market
     address public admin;

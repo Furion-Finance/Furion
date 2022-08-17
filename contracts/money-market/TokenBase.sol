@@ -10,6 +10,7 @@ import "./interfaces/IInterestRateModel.sol";
 import "./interfaces/IPriceOracle.sol";
 import "./interfaces/IFErc20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../IChecker.sol";
 import "hardhat/console.sol";
 
 abstract contract TokenBase is
@@ -21,6 +22,7 @@ abstract contract TokenBase is
         address _riskManager,
         address _interestRateModel,
         address _priceOracle,
+        address _checker,
         string memory _name,
         string memory _symbol
     ) internal onlyInitializing {
@@ -43,6 +45,8 @@ abstract contract TokenBase is
         interestRateModel = IInterestRateModel(_interestRateModel);
 
         oracle = IPriceOracle(_priceOracle);
+
+        checker = IChecker(_checker);
 
         initialExchangeRateMantissa = 50e18;
 
@@ -751,7 +755,7 @@ abstract contract TokenBase is
         // require(borrower != liquidator);
 
         // Initiate liquidation protection if seized asset is collateral tier
-        if (isCollateralTier) {
+        if (isCollateralTier && checker.isFurionToken(address(this))) {
             // Indirect token transfer through minting and burning
             _burn(_borrower, seizeTotal);
             // Store seized tokens in market contract

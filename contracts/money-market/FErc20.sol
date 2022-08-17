@@ -13,6 +13,7 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
         address _riskManager,
         address _interestRateModel,
         address _priceOracle,
+        address _checker,
         string memory _name,
         string memory _symbol
     ) public initializer {
@@ -20,6 +21,7 @@ contract FErc20 is TokenBase, FErc20Storage, IFErc20 {
             _riskManager,
             _interestRateModel,
             _priceOracle,
+            _checker,
             _name,
             _symbol
         );

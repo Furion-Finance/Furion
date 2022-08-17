@@ -8,12 +8,14 @@ contract FEther is TokenBase {
     function initialize(
         address _riskManager,
         address _interestRateModel,
-        address _priceOracle
+        address _priceOracle,
+        address _checker
     ) public initializer {
         __TokenBase_init(
             _riskManager,
             _interestRateModel,
             _priceOracle,
+            _checker,
             "Furion Ether",
             "fETH"
         );

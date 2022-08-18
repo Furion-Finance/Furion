@@ -155,7 +155,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Sell multiple NFTs of same collection in one tx
      */
-    function sell(uint256[] calldata _ids) external {
+    function sellBatch(uint256[] calldata _ids) external {
         // Number of NFTs in list
         uint256 length = _ids.length;
         require(length < 10, "SeparatePool: Can only sell 9 NFTs at once");
@@ -182,7 +182,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Buy multiple NFTs of same collection in one tx
      */
-    function buy(uint256[] calldata _ids) external {
+    function buyBatch(uint256[] calldata _ids) external {
         // Number of NFTs to buy
         uint256 length = _ids.length;
         require(length < 10, "SeparatePool: Can only buy 9 NFTs at once");
@@ -212,7 +212,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     /**
      * @dev Lock multiple NFTs of same collection
      */
-    function lock(uint256[] calldata _ids) external {
+    function lockBatch(uint256[] calldata _ids) external {
         // Number of NFTs to buy
         uint256 length = _ids.length;
         require(length < 10, "SeparatePool: Can only buy 9 NFTs at once");

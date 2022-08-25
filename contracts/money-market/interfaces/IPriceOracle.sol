@@ -12,5 +12,5 @@ interface IPriceOracle {
     function getUnderlyingPrice(address _fToken)
         external
         view
-        returns (uint256);
+        returns (uint256, uint256);
 }

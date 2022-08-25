@@ -112,6 +112,7 @@ contract RiskManagerStorage is ExponentialNoError {
         uint256 maxTierMem;
         address asset;
         uint256 assetTier;
+        uint256 decimal;
         uint256 tokenBalance;
         uint256 borrowBalance;
         uint256 exchangeRateMantissa;

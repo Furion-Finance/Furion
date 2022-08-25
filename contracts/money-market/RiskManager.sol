@@ -250,10 +250,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
         );
 
         // Fail if price == 0
-        require(
-            oracle.getUnderlyingPrice(_fToken) > 0,
-            "RiskManager: Oracle price is 0"
-        );
+        (uint256 price, ) = oracle.getUnderlyingPrice(_fToken);
+        require(price > 0, "RiskManager: Oracle price is 0");
 
         // Set market's collateral factor to new collateral factor, remember old value
         uint256 oldCollateralFactorMantissa = market.collateralFactorMantissa;
@@ -432,10 +430,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
             assert(markets[_fToken].isMember[_borrower]);
         }
 
-        require(
-            oracle.getUnderlyingPrice(_fToken) > 0,
-            "RiskManager: Oracle price is 0"
-        );
+        (uint256 price, ) = oracle.getUnderlyingPrice(_fToken);
+        require(price > 0, "RiskManager: Oracle price is 0");
 
         (, uint256 shortfall, ) = getHypotheticalAccountLiquidity(
             _borrower,
@@ -758,7 +754,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
             vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
 
             // Get the normalized price of the underlying asset of fToken
-            vars.oraclePriceMantissa = oracle.getUnderlyingPrice(vars.asset);
+            (vars.oraclePriceMantissa, vars.decimal) = oracle
+                .getUnderlyingPrice(vars.asset);
             require(
                 vars.oraclePriceMantissa > 0,
                 "RiskManager: Oracle price is 0"
@@ -771,33 +768,29 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
                 vars.collateralFactor
             );
 
-            tierCollateralValues[vars.assetTier - 1] += mul_(
-                vars.tokenBalance,
-                vars.collateralValuePerToken
-            );
+            // Divide by decimal of underlying token because we want the price in mantissa, not in decimals of
+            // underlying asset
+            tierCollateralValues[vars.assetTier - 1] +=
+                (vars.tokenBalance * vars.collateralValuePerToken.mantissa) /
+                vars.decimal;
 
-            tierBorrowValues[vars.assetTier - 1] += mul_(
-                vars.borrowBalance,
-                vars.oraclePrice
-            );
+            tierBorrowValues[vars.assetTier - 1] +=
+                (vars.borrowBalance * vars.oraclePriceMantissa) /
+                vars.decimal;
 
             // Calculate effects of interacting with fToken
             if (vars.asset == _fToken) {
                 // Redeem effect
                 // Collateral reduced after redemption
-                // mul_: uint, exp -> uint
-                tierCollateralValues[vars.assetTier - 1] -= mul_(
-                    _redeemToken,
-                    vars.collateralValuePerToken
-                );
+                tierCollateralValues[vars.assetTier - 1] -=
+                    (_redeemToken * vars.collateralValuePerToken.mantissa) /
+                    vars.decimal;
 
                 // Add amount to hypothetically borrow
-                // sumBorrowPlusEffects += oraclePrice * borrowAmount
-                // mul_: uint, exp -> uint
-                tierBorrowValues[vars.assetTier - 1] += mul_(
-                    _borrowAmount,
-                    vars.oraclePrice
-                );
+                // Borrow increased after borrowing
+                tierBorrowValues[vars.assetTier - 1] +=
+                    (_borrowAmount * vars.oraclePriceMantissa) /
+                    vars.decimal;
             }
 
             unchecked {
@@ -858,10 +851,9 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
         uint256 _repayAmount
     ) external view override returns (uint256 seizeTokens, uint256 repayValue) {
         // Read oracle prices for borrowed and collateral markets
-        uint256 priceBorrowedMantissa = oracle.getUnderlyingPrice(
-            _fTokenBorrowed
-        );
-        uint256 priceCollateralMantissa = oracle.getUnderlyingPrice(
+        (uint256 priceBorrowedMantissa, uint256 borrowedDecimal) = oracle
+            .getUnderlyingPrice(_fTokenBorrowed);
+        (uint256 priceCollateralMantissa, ) = oracle.getUnderlyingPrice(
             _fTokenCollateral
         );
         require(
@@ -879,10 +871,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
             Exp({mantissa: liquidateCalculateDiscount(_borrower)}),
             _repayAmount
         );
-        uint256 valueAfterDiscount = mul_ScalarTruncate(
-            Exp({mantissa: priceBorrowedMantissa}),
-            amountAfterDiscount
-        );
+        uint256 valueAfterDiscount = (priceBorrowedMantissa *
+            amountAfterDiscount) / borrowedDecimal;
 
         // Stored version used because accrueInterest() already called at the
         // beginning of liquidateBorrowInternal()
@@ -899,10 +889,7 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
 
         // div_: uint, exp -> uint
         seizeTokens = div_(valueAfterDiscount, valuePerToken);
-        repayValue = mul_ScalarTruncate(
-            Exp({mantissa: priceBorrowedMantissa}),
-            _repayAmount
-        );
+        repayValue = (priceBorrowedMantissa * _repayAmount) / borrowedDecimal;
     }
 
     /**

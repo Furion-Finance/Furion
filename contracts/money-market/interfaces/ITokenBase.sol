@@ -79,6 +79,8 @@ interface ITokenBase {
 
     event NewReserveFactor(uint256 oldReserveFactor, uint256 newReserveFactor);
 
+    event NewPriceOracle(address oldOracle, address newOracle);
+
     function isFToken() external view returns (bool);
 
     function balanceOfUnderlying(address _account) external returns (uint256);

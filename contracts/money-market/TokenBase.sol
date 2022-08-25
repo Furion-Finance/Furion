@@ -129,6 +129,14 @@ abstract contract TokenBase is
         );
     }
 
+    function setPriceOracle(address _newOracle) external onlyAdmin {
+        address oldOracle = address(oracle);
+
+        oracle = IPriceOracle(_newOracle);
+
+        emit NewPriceOracle(oldOracle, _newOracle);
+    }
+
     /********************************** Core **********************************/
 
     function isFToken() public pure returns (bool) {
@@ -962,7 +970,9 @@ abstract contract TokenBase is
         uint256 valueAfterMultiplier = (uint256(lp.value) * 120) / 100;
 
         address underlyingAsset = IFErc20(_fToken).getUnderlying();
-        uint256 underlyingPriceMantissa = oracle.getUnderlyingPrice(_fToken);
+        (uint256 underlyingPriceMantissa, ) = oracle.getUnderlyingPrice(
+            _fToken
+        );
         // div_: uint, exp -> uint
         uint256 underlyingToRepay = div_(
             valueAfterMultiplier,

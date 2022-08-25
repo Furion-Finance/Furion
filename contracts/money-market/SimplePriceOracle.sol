@@ -8,6 +8,8 @@ import "./interfaces/IFErc20.sol";
 
 contract SimplePriceOracle is IPriceOracle {
     mapping(address => uint256) prices;
+    // e.g. A token with 18 decimals, decimals[asset] = 1e18, NOT 18
+    mapping(address => uint256) decimals;
     event PricePosted(
         address asset,
         uint256 previousPriceMantissa,
@@ -34,14 +36,16 @@ contract SimplePriceOracle is IPriceOracle {
         public
         view
         override
-        returns (uint256)
+        returns (uint256, uint256)
     {
-        return prices[_getUnderlyingAddress(_fToken)];
+        address asset = _getUnderlyingAddress(_fToken);
+        return (prices[asset], decimals[asset]);
     }
 
     function setUnderlyingPrice(
         address _fToken,
-        uint256 _underlyingPriceMantissa
+        uint256 _underlyingPriceMantissa,
+        uint256 _decimal
     ) public {
         address asset = _getUnderlyingAddress(_fToken);
         emit PricePosted(
@@ -51,16 +55,26 @@ contract SimplePriceOracle is IPriceOracle {
             _underlyingPriceMantissa
         );
         prices[asset] = _underlyingPriceMantissa;
+        decimals[asset] = _decimal;
     }
 
-    function setDirectPrice(address _asset, uint256 _price) public {
+    function setDirectPrice(
+        address _asset,
+        uint256 _price,
+        uint256 _decimal
+    ) public {
         emit PricePosted(_asset, prices[_asset], _price, _price);
         prices[_asset] = _price;
+        decimals[_asset] = _decimal;
     }
 
     // v1 price oracle interface for use as backing of proxy
-    function assetPrices(address _asset) external view returns (uint256) {
-        return prices[_asset];
+    function assetPrices(address _asset)
+        external
+        view
+        returns (uint256, uint256)
+    {
+        return (prices[_asset], decimals[_asset]);
     }
 
     function compareStrings(string memory _a, string memory _b)

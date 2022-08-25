@@ -20,10 +20,13 @@ export const deployUpgradeable = async (
   artifact: string,
   params: Array<any>,
 ) => {
-  const signers: SignerWithAddress[] = await ethers.getSigners();
-
   const factory: ContractFactory = <ContractFactory>await ethers.getContractFactory(artifact);
   let contract: Contract = await upgrades.deployProxy(factory, params);
 
   return await contract.deployed();
+};
+
+export const upgrade = async (ethers: HardhatEthersHelpers, upgrades: any, artifact: string, address: string) => {
+  const factory: ContractFactory = <ContractFactory>await ethers.getContractFactory(artifact);
+  let contract: Contract = await upgrades.upgradeProxy(address, factory);
 };

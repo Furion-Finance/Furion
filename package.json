@@ -95,6 +95,10 @@
     "prettier:check": "prettier --check --config ./.prettierrc.yaml \"**/*.{js,json,md,sol,ts,yaml,yml}\"",
     "test": "hardhat test",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
-    "size": "hardhat size-contracts"
+    "size": "hardhat size-contracts",
+    "verify:rinkeby:args": "hardhat verify --network rinkeby --constructor-args",
+    "verify:rinkeby": "hardhat verify --network rinkeby",
+    "run:rinkeby": "hardhat run --network rinkeby",
+    "task:rinkeby": "hardhat --network rinkeby"
   }
 }

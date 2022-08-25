@@ -11,17 +11,7 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 
-//import "hardhat-deploy";
-import "./tasks/accounts";
-import "./tasks/deploy/checker";
-import "./tasks/deploy/furion-pools/separatePoolFactory";
-import "./tasks/deploy/money-market/ferc20";
-import "./tasks/deploy/money-market/fether";
-import "./tasks/deploy/money-market/normalInterestRateModel";
-import "./tasks/deploy/money-market/priceOracle";
-import "./tasks/deploy/money-market/riskManager";
-
-//import "./tasks/deploy";
+import "./tasks";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 

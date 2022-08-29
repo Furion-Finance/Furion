@@ -51,7 +51,7 @@ task("addMinterBurner", "Add minter/burner manually for certain token")
     console.log("\nFinish Adding minter or burner...\n");
   });
 
-// npx hardhat mintFurionToken --address 0x90C6e725FbC83cC9AB440B62ce75d07a229CEd44
+// npx hardhat mintFUR --address 0x90C6e725FbC83cC9AB440B62ce75d07a229CEd44
 // --amount 100000000 --network localhost
 task("mintFUR", "mint furion token")
   .addParam("address", "address to receive the token", null, types.string)
@@ -72,6 +72,27 @@ task("mintFUR", "mint furion token")
     console.log(await tx.wait());
 
     console.log("\n Successfully mint FUR tokens to", taskArgs.address, "\n");
+  });
+
+task("burnFUR", "burn furion token")
+  .addParam("address", "address to burn the token", null, types.string)
+  .addParam("amount", "amount to mint", null, types.string)
+  .setAction(async (taskArgs, hre) => {
+    const addressList = readAddressList();
+
+    const { network } = hre;
+
+    const [dev] = await hre.ethers.getSigners();
+
+    // Get the token contract instance
+    const furion = new FurionToken__factory(dev).attach(addressList[network.name].FurionToken);
+
+    // Add minter
+    const tx = await furion.burnFurion(taskArgs.address, parseUnits(taskArgs.amount));
+
+    console.log(await tx.wait());
+
+    console.log("\n Successfully burn FUR tokens from", taskArgs.address, "\n");
   });
 
 task("mintUSD", "mint mock USD token")

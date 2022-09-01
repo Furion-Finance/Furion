@@ -158,8 +158,8 @@ abstract contract TokenBase is
      * @return The amount of underlying underlying asset
      */
     function balanceOfUnderlying(address _account)
-        external
-        override
+        public
+        view
         returns (uint256)
     {
         Exp memory exchangeRate = Exp({mantissa: exchangeRateCurrent()});
@@ -184,8 +184,8 @@ abstract contract TokenBase is
     {
         return (
             balanceOf(_account),
-            borrowBalanceStored(_account),
-            exchangeRateStored()
+            borrowBalanceCurrent(_account),
+            exchangeRateCurrent()
         );
     }
 
@@ -194,11 +194,17 @@ abstract contract TokenBase is
      * @return The borrow interest rate per block, scaled by 1e18
      */
     function borrowRatePerBlock() external view override returns (uint256) {
+        (
+            uint256 _totalBorrows,
+            uint256 _totalReserves,
+
+        ) = accrueInterestCalc();
+
         return
             interestRateModel.getBorrowRate(
                 totalCash,
-                totalBorrows,
-                totalReserves
+                _totalBorrows,
+                _totalReserves
             );
     }
 
@@ -207,11 +213,17 @@ abstract contract TokenBase is
      * @return The supply interest rate per block, scaled by 1e18
      */
     function supplyRatePerBlock() external view override returns (uint256) {
+        (
+            uint256 _totalBorrows,
+            uint256 _totalReserves,
+
+        ) = accrueInterestCalc();
+
         return
             interestRateModel.getSupplyRate(
                 totalCash,
-                totalBorrows,
-                totalReserves,
+                _totalBorrows,
+                _totalReserves,
                 reserveFactorMantissa
             );
     }
@@ -220,18 +232,34 @@ abstract contract TokenBase is
      * @notice Returns the current total borrows plus accrued interest
      * @return The total borrows with interest
      */
-    function totalBorrowsCurrent() external returns (uint256) {
-        // Update market state
-        accrueInterest();
+    function totalBorrowsCurrent() public view returns (uint256) {
+        (uint256 _totalBorrows, , ) = accrueInterestCalc();
 
-        return totalBorrows;
+        return _totalBorrows;
     }
 
-    function borrowBalanceCurrent(address _account) external returns (uint256) {
-        // Update market state
-        accrueInterest();
+    function borrowBalanceCurrent(address _account)
+        public
+        view
+        returns (uint256)
+    {
+        (, , uint256 _borrowIndex) = accrueInterestCalc();
 
-        return borrowBalanceStored(_account);
+        // Get borrowBalance and borrowIndex
+        BorrowSnapshot memory snapshot = accountBorrows[_account];
+
+        /* If borrowBalance = 0 then borrowIndex is likely also 0.
+         * Rather than failing the calculation with a division by 0, we immediately
+         * return 0 in this case.
+         */
+        if (snapshot.principal == 0) {
+            return 0;
+        }
+
+        /* Calculate new borrow balance using the interest index:
+         *  principal * how much borrowIndex has increased
+         */
+        return (snapshot.principal * _borrowIndex) / snapshot.interestIndex;
     }
 
     /**
@@ -267,11 +295,33 @@ abstract contract TokenBase is
         return (snapshot.principal * borrowIndex) / snapshot.interestIndex;
     }
 
-    function exchangeRateCurrent() public returns (uint256) {
-        // Update market state
-        accrueInterest();
+    function exchangeRateCurrent() public view returns (uint256) {
+        (
+            uint256 _totalBorrows,
+            uint256 _totalReserves,
 
-        return exchangeRateStored();
+        ) = accrueInterestCalc();
+
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply == 0) {
+            /*
+             * If there are no tokens minted:
+             *  exchangeRate = initialExchangeRate
+             */
+            return initialExchangeRateMantissa;
+        } else {
+            /*
+             * Otherwise:
+             *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
+             */
+            uint256 cashPlusBorrowsMinusReserves = totalCash +
+                _totalBorrows -
+                _totalReserves;
+            uint256 exchangeRate = (cashPlusBorrowsMinusReserves * expScale) /
+                _totalSupply;
+
+            return exchangeRate;
+        }
     }
 
     /**
@@ -309,29 +359,32 @@ abstract contract TokenBase is
     }
 
     /**
-     * @notice Applies accrued interest to total borrows and reserves
-     * @dev This calculates interest accrued from the last checkpointed block
-     *    up to the current block and writes new checkpoint to storage.
+     * @notice CALCULATE borrow index and market info of current block
+     * @return New total borrow, new total reserve, new borrow index
      */
-    function accrueInterest() public {
-        /* Remember the initial block number */
+    function accrueInterestCalc()
+        internal
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
         uint256 currentBlockNumber = block.number;
         uint256 _lastAccrualBlock = lastAccrualBlock;
 
-        /* Short-circuit accumulating 0 interest */
-        if (_lastAccrualBlock == currentBlockNumber) {
-            return;
+        if (currentBlockNumber == _lastAccrualBlock) {
+            return (totalBorrows, totalReserves, borrowIndex);
         }
 
-        /* Read the previous values out of storage */
-        uint256 cashPrior = totalCash;
         uint256 borrowsPrior = totalBorrows;
         uint256 reservesPrior = totalReserves;
         uint256 borrowIndexPrior = borrowIndex;
 
-        /* Calculate the current borrow interest rate */
+        // Calculate the current borrow interest rate
         uint256 borrowRatePerBlockMantissa = interestRateModel.getBorrowRate(
-            cashPrior,
+            totalCash,
             borrowsPrior,
             reservesPrior
         );
@@ -340,7 +393,7 @@ abstract contract TokenBase is
             "borrow rate is absurdly high"
         );
 
-        /* Calculate the number of blocks elapsed since the last accrual */
+        // Calculate the number of blocks elapsed since the last accrual
         uint256 blockDelta = currentBlockNumber - _lastAccrualBlock;
 
         /*
@@ -361,6 +414,7 @@ abstract contract TokenBase is
             borrowIndexPrior,
             borrowIndexPrior
         );
+
         // Need to use the same method used to calculate borrow balance (i.e. multiply
         // by how much borrowIndex increased) of an account to prevent mismatch due
         // to roudings during arithmetic operations
@@ -373,23 +427,21 @@ abstract contract TokenBase is
             reservesPrior
         );
 
-        /////////////////////////
-        // EFFECTS & INTERACTIONS
-        // (No safe failures beyond this point)
+        return (totalBorrowsNew, totalReservesNew, borrowIndexNew);
+    }
 
-        /* We write the previously calculated values into storage */
-        lastAccrualBlock = currentBlockNumber;
-        borrowIndex = borrowIndexNew;
-        totalBorrows = totalBorrowsNew;
-        totalReserves = totalReservesNew;
+    /**
+     * @notice WRITE & UPDATE borrow index and market info
+     */
+    function accrueInterest() public {
+        // Short-circuit accumulating 0 interest
+        if (lastAccrualBlock == block.number) {
+            return;
+        }
 
-        /* We emit an AccrueInterest event */
-        emit AccrueInterest(
-            cashPrior,
-            interestAccumulated,
-            borrowIndexNew,
-            totalBorrowsNew
-        );
+        // We write the calculated values into storage
+        (totalBorrows, totalReserves, borrowIndex) = accrueInterestCalc();
+        lastAccrualBlock = block.number;
     }
 
     /**

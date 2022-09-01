@@ -1,9 +1,0 @@
-module.exports = [
-  /* CrypToadz */
-  "0x7e357a7eE77872DdD51947f1550381BA0913920B",
-  "0xf856Bd95D26D1AD159df54bae8Aa49B39c72A9d0",
-  "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
-  "0xDaBd21Ed3aD4493512f5b75D7A5b9E679cc782bA",
-  "Furion Cryptoadz",
-  "F-TOADZ",
-];

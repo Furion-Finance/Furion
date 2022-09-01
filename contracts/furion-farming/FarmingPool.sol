@@ -89,11 +89,21 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         uint256 pendingReward
     );
 
-    event NewPoolAdded(address lpToken, uint256 basicFurionPerSecond);
+
+    event NewPoolAdded(
+        address lpToken,
+        uint256 basicFurionPerSecond
+    );
     event FarmingPoolStarted(uint256 poolId, uint256 timestamp);
     event FarmingPoolStopped(uint256 poolId, uint256 timestamp);
-    event FurionRewardChanged(uint256 poolId, uint256 basicFurionPerSecond);
-    event PoolUpdated(uint256 poolId, uint256 accFurionPerShare);
+    event FurionRewardChanged(
+        uint256 poolId,
+        uint256 basicFurionPerSecond
+    );
+    event PoolUpdated(
+        uint256 poolId,
+        uint256 accFurionPerShare
+    );
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Constructor ************************************** //
@@ -194,10 +204,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         bool _withUpdate
     ) public onlyOwner whenNotPaused {
         // Ensure there already exists this pool
-        require(
-            poolList[_poolId].lastRewardTimestamp != 0,
-            "FARMING_POOL: POOL_NOT_EXIST"
-        );
+        require(poolList[_poolId].lastRewardTimestamp != 0, "FARMING_POOL: POOL_NOT_EXIST");
 
         if (_withUpdate) massUpdatePools();
         else updatePool(_poolId);
@@ -214,7 +221,10 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
             emit FarmingPoolStopped(_poolId, block.timestamp);
         } else {
             poolList[_poolId].basicFurionPerSecond = _basicFurionPerSecond;
-            emit FurionRewardChanged(_poolId, _basicFurionPerSecond);
+            emit FurionRewardChanged(
+                _poolId,
+                _basicFurionPerSecond
+            );
         }
     }
 
@@ -226,7 +236,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
     function setFurionRewards(
         uint256[] calldata _poolId,
         uint256[] calldata _basicFurionPerSecond
-    ) public onlyOwner whenNotPaused {
+    ) public onlyOwner whenNotPaused{
         uint256 length = _poolId.length;
         require(length <= 9, "FARMING_POOL: MORE_THAN_NINE");
 
@@ -261,7 +271,8 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
 
         // First distribute the reward if exists
         if (user.stakingBalance > 0) {
-            uint256 pending = (user.stakingBalance * pool.accFurionPerShare) /
+            uint256 pending = user.stakingBalance *
+                pool.accFurionPerShare /
                 SCALE -
                 user.rewardDebt;
 
@@ -281,8 +292,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         user.stakingBalance += actualAmount;
 
         user.rewardDebt =
-            (user.stakingBalance * pool.accFurionPerShare) /
-            SCALE;
+            user.stakingBalance * pool.accFurionPerShare / SCALE;
 
         emit Stake(msg.sender, _poolId, actualAmount);
     }
@@ -302,18 +312,14 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         PoolInfo storage pool = poolList[_poolId];
         UserInfo storage user = userInfo[_poolId][msg.sender];
 
-        require(
-            user.stakingBalance >= _amount,
-            "FARMING_POOL: NO_ENOUGH_STAKING_BALANCE"
-        );
+        require(user.stakingBalance >= _amount, "FARMING_POOL: NO_ENOUGH_STAKING_BALANCE");
 
         // Update if the pool is still farming
         // Users can withdraw even after the pool stopped
         if (isFarming[_poolId]) updatePool(_poolId);
 
-        uint256 pending = (user.stakingBalance * pool.accFurionPerShare) /
-            SCALE -
-            user.rewardDebt;
+        uint256 pending = user.stakingBalance * pool.accFurionPerShare  /
+            SCALE - user.rewardDebt;
 
         uint256 reward = _safeFurionTransfer(msg.sender, pending);
         emit Harvest(msg.sender, msg.sender, _poolId, reward);
@@ -327,9 +333,7 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
 
         user.stakingBalance -= actualAmount;
 
-        user.rewardDebt =
-            (user.stakingBalance * pool.accFurionPerShare) /
-            SCALE;
+        user.rewardDebt = user.stakingBalance * pool.accFurionPerShare / SCALE;
 
         emit Withdraw(msg.sender, _poolId, actualAmount);
     }
@@ -350,15 +354,12 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         PoolInfo memory pool = poolList[_poolId];
         UserInfo storage user = userInfo[_poolId][msg.sender];
 
-        uint256 pendingReward = (user.stakingBalance * pool.accFurionPerShare) /
-            SCALE -
-            user.rewardDebt;
+        uint256 pendingReward = user.stakingBalance * pool.accFurionPerShare / SCALE - user.rewardDebt;
 
         require(pendingReward > 0, "FARMING_POOL: NO_PENDING_REWARD");
 
         // Update the reward debt
-        user.rewardDebt =
-            (user.stakingBalance * pool.accFurionPerShare) /
+        user.rewardDebt = user.stakingBalance * pool.accFurionPerShare /
             SCALE;
 
         // Transfer the reward
@@ -396,7 +397,10 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
 
         pool.lastRewardTimestamp = block.timestamp;
 
-        emit PoolUpdated(_poolId, pool.accFurionPerShare);
+        emit PoolUpdated(
+            _poolId,
+            pool.accFurionPerShare
+        );
     }
 
     /**
@@ -450,15 +454,15 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
                 // Deigs amount given to this pool
                 uint256 timePassed = block.timestamp -
                     poolInfo.lastRewardTimestamp;
-                uint256 basicReward = poolInfo.basicFurionPerSecond *
-                    timePassed;
+                uint256 basicReward = poolInfo.basicFurionPerSecond * timePassed;
                 // Update accFurionPerShare
                 // LPToken may have different decimals
                 accFurionPerShare += (basicReward * SCALE) / lpBalance;
             }
 
             // If the pool has stopped, not update the info
-            uint256 pending = (user.stakingBalance * accFurionPerShare) /
+            uint256 pending = user.stakingBalance *
+                accFurionPerShare /
                 SCALE -
                 user.rewardDebt;
 
@@ -510,7 +514,10 @@ contract FarmingPool is OwnableWithoutContext, ReentrancyGuard, Pausable {
         whenNotPaused
     {
         // Can only be set before any pool is added
-        require(_nextPoolId == 1, "ALREADY_HAVING_POOLS");
+        require(
+            _nextPoolId == 1,
+            "ALREADY_HAVING_POOLS"
+        );
 
         startTimestamp = _startTimestamp;
         emit StartTimestampChanged(_startTimestamp);

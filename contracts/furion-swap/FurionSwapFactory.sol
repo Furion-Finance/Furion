@@ -5,7 +5,6 @@ pragma solidity ^0.8.10;
 import "./interfaces/IFurionSwapFactory.sol";
 import "./FurionSwapPair.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 // import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /*
@@ -26,6 +25,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  *      Furion Tokens refer to F-* token, FFT, and FUR
  */
 
+
 contract FurionSwapFactory is IFurionSwapFactory {
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Variables **************************************** //
@@ -36,6 +36,7 @@ contract FurionSwapFactory is IFurionSwapFactory {
     // token0 Address => token1 Address => Pool Address
     mapping(address => mapping(address => address)) public override getPair;
     mapping(address => mapping(address => bool)) public override isFurionPairs;
+
 
     // Store all the pairs' addresses
     address[] public allPairs;
@@ -53,7 +54,7 @@ contract FurionSwapFactory is IFurionSwapFactory {
         address indexed token0,
         address indexed token1,
         address pair,
-        uint256 allPairsLength
+        uint allPairsLength
     );
     event IncomeMakerProportionChanged(
         uint256 oldProportion,
@@ -99,7 +100,7 @@ contract FurionSwapFactory is IFurionSwapFactory {
         return _owner;
     }
 
-    function allPairsLength() external view returns (uint256) {
+    function allPairsLength() external view returns (uint) {
         return allPairs.length;
     }
 
@@ -131,22 +132,17 @@ contract FurionSwapFactory is IFurionSwapFactory {
     // ************************************* Main Functions *********************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    function createPair(address _tokenA, address _tokenB)
-        external
-        override
-        returns (address _pair)
-    {
+    function createPair(
+        address _tokenA,
+        address _tokenB
+    ) external override returns (address _pair) {
+
         require(_tokenA != _tokenB, "FurionSwap: IDENTICAL_ADDRESSES");
 
-        (address token0, address token1) = _tokenA < _tokenB
-            ? (_tokenA, _tokenB)
-            : (_tokenB, _tokenA);
+        (address token0, address token1) = _tokenA < _tokenB ? (_tokenA, _tokenB) : (_tokenB, _tokenA);
 
         require(token0 != address(0), "FurionSwap: ZERO_ADDRESS");
-        require(
-            getPair[token0][token1] == address(0),
-            "FurionSwap: PAIR_EXISTS"
-        ); // single check is sufficient
+        require(getPair[token0][token1] == address(0), "FurionSwap: PAIR_EXISTS"); // single check is sufficient
 
         bytes memory bytecode = type(FurionSwapPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));

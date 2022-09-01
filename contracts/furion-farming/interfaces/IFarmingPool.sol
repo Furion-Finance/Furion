@@ -3,6 +3,7 @@
 pragma solidity ^0.8.10;
 
 interface IFarmingPool {
+
     function pendingFurion(uint256 _poolId, address _user)
         external
         returns (uint256);

@@ -4,90 +4,104 @@ pragma solidity ^0.8.10;
 
 interface IFurionSwapV2Router {
     function factory() external view returns (address);
+
     function WETH() external view returns (address);
 
     function addLiquidity(
         address _tokenA,
         address _tokenB,
-        uint _amountADesired,
-        uint _amountBDesired,
-        uint _amountAMin,
-        uint _amountBMin,
+        uint256 _amountADesired,
+        uint256 _amountBDesired,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         address _to,
-        uint _deadline
-    ) external returns (uint _amountA, uint _amountB, uint _liquidity);
+        uint256 _deadline
+    )
+        external
+        returns (
+            uint256 _amountA,
+            uint256 _amountB,
+            uint256 _liquidity
+        );
 
     function addLiquidityETH(
         address _token,
-        uint _amountTokenDesired,
-        uint _amountTokenMin,
-        uint _amountETHMin,
+        uint256 _amountTokenDesired,
+        uint256 _amountTokenMin,
+        uint256 _amountETHMin,
         address _to,
-        uint _deadline
-    ) external payable returns (uint _amountToken, uint _amountETH, uint _liquidity);
+        uint256 _deadline
+    )
+        external
+        payable
+        returns (
+            uint256 _amountToken,
+            uint256 _amountETH,
+            uint256 _liquidity
+        );
 
     function removeLiquidity(
         address _tokenA,
         address _tokenB,
-        uint _liquidity,
-        uint _amountAMin,
-        uint _amountBMin,
+        uint256 _liquidity,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
         address _to,
-        uint _deadline
-    ) external returns (uint _amountA, uint _amountB);
+        uint256 _deadline
+    ) external returns (uint256 _amountA, uint256 _amountB);
 
     function removeLiquidityETH(
         address _token,
-        uint _liquidity,
-        uint _amountTokenMin,
-        uint _amountETHMin,
+        uint256 _liquidity,
+        uint256 _amountTokenMin,
+        uint256 _amountETHMin,
         address _to,
-        uint _deadline
-    ) external returns (uint _amountToken, uint _amountETH);
+        uint256 _deadline
+    ) external returns (uint256 _amountToken, uint256 _amountETH);
 
     function swapExactTokensForTokens(
-        uint _amountIn,
-        uint _amountOutMin,
+        uint256 _amountIn,
+        uint256 _amountOutMin,
         address[] calldata _path,
         address _to,
-        uint _deadline
-    ) external returns (uint[] memory _amounts);
+        uint256 _deadline
+    ) external returns (uint256[] memory _amounts);
 
     function swapTokensForExactTokens(
-        uint _amountOut,
-        uint _amountInMax,
+        uint256 _amountOut,
+        uint256 _amountInMax,
         address[] calldata _path,
         address _to,
-        uint _deadline
-    ) external returns (uint[] memory _amounts);
+        uint256 _deadline
+    ) external returns (uint256[] memory _amounts);
 
     function swapExactETHForTokens(
-        uint _amountOutMin,
+        uint256 _amountOutMin,
         address[] calldata _path,
         address _to,
-        uint _deadline
-    ) external payable returns (uint[] memory _amounts);
+        uint256 _deadline
+    ) external payable returns (uint256[] memory _amounts);
 
     function swapTokensForExactETH(
-        uint _amountOut,
-        uint _amountInMax,
+        uint256 _amountOut,
+        uint256 _amountInMax,
         address[] calldata _path,
         address _to,
-        uint _deadline
-    ) external returns (uint[] memory _amounts);
+        uint256 _deadline
+    ) external returns (uint256[] memory _amounts);
 
     function swapExactTokensForETH(
-        uint _amountIn,
-        uint _amountOutMin,
+        uint256 _amountIn,
+        uint256 _amountOutMin,
         address[] calldata _path,
         address _to,
-        uint _deadline
-    ) external returns (uint[] memory amounts);
+        uint256 _deadline
+    ) external returns (uint256[] memory amounts);
 
     function swapETHForExactTokens(
-        uint _amountOut,
+        uint256 _amountOut,
         address[] calldata _path,
         address _to,
-        uint _deadline
-    ) external payable returns (uint[] memory amounts);
+        uint256 _deadline
+    ) external payable returns (uint256[] memory amounts);
 }

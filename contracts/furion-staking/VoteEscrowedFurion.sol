@@ -7,12 +7,12 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { VeERC20Upgradeable } from "./VeERC20Upgradeable.sol";
-import { Math } from "../libraries/Math.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {VeERC20Upgradeable} from "./VeERC20Upgradeable.sol";
+import {Math} from "../libraries/Math.sol";
 
-import { IFarmingPool } from "../furion-farming/interfaces/IFarmingPool.sol";
+import {IFarmingPool} from "../furion-farming/interfaces/IFarmingPool.sol";
 
 /*
 //===================================//
@@ -47,7 +47,7 @@ contract VoteEscrowedFurion is
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     PausableUpgradeable,
-    VeERC20Upgradeable 
+    VeERC20Upgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -138,10 +138,7 @@ contract VoteEscrowedFurion is
     // ************************************* Constructor ************************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    function initialize(address _furion)
-        public
-        initializer
-    {
+    function initialize(address _furion) public initializer {
         if (_furion == address(0)) revert VEF__ZeroAddress();
 
         // Initialize veFUR
@@ -368,7 +365,7 @@ contract VoteEscrowedFurion is
         emit BurnVeFUR(msg.sender, _to, _amount);
     }
 
-     // ---------------------------------------------------------------------------------------- //
+    // ---------------------------------------------------------------------------------------- //
     // ************************************ View Functions ************************************ //
     // ---------------------------------------------------------------------------------------- //
 
@@ -393,7 +390,8 @@ contract VoteEscrowedFurion is
 
         // get user's veFUR balance
         uint256 userVeFURBalance = balanceOf(_user) -
-            user.amountLocked * realCapRatio;
+            user.amountLocked *
+            realCapRatio;
 
         // user veFUR balance cannot go above user.amount * maxCap
         uint256 veFURCap = user.amount * realCapRatio;
@@ -514,7 +512,7 @@ contract VoteEscrowedFurion is
         view
         returns (uint256 realCapRatio)
     {
-        if(_user == address(0)) revert VEF__ZeroAddress();
+        if (_user == address(0)) revert VEF__ZeroAddress();
         realCapRatio = maxCapRatio;
     }
 }

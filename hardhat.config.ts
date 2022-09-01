@@ -1,9 +1,10 @@
+import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
-import "@openzeppelin/hardhat-upgrades";
 import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
-import "hardhat-contract-sizer";
+import "hardhat-deploy";
+import "hardhat-deploy-ethers";
 import "hardhat-gas-reporter";
 import "hardhat-spdx-license-identifier";
 import { HardhatUserConfig } from "hardhat/config";
@@ -11,14 +12,25 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 
-import "./tasks";
+// tasks from FarmingPool
+import "./tasks/furion-farming/farmingPool";
+// tasks from FurionSwap
+import "./tasks/furion-swap/setCheckStates";
+import "./tasks/furion-swap/tradingPair";
+// tasks from IncomeSharing
+import "./tasks/income-sharing/incomeMaker";
+// tasks from Tokens
+import "./tasks/tokens/mintBurn";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file");
+
+const privateKey: string | undefined = process.env.PRIVATE_KEY;
+
+if (!privateKey && !mnemonic) {
+  throw new Error("Please set your PRIVATE_KEY or MNEMONIC in a .env file");
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
@@ -50,12 +62,19 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
   }
+
+  let accounts: [] | any;
+  // if (mnemonic) {
+  //   accounts = {
+  //     count: 10,
+  //     mnemonic,
+  //     path: "m/44'/60'/0'/0",
+  //   }
+  // } else {
+  accounts = [`0x${privateKey}`];
+  // }
   return {
-    accounts: {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts: accounts,
     chainId: chainIds[chain],
     url: jsonRpcUrl,
   };
@@ -75,12 +94,30 @@ const config: HardhatUserConfig = {
       rinkeby: process.env.ETHERSCAN_API_KEY || "",
     },
   },
+
+  namedAccounts: {
+    deployer: {
+      default: 0,
+      localhost: 0,
+      rinkeby: "0xA10f8ecb4d91Ae5CA3291d0bFF159bd5F882A5f5",
+      fuji: 0,
+      avax: 0,
+      avaxTest: 0,
+    },
+    testAddress: {
+      default: 1,
+      localhost: 1,
+      fuji: 1,
+      avax: 1,
+      avaxTest: 1,
+    },
+  },
+
   gasReporter: {
     currency: "USD",
     enabled: process.env.REPORT_GAS == "true" ? true : false,
     excludeContracts: [],
     src: "./contracts",
-    coinmarketcap: process.env.CMC_API_KEY,
   },
   networks: {
     hardhat: {
@@ -121,7 +158,7 @@ const config: HardhatUserConfig = {
     },
   },
   typechain: {
-    outDir: "src/types",
+    outDir: "./typechain",
     target: "ethers-v5",
   },
   spdxLicenseIdentifier: {

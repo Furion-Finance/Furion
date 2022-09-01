@@ -1,59 +1,60 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import chai from "chai";
+
 import { solidity } from "ethereum-waffle";
-
-import {
-  FurionSwapFactory,
-  FurionSwapFactory__factory,
-  MockERC20,
-  MockERC20__factory,
-  MockUSD,
-  MockUSD__factory,
-  WETH9,
-  WETH9__factory,
-} from "../../typechain";
-
+import chai from "chai";
 chai.use(solidity);
 const { expect } = chai;
 
 const { ethers } = require("hardhat");
 
-describe("Furion Swap Factory", function () {
-  let erc: MockERC20, weth: WETH9, usd: MockUSD;
+import {
+    WETH9,
+    WETH9__factory,
+    MockERC20,
+    MockERC20__factory,
+    MockUSD,
+    MockUSD__factory,
+    FurionSwapFactory,
+    FurionSwapFactory__factory,
+} from "../../typechain";
 
-  let dev: SignerWithAddress, user1: SignerWithAddress, users: SignerWithAddress[];
+describe("Furion Swap Factory", function(){
+    let erc: MockERC20, weth: WETH9, usd: MockUSD;
 
-  let factory: FurionSwapFactory;
+    let dev: SignerWithAddress, user1: SignerWithAddress, users: SignerWithAddress[];
 
-  beforeEach(async function () {
-    [dev, user1, ...users] = await ethers.getSigners();
+    let factory: FurionSwapFactory;
 
-    factory = await new FurionSwapFactory__factory(dev).deploy(dev.address);
-    erc = await new MockERC20__factory(dev).deploy();
-    usd = await new MockUSD__factory(dev).deploy();
-    weth = await new WETH9__factory(dev).deploy();
+    beforeEach(async function(){
+        [dev, user1, ...users] = await ethers.getSigners();
 
-    await factory.deployed();
-    await erc.deployed();
-    await usd.deployed();
-  });
+        factory = await new FurionSwapFactory__factory(dev).deploy(dev.address);
+        erc = await new MockERC20__factory(dev).deploy();
+        usd = await new MockUSD__factory(dev).deploy();
+        weth = await new WETH9__factory(dev).deploy();
 
-  it("should have the correct incomeMaker and feeRate", async function () {
-    expect(await factory.incomeMakerProportion()).to.equal("1");
-    expect(await factory.incomeMaker()).to.equal(dev.address);
-  });
+        await factory.deployed();
+        await erc.deployed();
+        await usd.deployed();
+    });
 
-  it("should work well with setIncomeMaker", async function () {
-    await factory.setIncomeMakerAddress(user1.address);
-    expect(await factory.incomeMaker()).to.equal(user1.address);
-  });
+    it("should have the correct incomeMaker and feeRate", async function(){
+        expect(await factory.incomeMakerProportion()).to.equal("1");
+        expect(await factory.incomeMaker()).to.equal(dev.address);
+    });
 
-  it("should work well with createPair", async function () {
-    await expect(factory.createPair(erc.address, erc.address)).to.revertedWith("FurionSwap: IDENTICAL_ADDRESSES");
+    it("should work well with setIncomeMaker", async function(){
+        await factory.setIncomeMakerAddress(user1.address);
+        expect(await factory.incomeMaker()).to.equal(user1.address);
+    });
 
-    await factory.createPair(erc.address, usd.address);
-    expect(await factory.getPair(erc.address, usd.address)).to.equal(await factory.getPair(usd.address, erc.address));
+    it("should work well with createPair", async function(){
+        await expect(factory.createPair(erc.address, erc.address)).to.revertedWith("FurionSwap: IDENTICAL_ADDRESSES");
 
-    await expect(factory.createPair(usd.address, erc.address)).to.revertedWith("FurionSwap: PAIR_EXISTS");
-  });
-});
+        await factory.createPair(erc.address, usd.address);
+        expect(await factory.getPair(erc.address, usd.address)).to.equal(await factory.getPair(usd.address, erc.address));
+
+        await expect(factory.createPair(usd.address, erc.address)).to.revertedWith("FurionSwap: PAIR_EXISTS");
+    })
+
+})

@@ -30,6 +30,7 @@ import {IERC20Decimals} from "../utils/interfaces/IERC20Decimals.sol";
  */
 
 contract FurionSwapV2Router is IFurionSwapV2Router {
+
     using SafeERC20 for IERC20;
     using SafeERC20 for IFurionSwapPair;
 
@@ -47,16 +48,16 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
 
     event LiquidityAdded(
         address indexed pairAddress,
-        uint256 amountA,
-        uint256 amountB,
-        uint256 liquidity
+        uint amountA,
+        uint amountB,
+        uint liquidity
     );
 
     event LiquidityRemoved(
         address indexed pairAddress,
-        uint256 amountA,
-        uint256 amountB,
-        uint256 liquidity
+        uint amountA,
+        uint amountB,
+        uint liquidity
     );
 
     // ---------------------------------------------------------------------------------------- //
@@ -76,8 +77,8 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @notice Transactions are available only before the deadline
      * @param _deadline Deadline of the pool
      */
-    modifier beforeDeadline(uint256 _deadline) {
-        if (_deadline > 0) {
+    modifier beforeDeadline(uint _deadline) {
+        if(_deadline > 0){
             if (msg.sender != IFurionSwapFactory(factory).incomeMaker()) {
                 require(block.timestamp < _deadline, "expired transaction");
             }
@@ -110,31 +111,27 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
     function addLiquidity(
         address _tokenA,
         address _tokenB,
-        uint256 _amountADesired,
-        uint256 _amountBDesired,
-        uint256 _amountAMin,
-        uint256 _amountBMin,
+        uint _amountADesired,
+        uint _amountBDesired,
+        uint _amountAMin,
+        uint _amountBMin,
         address _to,
-        uint256 _deadline
-    )
-        external
-        beforeDeadline(_deadline)
-        returns (
-            uint256 amountA,
-            uint256 amountB,
-            uint256 liquidity
-        )
-    {
-        (amountA, amountB) = _addLiquidity(
-            _tokenA,
-            _tokenB,
-            _amountADesired,
-            _amountBDesired,
-            _amountAMin,
-            _amountBMin
-        );
+        uint _deadline
+    ) external beforeDeadline(_deadline) returns (uint amountA, uint amountB, uint liquidity) {
 
-        address pair = IFurionSwapFactory(factory).getPair(_tokenA, _tokenB);
+        (amountA, amountB) = _addLiquidity(
+                _tokenA,
+                _tokenB,
+                _amountADesired,
+                _amountBDesired,
+                _amountAMin,
+                _amountBMin
+            );
+
+        address pair = IFurionSwapFactory(factory).getPair(
+            _tokenA,
+            _tokenB
+        );
 
         _transferFromHelper(_tokenA, msg.sender, pair, amountA);
         _transferFromHelper(_tokenB, msg.sender, pair, amountB);
@@ -158,21 +155,13 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      */
     function addLiquidityETH(
         address _token,
-        uint256 _amountTokenDesired,
-        uint256 _amountTokenMin,
-        uint256 _amountETHMin,
+        uint _amountTokenDesired,
+        uint _amountTokenMin,
+        uint _amountETHMin,
         address _to,
-        uint256 _deadline
-    )
-        external
-        payable
-        beforeDeadline(_deadline)
-        returns (
-            uint256 amountToken,
-            uint256 amountETH,
-            uint256 liquidity
-        )
-    {
+        uint _deadline
+    ) external payable beforeDeadline(_deadline) returns (uint amountToken, uint amountETH, uint liquidity) {
+
         (amountToken, amountETH) = _addLiquidity(
             _token,
             WETH,
@@ -182,7 +171,10 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
             _amountETHMin
         );
 
-        address pair = IFurionSwapFactory(factory).getPair(_token, WETH);
+        address pair = IFurionSwapFactory(factory).getPair(
+            _token,
+            WETH
+        );
 
         _transferFromHelper(_token, msg.sender, pair, amountToken);
         IWETH(WETH).deposit{value: amountETH}();
@@ -191,8 +183,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         liquidity = IFurionSwapPair(pair).mint(_to);
 
         // refund dust eth, if any
-        if (msg.value > amountETH)
-            _safeTransferETH(msg.sender, msg.value - amountETH);
+        if (msg.value > amountETH) _safeTransferETH(msg.sender, msg.value - amountETH);
 
         emit LiquidityAdded(pair, amountToken, amountETH, liquidity);
     }
@@ -212,27 +203,28 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
     function removeLiquidity(
         address _tokenA,
         address _tokenB,
-        uint256 _liquidity,
-        uint256 _amountAMin,
-        uint256 _amountBMin,
+        uint _liquidity,
+        uint _amountAMin,
+        uint _amountBMin,
         address _to,
-        uint256 _deadline
+        uint _deadline
     )
-        public
-        override
+        public override
         beforeDeadline(_deadline)
-        returns (uint256 amount0, uint256 amount1)
+        returns (uint amount0, uint amount1)
     {
-        address pair = IFurionSwapFactory(factory).getPair(_tokenA, _tokenB);
+        address pair = IFurionSwapFactory(factory).getPair(
+            _tokenA,
+            _tokenB
+        );
 
         IFurionSwapPair(pair).safeTransferFrom(msg.sender, pair, _liquidity); // send liquidity to pair
 
         // token0 < token1, corresponding amoount
         (amount0, amount1) = IFurionSwapPair(pair).burn(_to);
 
-        (uint256 amount0Min, uint256 amount1Min) = _tokenA < _tokenB
-            ? (_amountAMin, _amountBMin)
-            : (_amountBMin, _amountAMin);
+        (uint amount0Min, uint amount1Min) = _tokenA < _tokenB ? 
+        (_amountAMin, _amountBMin) : (_amountBMin, _amountAMin);
 
         require(amount0 >= amount0Min, "Insufficient amount for token0");
         require(amount1 >= amount1Min, "Insufficient amount for token1");
@@ -253,16 +245,12 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      */
     function removeLiquidityETH(
         address _token,
-        uint256 _liquidity,
-        uint256 _amountTokenMin,
-        uint256 _amountETHMin,
+        uint _liquidity,
+        uint _amountTokenMin,
+        uint _amountETHMin,
         address _to,
-        uint256 _deadline
-    )
-        external
-        beforeDeadline(_deadline)
-        returns (uint256 amountToken, uint256 amountETH)
-    {
+        uint _deadline
+    ) external beforeDeadline(_deadline) returns (uint amountToken, uint amountETH) {
         (amountToken, amountETH) = removeLiquidity(
             _token,
             WETH,
@@ -290,23 +278,15 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amounts Amount of tokens
      */
     function swapExactTokensForTokens(
-        uint256 _amountIn,
-        uint256 _amountOutMin,
+        uint _amountIn,
+        uint _amountOutMin,
         address[] calldata _path,
         address _to,
-        uint256 _deadline
-    )
-        public
-        override
-        beforeDeadline(_deadline)
-        returns (uint256[] memory amounts)
-    {
+        uint _deadline
+    ) public override beforeDeadline(_deadline) returns (uint[] memory amounts) {
         amounts = getAmountsOut(_amountIn, _path);
 
-        require(
-            amounts[amounts.length - 1] >= _amountOutMin,
-            "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
-        );
+        require(amounts[amounts.length - 1] >= _amountOutMin, "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
 
         _transferFromHelper(
             _path[0],
@@ -327,23 +307,16 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amounts Amount of tokens
      */
     function swapTokensForExactTokens(
-        uint256 _amountOut,
-        uint256 _amountInMax,
+        uint _amountOut,
+        uint _amountInMax,
         address[] calldata _path,
         address _to,
-        uint256 _deadline
-    )
-        public
-        override
-        beforeDeadline(_deadline)
-        returns (uint256[] memory amounts)
-    {
+        uint _deadline
+    ) public override beforeDeadline(_deadline) returns (uint[] memory amounts) {
+
         amounts = getAmountsIn(_amountOut, _path);
 
-        require(
-            amounts[0] <= _amountInMax,
-            "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT"
-        );
+        require(amounts[0] <= _amountInMax, "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
 
         _transferFromHelper(
             _path[0],
@@ -354,6 +327,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         _swap(amounts, _path, _to);
     }
 
+
     /**
      * @notice Swap exact ETH for another token, input is fixed
      * @param _amountOutMin Minimum amount of output token
@@ -363,31 +337,22 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amounts Amount of tokens
      */
     function swapExactETHForTokens(
-        uint256 _amountOutMin,
+        uint _amountOutMin,
         address[] calldata _path,
         address _to,
-        uint256 _deadline
-    )
-        external
-        payable
-        override
-        beforeDeadline(_deadline)
-        returns (uint256[] memory amounts)
+        uint _deadline
+    ) external override payable beforeDeadline(_deadline)
+        returns (uint[] memory amounts)
     {
         require(_path[0] == WETH, "FurionSwapV2Router: INVALID_PATH");
         amounts = getAmountsOut(msg.value, _path);
-        require(
-            amounts[amounts.length - 1] >= _amountOutMin,
-            "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
-        );
-
+        require(amounts[amounts.length - 1] >= _amountOutMin, "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
+        
         IWETH(WETH).deposit{value: amounts[0]}();
-        assert(
-            IWETH(WETH).transfer(
-                IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
-                amounts[0]
-            )
-        );
+        assert(IWETH(WETH).transfer(
+            IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
+            amounts[0]
+        ));
         _swap(amounts, _path, _to);
     }
 
@@ -401,26 +366,17 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amounts Amount of tokens
      */
     function swapTokensForExactETH(
-        uint256 _amountOut,
-        uint256 _amountInMax,
+        uint _amountOut,
+        uint _amountInMax,
         address[] calldata _path,
         address _to,
-        uint256 _deadline
-    )
-        external
-        override
-        beforeDeadline(_deadline)
-        returns (uint256[] memory amounts)
+        uint _deadline
+    ) external override beforeDeadline(_deadline)
+        returns (uint[] memory amounts)
     {
-        require(
-            _path[_path.length - 1] == WETH,
-            "FurionSwapV2Router: INVALID_PATH"
-        );
+        require(_path[_path.length - 1] == WETH, "FurionSwapV2Router: INVALID_PATH");
         amounts = getAmountsIn(_amountOut, _path);
-        require(
-            amounts[0] <= _amountInMax,
-            "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT"
-        );
+        require(amounts[0] <= _amountInMax, "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
 
         _transferFromHelper(
             _path[0],
@@ -432,7 +388,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         _safeTransferETH(_to, amounts[amounts.length - 1]);
     }
-
+    
     /**
      * @notice Swap exact tokens for ETH, input is fixed
      * @param _amountIn Amount of input token
@@ -443,26 +399,17 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amounts Amount of tokens
      */
     function swapExactTokensForETH(
-        uint256 _amountIn,
-        uint256 _amountOutMin,
+        uint _amountIn,
+        uint _amountOutMin,
         address[] calldata _path,
         address _to,
-        uint256 _deadline
-    )
-        external
-        override
-        beforeDeadline(_deadline)
-        returns (uint256[] memory amounts)
+        uint _deadline
+    ) external override beforeDeadline(_deadline)
+        returns (uint[] memory amounts)
     {
-        require(
-            _path[_path.length - 1] == WETH,
-            "FurionSwapV2Router: INVALID_PATH"
-        );
+        require(_path[_path.length - 1] == WETH, "FurionSwapV2Router: INVALID_PATH");
         amounts = getAmountsOut(_amountIn, _path);
-        require(
-            amounts[amounts.length - 1] >= _amountOutMin,
-            "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
-        );
+        require(amounts[amounts.length - 1] >= _amountOutMin, "FurionSwapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
 
         _transferFromHelper(
             _path[0],
@@ -485,36 +432,26 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amounts Amount of tokens
      */
     function swapETHForExactTokens(
-        uint256 _amountOut,
+        uint _amountOut,
         address[] calldata _path,
         address _to,
-        uint256 _deadline
-    )
-        external
-        payable
-        override
-        beforeDeadline(_deadline)
-        returns (uint256[] memory amounts)
+        uint _deadline
+    ) external override payable beforeDeadline(_deadline)
+        returns (uint[] memory amounts)
     {
         require(_path[0] == WETH, "FurionSwapV2Router: INVALID_PATH");
         amounts = getAmountsIn(_amountOut, _path);
-        require(
-            amounts[0] <= msg.value,
-            "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT"
-        );
+        require(amounts[0] <= msg.value, "FurionSwapV2Router: EXCESSIVE_INPUT_AMOUNT");
 
         IWETH(WETH).deposit{value: amounts[0]}();
-        assert(
-            IWETH(WETH).transfer(
-                IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
-                amounts[0]
-            )
-        );
+        assert(IWETH(WETH).transfer(
+            IFurionSwapFactory(factory).getPair(_path[0], _path[1]),
+            amounts[0]
+        ));
         _swap(amounts, _path, _to);
 
         // refund dust eth, if any
-        if (msg.value > amounts[0])
-            _safeTransferETH(msg.sender, msg.value - amounts[0]);
+        if (msg.value > amounts[0]) _safeTransferETH(msg.sender, msg.value - amounts[0]);
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -553,14 +490,17 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amountOut Amount of token out
      */
     function getAmountOut(
-        uint256 _amountIn,
+        uint _amountIn,
         address _tokenIn,
         address _tokenOut
-    ) public view returns (uint256 amountOut) {
-        (uint256 reserve0, uint256 reserve1) = getReserves(_tokenIn, _tokenOut);
+    ) public view returns (uint amountOut) {
+        (uint reserve0, uint reserve1) = getReserves(
+            _tokenIn,
+            _tokenOut
+        );
 
         // Get the right order
-        (uint256 reserveIn, uint256 reserveOut) = _tokenIn < _tokenOut
+        (uint reserveIn, uint reserveOut) = _tokenIn < _tokenOut
             ? (reserve0, reserve1)
             : (reserve1, reserve0);
 
@@ -568,13 +508,13 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         require(reserveIn > 0 && reserveOut > 0, "insufficient liquidity");
 
         // read fee rate from FurionSwapPair
-        uint256 feeRate = IFurionSwapPair(
+        uint feeRate = IFurionSwapPair(
             IFurionSwapFactory(factory).getPair(_tokenIn, _tokenOut)
         ).feeRate();
 
-        uint256 amountInWithFee = _amountIn * (1000 - feeRate);
-        uint256 numerator = amountInWithFee * reserveOut;
-        uint256 denominator = reserveIn * 1000 + amountInWithFee;
+        uint amountInWithFee = _amountIn * (1000 - feeRate);
+        uint numerator = amountInWithFee * reserveOut;
+        uint denominator = reserveIn * 1000 + amountInWithFee;
 
         amountOut = numerator / denominator;
     }
@@ -587,14 +527,17 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amountIn Amount of token in
      */
     function getAmountIn(
-        uint256 _amountOut,
+        uint _amountOut,
         address _tokenIn,
         address _tokenOut
-    ) public view returns (uint256 amountIn) {
-        (uint256 reserve0, uint256 reserve1) = getReserves(_tokenIn, _tokenOut);
+    ) public view returns (uint amountIn) {
+        (uint reserve0, uint reserve1) = getReserves(
+            _tokenIn,
+            _tokenOut
+        );
 
         // Get the right order
-        (uint256 reserveIn, uint256 reserveOut) = _tokenIn < _tokenOut
+        (uint reserveIn, uint reserveOut) = _tokenIn < _tokenOut
             ? (reserve0, reserve1)
             : (reserve1, reserve0);
 
@@ -602,12 +545,12 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         require(reserveIn > 0 && reserveOut > 0, "insufficient liquidity");
 
         // read fee rate from FurionSwapPair
-        uint256 feeRate = IFurionSwapPair(
+        uint feeRate = IFurionSwapPair(
             IFurionSwapFactory(factory).getPair(_tokenIn, _tokenOut)
         ).feeRate();
 
-        uint256 numerator = reserveIn * (_amountOut) * 1000;
-        uint256 denominator = (reserveOut - _amountOut) * (1000 - feeRate);
+        uint numerator = reserveIn * (_amountOut) * 1000;
+        uint denominator = (reserveOut - _amountOut) * (1000 - feeRate);
 
         amountIn = numerator / denominator + 1;
     }
@@ -618,16 +561,15 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @param _path Path of trading routes
      * @return amounts Amount of tokens
      */
-    function getAmountsOut(uint256 _amountIn, address[] memory _path)
-        public
-        view
-        returns (uint256[] memory amounts)
-    {
+    function getAmountsOut(
+        uint _amountIn,
+        address[] memory _path
+    ) public view returns (uint[] memory amounts) {
         require(_path.length >= 2, "FurionSwap: INVALID_PATH");
-        amounts = new uint256[](_path.length);
+        amounts = new uint[](_path.length);
         amounts[0] = _amountIn;
-        for (uint256 i; i < _path.length - 1; i++) {
-            amounts[i + 1] = getAmountOut(amounts[i], _path[i], _path[i + 1]);
+        for (uint i; i < _path.length - 1; i++) {
+            amounts[i+1] = getAmountOut(amounts[i], _path[i], _path[i+1]);
         }
     }
 
@@ -637,17 +579,17 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @param _path Path of trading routes
      * @return amounts Amount of tokens
      */
-    function getAmountsIn(uint256 _amountOut, address[] memory _path)
-        public
-        view
-        returns (uint256[] memory amounts)
-    {
+    function getAmountsIn(
+        uint _amountOut,
+        address[] memory _path
+    ) public view returns (uint[] memory amounts) {
+
         require(_path.length >= 2, "FurionSwap: INVALID_PATH");
-        amounts = new uint256[](_path.length);
+        amounts = new uint[](_path.length);
         amounts[amounts.length - 1] = _amountOut;
 
-        for (uint256 i = _path.length - 1; i > 0; i--) {
-            amounts[i - 1] = getAmountIn(amounts[i], _path[i - 1], _path[i]);
+        for (uint i = _path.length - 1; i > 0; i--) {
+            amounts[i-1] = getAmountIn(amounts[i], _path[i-1], _path[i]);
         }
     }
 
@@ -661,15 +603,16 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @return amountB Amount of tokenB
      */
     function quote(
-        uint256 _amountA,
-        uint256 _reserveA,
-        uint256 _reserveB
-    ) public pure returns (uint256 amountB) {
+        uint _amountA,
+        uint _reserveA,
+        uint _reserveB
+    ) public pure returns (uint amountB) {
         require(_amountA > 0, "insufficient amount");
         require(_reserveA > 0 && _reserveB > 0, "insufficient liquidity");
 
         amountB = (_amountA * _reserveB) / _reserveA;
     }
+
 
     // ---------------------------------------------------------------------------------------- //
     // *********************************** Internal Functions ********************************* //
@@ -689,25 +632,28 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
     function _addLiquidity(
         address _tokenA,
         address _tokenB,
-        uint256 _amountADesired,
-        uint256 _amountBDesired,
-        uint256 _amountAMin,
-        uint256 _amountBMin
-    ) private view returns (uint256 amountA, uint256 amountB) {
-        (uint256 reserve0, uint256 reserve1) = getReserves(_tokenA, _tokenB);
-        (uint256 reserveA, uint256 reserveB) = _tokenA < _tokenB
-            ? (reserve0, reserve1)
-            : (reserve1, reserve0);
+        uint _amountADesired,
+        uint _amountBDesired,
+        uint _amountAMin,
+        uint _amountBMin
+    ) private view returns (uint amountA, uint amountB) {
+
+        (uint reserve0, uint reserve1) = getReserves(_tokenA, _tokenB);
+        (uint reserveA, uint reserveB) = _tokenA < _tokenB ? (reserve0, reserve1) : (reserve1, reserve0);
 
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (_amountADesired, _amountBDesired);
         } else {
-            uint256 amountBOptimal = quote(_amountADesired, reserveA, reserveB);
+            uint amountBOptimal = quote(
+                _amountADesired,
+                reserveA,
+                reserveB
+            );
             if (amountBOptimal <= _amountBDesired) {
                 require(amountBOptimal >= _amountBMin, "INSUFFICIENT_B_AMOUNT");
                 (amountA, amountB) = (_amountADesired, amountBOptimal);
             } else {
-                uint256 amountAOptimal = quote(
+                uint amountAOptimal = quote(
                     _amountBDesired,
                     reserveB,
                     reserveA
@@ -730,7 +676,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
         address _token,
         address _from,
         address _to,
-        uint256 _amount
+        uint _amount
     ) internal {
         // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
         // (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(0x23b872dd, _from, _to, _amount));
@@ -747,7 +693,7 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
     function _transferHelper(
         address _token,
         address _to,
-        uint256 _amount
+        uint _amount
     ) internal {
         // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
         // (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(0x23b872dd, _from, _to, _amount));
@@ -760,8 +706,8 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @param _to Address to receive the token
      * @param _amount Transfer amount
      */
-    function _safeTransferETH(address _to, uint256 _amount) internal {
-        (bool success, ) = _to.call{value: _amount}("");
+    function _safeTransferETH(address _to, uint _amount) internal {
+        (bool success,) = _to.call{value: _amount}("");
         require(success, "TransferHelper: ETH_TRANSFER_FAILED");
     }
 
@@ -771,28 +717,19 @@ contract FurionSwapV2Router is IFurionSwapV2Router {
      * @param _path Address of tokens for multiple swap
      * @param _to Address of the final token receiver
      */
-    function _swap(
-        uint256[] memory _amounts,
-        address[] memory _path,
-        address _to
-    ) private {
-        for (uint256 i; i < _path.length - 1; i++) {
+    function _swap(uint[] memory _amounts, address[] memory _path, address _to) private {
+        for (uint i; i < _path.length - 1; i++) {
             // get token pair for each seperate swap
-            (address input, address output) = (_path[i], _path[i + 1]);
+            (address input, address output) = (_path[i], _path[i+1]);
             address token0 = input < output ? input : output;
 
             // get tokenOutAmount for each swap
-            uint256 amountOut = _amounts[i + 1];
-            (uint256 amount0Out, uint256 amount1Out) = input == token0
-                ? (uint256(0), amountOut)
-                : (amountOut, uint256(0));
+            uint amountOut = _amounts[i + 1];
+            (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
 
-            address to = i < _path.length - 2
-                ? IFurionSwapFactory(factory).getPair(output, _path[i + 2])
-                : _to;
-
-            IFurionSwapPair(IFurionSwapFactory(factory).getPair(input, output))
-                .swap(amount0Out, amount1Out, to);
+            address to = i < _path.length - 2 ? IFurionSwapFactory(factory).getPair(output, _path[i+2]) : _to;
+            
+            IFurionSwapPair(IFurionSwapFactory(factory).getPair(input, output)).swap(amount0Out, amount1Out, to);
         }
     }
 }

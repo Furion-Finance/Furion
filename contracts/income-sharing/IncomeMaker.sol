@@ -32,8 +32,8 @@ contract IncomeMaker is OwnableUpgradeable {
     // ************************************* Constants **************************************** //
     // ---------------------------------------------------------------------------------------- //
 
-    uint256 public constant uint_MAX = type(uint256).max;
-    uint256 public constant PRICE_SCALE = 1e6;
+    uint public constant uint_MAX = type(uint).max;
+    uint public constant PRICE_SCALE = 1e6;
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Variables **************************************** //
@@ -49,22 +49,28 @@ contract IncomeMaker is OwnableUpgradeable {
     address public incomeToken;
 
     // proportion allocated to income sharing vault, 0-100, 80 by default
-    uint256 public incomeProportion;
+    uint public incomeProportion;
 
     // ---------------------------------------------------------------------------------------- //
     // *************************************** Events ***************************************** //
     // ---------------------------------------------------------------------------------------- //
-    event IncomeTokenChanged(address oldToken, address newToken);
-    event IncomeProportionChanged(uint256 oldProportion, uint256 newProportion);
+    event IncomeTokenChanged(
+        address oldToken,
+        address newToken
+    );
+    event IncomeProportionChanged(
+        uint oldProportion,
+        uint newProportion
+    );
 
     event IncomeToToken(
         address otherTokenAddress,
         address incomeTokenAddress,
-        uint256 amountIn,
-        uint256 amountOut
+        uint amountIn,
+        uint amountOut
     );
 
-    event EmergencyWithdraw(address token, uint256 amount);
+    event EmergencyWithdraw(address token, uint amount);
 
     // ---------------------------------------------------------------------------------------- //
     // ************************************* Constructor ************************************** //
@@ -105,13 +111,10 @@ contract IncomeMaker is OwnableUpgradeable {
      * @return amountIncome Amount of income collected
      */
     function collectIncomeFromSwap(address _tokenA, address _tokenB)
-        external
-        returns (uint256 amountIncome)
-    {
+    external returns (uint amountIncome){
         // Get the pair
         IFurionSwapPair pair = IFurionSwapPair(
-            factory.getPair(_tokenA, _tokenB)
-        );
+            factory.getPair(_tokenA, _tokenB));
         require(address(pair) != address(0), "INCOME_MAKER: PAIR_NOT_EXIST");
 
         (address token0, address token1) = _tokenA < _tokenB
@@ -125,18 +128,17 @@ contract IncomeMaker is OwnableUpgradeable {
         );
 
         // Directly call the pair to burn lp tokens
-        (uint256 amount0, uint256 amount1) = pair.burn(address(this));
+        (uint amount0, uint amount1) = pair.burn(address(this));
 
-        uint256 amountIncome0 = _convertIncome(token0, amount0);
-        uint256 amountIncome1 = _convertIncome(token1, amount1);
+        uint amountIncome0 = _convertIncome(token0, amount0);
+        uint amountIncome1 = _convertIncome(token1, amount1);
 
         amountIncome = amountIncome0 + amountIncome1;
 
         // Transfer all incomeTokens to income sharing vault
         IERC20(incomeToken).safeTransfer(
             incomeSharingVault,
-            (IERC20(incomeToken).balanceOf(address(this)) * incomeProportion) /
-                100
+            IERC20(incomeToken).balanceOf(address(this)) * incomeProportion / 100
         );
     }
 
@@ -145,7 +147,7 @@ contract IncomeMaker is OwnableUpgradeable {
      * @param _token Address of the token
      * @param _amount Amount of the token
      */
-    function emergencyWithdraw(address _token, uint256 _amount)
+    function emergencyWithdraw(address _token, uint _amount)
         external
         onlyOwner
     {
@@ -164,14 +166,8 @@ contract IncomeMaker is OwnableUpgradeable {
         incomeToken = _newIncomeToken;
     }
 
-    function setIncomeProportion(uint8 _newIncomeProportion)
-        external
-        onlyOwner
-    {
-        require(
-            _newIncomeProportion <= 100,
-            "INCOME_MAKER: EXCEED_PROPORTION_RANGE"
-        );
+    function setIncomeProportion(uint8 _newIncomeProportion) external onlyOwner {
+        require(_newIncomeProportion <= 100, "INCOME_MAKER: EXCEED_PROPORTION_RANGE");
         emit IncomeProportionChanged(incomeProportion, _newIncomeProportion);
 
         incomeProportion = _newIncomeProportion;
@@ -185,28 +181,19 @@ contract IncomeMaker is OwnableUpgradeable {
      * @notice Convert the income to incomeToken and transfer to the incomeSharingVault
      * @param _otherToken Address of the other token
      */
-    function _convertIncome(address _otherToken, uint256 _amountToken)
-        internal
-        returns (uint256 amountIncome)
-    {
-        if (_otherToken != incomeToken) {
+    function _convertIncome(address _otherToken, uint _amountToken) internal returns (uint amountIncome){
+        if(_otherToken != incomeToken){
             // Get the pair
-            IFurionSwapPair pair = IFurionSwapPair(
-                factory.getPair(_otherToken, incomeToken)
-            );
-            require(
-                address(pair) != address(0),
-                "INCOME_MAKER: PAIR_NOT_EXIST"
-            );
+            IFurionSwapPair pair = IFurionSwapPair(factory.getPair(_otherToken, incomeToken));
+            require(address(pair) != address(0), "INCOME_MAKER: PAIR_NOT_EXIST");
 
-            amountIncome = _swap(_otherToken, _amountToken, address(this));
-
-            emit IncomeToToken(
+            amountIncome = _swap(
                 _otherToken,
-                incomeToken,
                 _amountToken,
-                amountIncome
+                address(this)
             );
+
+            emit IncomeToToken(_otherToken, incomeToken, _amountToken, amountIncome);
         }
     }
 
@@ -218,25 +205,25 @@ contract IncomeMaker is OwnableUpgradeable {
      */
     function _swap(
         address _otherToken,
-        uint256 _amount,
+        uint _amount,
         address _to
-    ) internal returns (uint256 amountOut) {
+    ) internal returns (uint amountOut) {
         // Get the pair
         IFurionSwapPair pair = IFurionSwapPair(
             factory.getPair(_otherToken, incomeToken)
         );
         require(address(pair) != address(0), "INCOME_MAKER: PAIR_NOT_EXIST");
 
-        (uint256 reserve0, uint256 reserve1) = pair.getReserves();
+        (uint reserve0, uint reserve1) = pair.getReserves();
 
-        (uint256 reserveIn, uint256 reserveOut) = _otherToken < incomeToken
+        (uint reserveIn, uint reserveOut) = _otherToken < incomeToken
             ? (reserve0, reserve1)
             : (reserve1, reserve0);
 
-        uint256 feeRate = pair.feeRate();
+        uint feeRate = pair.feeRate();
 
         // Calculate amountIn - fee
-        uint256 amountInWithFee = _amount * (1000 - feeRate);
+        uint amountInWithFee = _amount * (1000 - feeRate);
 
         // Calculate amountOut
         amountOut =
@@ -246,9 +233,9 @@ contract IncomeMaker is OwnableUpgradeable {
         // Transfer other token and swap
         IERC20(_otherToken).safeTransfer(address(pair), _amount);
 
-        (uint256 amount0Out, uint256 amount1Out) = _otherToken < incomeToken
-            ? (uint256(0), amountOut)
-            : (amountOut, uint256(0));
+        (uint amount0Out, uint amount1Out) = _otherToken < incomeToken
+            ? (uint(0), amountOut)
+            : (amountOut, uint(0));
         pair.swap(amount0Out, amount1Out, _to);
     }
 }

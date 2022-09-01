@@ -28,7 +28,10 @@ import {IFurionSwapFactory} from "./interfaces/IFurionSwapFactory.sol";
  *         The swaps are only availale before the deadline.
  */
 
-contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard {
+contract FurionSwapPair is
+    ERC20("Furion Swap Pool LP", "FSL"),
+    ReentrancyGuard
+{
     using SafeERC20 for IERC20;
 
     // ---------------------------------------------------------------------------------------- //
@@ -36,7 +39,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     // ---------------------------------------------------------------------------------------- //
 
     // Minimum liquidity locked
-    uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
+    uint256 public constant MINIMUM_LIQUIDITY = 10**3;
 
     // FurionSwapFactory contract address
     address public factory;
@@ -45,8 +48,8 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     address public token0;
     address public token1;
 
-    uint private reserve0;
-    uint private reserve1;
+    uint256 private reserve0;
+    uint256 private reserve1;
 
     // Fee Rate, given to LP holders (0 ~ 1000)
     uint256 public feeRate = 3;
@@ -89,15 +92,14 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
      * @param _tokenA TokenA address
      * @param _tokenB TokenB address
      */
-    function initialize(
-        address _tokenA,
-        address _tokenB
-    ) external {
+    function initialize(address _tokenA, address _tokenB) external {
         require(
             msg.sender == factory,
             "can only be initialized by the factory contract"
         );
-        (token0, token1) = _tokenA < _tokenB ? (_tokenA, _tokenB) : (_tokenB, _tokenA);
+        (token0, token1) = _tokenA < _tokenB
+            ? (_tokenA, _tokenB)
+            : (_tokenB, _tokenA);
     }
 
     // ---------------------------------------------------------------------------------------- //
@@ -113,7 +115,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
     function getReserves()
         public
         view
-        returns (uint _reserve0, uint _reserve1)
+        returns (uint256 _reserve0, uint256 _reserve1)
     {
         (_reserve0, _reserve1) = (reserve0, reserve1);
     }
@@ -133,7 +135,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
         nonReentrant
         returns (uint256 liquidity)
     {
-        (uint _reserve0, uint _reserve1) = getReserves(); // gas savings
+        (uint256 _reserve0, uint256 _reserve1) = getReserves(); // gas savings
 
         uint256 balance0 = IERC20(token0).balanceOf(address(this)); // token0 balance after deposit
         uint256 balance1 = IERC20(token1).balanceOf(address(this)); // token1 balance after deposit
@@ -229,7 +231,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
             "Output amount need to be positive"
         );
 
-        (uint _reserve0, uint _reserve1) = getReserves(); // gas savings
+        (uint256 _reserve0, uint256 _reserve1) = getReserves(); // gas savings
         require(
             _amount0Out < _reserve0 && _amount1Out < _reserve1,
             "Not enough liquidity"
@@ -301,11 +303,11 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
      * @param balance1 Balance of token1
      */
     function _update(uint256 balance0, uint256 balance1) private {
-        uint MAX_NUM = type(uint).max;
+        uint256 MAX_NUM = type(uint256).max;
         require(balance0 <= MAX_NUM && balance1 <= MAX_NUM, "uint OVERFLOW");
 
-        reserve0 = uint(balance0);
-        reserve1 = uint(balance1);
+        reserve0 = uint256(balance0);
+        reserve1 = uint256(balance1);
 
         emit ReserveUpdated(reserve0, reserve1);
     }
@@ -315,7 +317,7 @@ contract FurionSwapPair is ERC20("Furion Swap Pool LP", "FSL"), ReentrancyGuard 
      * @param _reserve0 Reserve of token0
      * @param _reserve1 Reserve of token1
      */
-    function _mintFee(uint _reserve0, uint _reserve1)
+    function _mintFee(uint256 _reserve0, uint256 _reserve1)
         private
         returns (bool feeOn)
     {

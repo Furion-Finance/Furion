@@ -5,7 +5,6 @@ pragma solidity ^0.8.10;
 import "./interfaces/IWETH.sol";
 
 contract WETH9 is IWETH {
-
     string public name = "Wrapped Ether";
     string public symbol = "WETH";
     uint8 public decimals = 18;

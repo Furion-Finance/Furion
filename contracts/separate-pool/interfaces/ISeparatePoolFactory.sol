@@ -12,6 +12,8 @@ interface ISeparatePoolFactory {
         view
         returns (address[] memory poolAddresses);
 
+    function getNftByPool(address _poolAddress) external view returns (address);
+
     function createPool(address _nftAddress)
         external
         returns (address poolAddress);

@@ -70,6 +70,20 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
         return poolAddresses;
     }
 
+    function getNftByPool(address _poolAddress) public view returns (address) {
+        for (uint256 i; i < allNfts.length; ) {
+            if (getPool[allNfts[i]] == _poolAddress) {
+                return allNfts[i];
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return address(0);
+    }
+
     /**
      * @dev Change owner/fee receiver for all project pools
      */

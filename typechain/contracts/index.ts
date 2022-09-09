@@ -3,15 +3,22 @@
 /* tslint:disable */
 
 /* eslint-disable */
+import type * as aggregatePool from "./aggregate-pool";
 import type * as furionFarming from "./furion-farming";
 import type * as furionStaking from "./furion-staking";
 import type * as furionSwap from "./furion-swap";
 import type * as incomeSharing from "./income-sharing";
 import type * as libraries from "./libraries";
 import type * as mock from "./mock";
+import type * as moneyMarket from "./money-market";
 import type * as proxy from "./proxy";
+import type * as separatePool from "./separate-pool";
+import type * as templateSol from "./template.sol";
+import type * as testOnly from "./test-only";
 import type * as tokens from "./tokens";
 import type * as utils from "./utils";
+
+export type { aggregatePool };
 
 export type { furionFarming };
 
@@ -25,9 +32,20 @@ export type { libraries };
 
 export type { mock };
 
+export type { moneyMarket };
+
 export type { proxy };
+
+export type { separatePool };
+
+export type { templateSol };
+
+export type { testOnly };
 
 export type { tokens };
 
 export type { utils };
+export type { Checker } from "./Checker";
 export type { Greeter } from "./Greeter";
+export type { IChecker } from "./IChecker";
+export type { TestClaim } from "./TestClaim";

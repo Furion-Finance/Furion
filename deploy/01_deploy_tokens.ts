@@ -70,6 +70,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true,
     });
     addressList[network.name].WETH = mockWeth.address;
+
+    const coolCats = await deploy("CoolCats", {
+      contract: "CoolCats",
+      from: deployer,
+      args: [],
+      log: true,
+    });
+    addressList[network.name].CoolCats = coolCats.address;
+
+    const testClaim = await deploy("TestClaim", {
+      contract: "TestClaim",
+      from: deployer,
+      args: [furion.address, mockUSD.address, coolCats.address],
+      log: true,
+    });
+    addressList[network.name].TestClaim = testClaim.address;
   }
 
   // Store the address list after deployment

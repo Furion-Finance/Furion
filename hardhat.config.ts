@@ -1,10 +1,8 @@
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
-import "@openzeppelin/hardhat-upgrades";
 import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
-import "hardhat-contract-sizer";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-gas-reporter";
@@ -14,7 +12,6 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 
-import "./tasks";
 // tasks from FarmingPool
 import "./tasks/furion-farming/farmingPool";
 // tasks from FurionSwap
@@ -66,18 +63,18 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
   }
 
-  let _accounts: [] | any;
-  if (mnemonic != "") {
-    _accounts = {
-      count: 10,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    };
-  } else {
-    _accounts = [`0x${privateKey}`];
-  }
+  let accounts: [] | any;
+  // if (mnemonic) {
+  //   accounts = {
+  //     count: 10,
+  //     mnemonic,
+  //     path: "m/44'/60'/0'/0",
+  //   }
+  // } else {
+  accounts = [`0x${privateKey}`];
+  // }
   return {
-    accounts: _accounts,
+    accounts: accounts,
     chainId: chainIds[chain],
     url: jsonRpcUrl,
   };
@@ -97,6 +94,7 @@ const config: HardhatUserConfig = {
       rinkeby: process.env.ETHERSCAN_API_KEY || "",
     },
   },
+
   namedAccounts: {
     deployer: {
       default: 0,
@@ -114,12 +112,12 @@ const config: HardhatUserConfig = {
       avaxTest: 1,
     },
   },
+
   gasReporter: {
     currency: "USD",
     enabled: process.env.REPORT_GAS == "true" ? true : false,
     excludeContracts: [],
     src: "./contracts",
-    coinmarketcap: process.env.CMC_API_KEY,
   },
   networks: {
     hardhat: {

@@ -37,9 +37,8 @@ contract TestClaim {
         // every account can only claim once
         require(!claimAlready[msg.sender], "HAVE_CLAIMED");
 
-        uint256 amount = 10000 ether;
-        furion.mintFurion(msg.sender, amount);
-        usd.mint(msg.sender, amount);
+        furion.mintFurion(msg.sender, 10000 ether);
+        usd.mint(msg.sender, 10000000000);
         coolCats.giveAway(msg.sender, 2);
     }
 }

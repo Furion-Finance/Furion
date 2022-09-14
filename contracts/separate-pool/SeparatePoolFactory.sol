@@ -104,6 +104,16 @@ contract SeparatePoolFactory is ISeparatePoolFactory, Ownable {
         }
     }
 
+    function setFur(address _newFur) public onlyOwner {
+        for (uint256 i; i < allNfts.length; ) {
+            ISeparatePool(getPool[allNfts[i]]).setFur(_newFur);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     /**
      * @dev Create pool and add address to array
      */

@@ -15,6 +15,7 @@ import "hardhat/console.sol";
 contract AggregatePool is ERC20Permit {
     IERC20 FUR;
     IFurionPricingOracle oracle;
+    ISeparatePoolFactory spFactory;
 
     address public immutable factory;
     // Will be immutable for income sharing vault
@@ -48,6 +49,7 @@ contract AggregatePool is ERC20Permit {
     constructor(
         address _fur,
         address _oracle,
+        address _spFactory,
         address _owner,
         address[] memory _tokens,
         string memory _tokenName,
@@ -56,6 +58,7 @@ contract AggregatePool is ERC20Permit {
         factory = msg.sender;
         FUR = IERC20(_fur);
         oracle = IFurionPricingOracle(_oracle);
+        spFactory = ISeparatePoolFactory(_spFactory);
         owner = _owner;
 
         uint256 length = _tokens.length;
@@ -111,6 +114,10 @@ contract AggregatePool is ERC20Permit {
      */
     function changeOwner(address _newOwner) external onlyFactory {
         owner = _newOwner;
+    }
+
+    function setFur(address _newFur) external onlyFactory {
+        FUR = IERC20(_newFur);
     }
 
     /**
@@ -188,7 +195,7 @@ contract AggregatePool is ERC20Permit {
         view
         returns (uint256)
     {
-        address nft = ISeparatePoolFactory(factory).getNftByPool(_tokenAddress);
+        address nft = spFactory.getNftByPool(_tokenAddress);
         require(
             nft != address(0),
             "AggregatePool: Unrecognized separate pool provided"

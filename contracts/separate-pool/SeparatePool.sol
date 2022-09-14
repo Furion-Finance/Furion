@@ -32,7 +32,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         bool extended; // Can only extend once
         uint256 releaseTime;
     }
-    mapping(bytes32 => LockInfo) lockInfo;
+    mapping(bytes32 => LockInfo) public lockInfo;
 
     uint16[] public inPool;
 
@@ -113,12 +113,12 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Release time getter for testing
+     * @dev Get complete lock  info of NFT
      */
-    function getReleaseTime(uint256 _id) public view returns (uint256) {
+    function getLockInfo(uint256 _id) public view returns (LockInfo memory) {
         bytes32 fId = getFurionId(_id);
 
-        return lockInfo[fId].releaseTime;
+        return lockInfo[fId];
     }
 
     /**
@@ -143,6 +143,10 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         owner = _newOwner;
 
         emit OwnerChanged(oldOwner, _newOwner);
+    }
+
+    function setFur(address _newFur) external onlyFactory {
+        FUR = IERC20(_newFur);
     }
 
     /**

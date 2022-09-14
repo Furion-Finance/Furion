@@ -9,6 +9,8 @@ interface IAggregatePool {
 
     function changeOwner(address _newOwner) external;
 
+    function setFur(address _newFur) external;
+
     function stake(
         address _tokenAddress,
         uint256 _amount,

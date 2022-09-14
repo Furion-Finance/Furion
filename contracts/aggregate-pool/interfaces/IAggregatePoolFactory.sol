@@ -11,7 +11,9 @@ interface IAggregatePoolFactory {
 
     function allPoolsLength() external view returns (uint256);
 
-    function createPool(address[] memory _tokens)
-        external
-        returns (address poolAddress);
+    function createPool(
+        address[] memory _tokens,
+        string memory _name,
+        string memory _symbol
+    ) external returns (address poolAddress);
 }

@@ -16,7 +16,8 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
 
     address public fur;
     address public oracle;
-    address public checker;
+    address public immutable checker;
+    address public immutable spFactory;
 
     // Starts from 1
     Counters.Counter private poolId;
@@ -31,11 +32,14 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
 
     constructor(
         address _checker,
-        address _fur //address _oracle
+        address _fur,
+        address _oracle,
+        address _spFactory
     ) {
         checker = _checker;
         fur = _fur;
-        //oracle = _oracle;
+        oracle = _oracle;
+        spFactory = _spFactory;
     }
 
     /**
@@ -66,15 +70,26 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
         }
     }
 
+    function setFur(address _newFur) public onlyOwner {
+        for (uint256 i = 1; i < poolId.current() + 1; ) {
+            IAggregatePool(getPool[i]).setFur(_newFur);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     /**
      * @dev Initialize root pool and grant FFT minting and burning permissions
      *
      * @param _tokens Addresses of project pools to be included in the root pool
      */
-    function createPool(address[] memory _tokens)
-        external
-        returns (address poolAddress)
-    {
+    function createPool(
+        address[] memory _tokens,
+        string memory _name,
+        string memory _symbol
+    ) external returns (address poolAddress) {
         require(
             checker != address(0),
             "AggregatePoolFactory: Checker not set."
@@ -91,13 +106,11 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
             new AggregatePool{salt: _salt}(
                 fur,
                 oracle,
+                spFactory,
                 owner(),
                 _tokens,
-                string.concat(
-                    "FurionFungibleToken",
-                    Strings.toString(poolId.current())
-                ),
-                string.concat("FFT", Strings.toString(poolId.current()))
+                string.concat("FurionFungibleToken ", _name),
+                string.concat("FFT-", _symbol)
             )
         );
 

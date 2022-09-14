@@ -11,6 +11,8 @@ interface ISeparatePool is IERC721Receiver {
 
     function changeOwner(address _newOwner) external;
 
+    function setFur(address _newFur) external;
+
     function sell(uint256 _id) external;
 
     function buy(uint256 _id) external;

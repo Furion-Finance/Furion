@@ -1,6 +1,7 @@
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
+import "@openzeppelin/hardhat-upgrades";
 import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
 import "hardhat-deploy";
@@ -12,6 +13,7 @@ import { NetworkUserConfig } from "hardhat/types";
 import { resolve } from "path";
 import "solidity-coverage";
 
+import "./tasks";
 // tasks from FarmingPool
 import "./tasks/furion-farming/farmingPool";
 // tasks from FurionSwap
@@ -71,7 +73,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
   //     path: "m/44'/60'/0'/0",
   //   }
   // } else {
-  accounts = [`0x${privateKey}`];
+  accounts = [`${privateKey}`];
   // }
   return {
     accounts: accounts,

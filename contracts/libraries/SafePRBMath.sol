@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.10;
 
-import "prb-math/contracts/PRBMath.sol";
+import "@prb/math/contracts/PRBMath.sol";
 
 /**
  * @notice This prb-math version is 2.4.1

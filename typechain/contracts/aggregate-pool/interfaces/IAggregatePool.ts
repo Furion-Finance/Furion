@@ -25,15 +25,19 @@ export interface IAggregatePoolInterface extends utils.Interface {
     "changeOwner(address)": FunctionFragment;
     "factory()": FunctionFragment;
     "owner()": FunctionFragment;
+    "setFur(address)": FunctionFragment;
     "stake(address,uint256,uint256)": FunctionFragment;
     "unstake(address,uint256,uint256)": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "changeOwner" | "factory" | "owner" | "stake" | "unstake"): FunctionFragment;
+  getFunction(
+    nameOrSignatureOrTopic: "changeOwner" | "factory" | "owner" | "setFur" | "stake" | "unstake",
+  ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "changeOwner", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "setFur", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(
     functionFragment: "stake",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
@@ -46,6 +50,7 @@ export interface IAggregatePoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "changeOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFur", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unstake", data: BytesLike): Result;
 
@@ -84,6 +89,11 @@ export interface IAggregatePool extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
     stake(
       _tokenAddress: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
@@ -108,6 +118,11 @@ export interface IAggregatePool extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
+  setFur(
+    _newFur: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
   stake(
     _tokenAddress: PromiseOrValue<string>,
     _amount: PromiseOrValue<BigNumberish>,
@@ -128,6 +143,8 @@ export interface IAggregatePool extends BaseContract {
     factory(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    setFur(_newFur: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     stake(
       _tokenAddress: PromiseOrValue<string>,
@@ -156,6 +173,11 @@ export interface IAggregatePool extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
+
     stake(
       _tokenAddress: PromiseOrValue<string>,
       _amount: PromiseOrValue<BigNumberish>,
@@ -180,6 +202,11 @@ export interface IAggregatePool extends BaseContract {
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
 
     stake(
       _tokenAddress: PromiseOrValue<string>,

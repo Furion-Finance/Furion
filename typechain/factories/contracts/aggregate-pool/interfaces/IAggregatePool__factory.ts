@@ -55,6 +55,19 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "_newFur",
+        type: "address",
+      },
+    ],
+    name: "setFur",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_tokenAddress",
         type: "address",
       },

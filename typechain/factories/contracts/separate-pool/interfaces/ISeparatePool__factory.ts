@@ -150,6 +150,19 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_newFur",
+        type: "address",
+      },
+    ],
+    name: "setFur",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ];
 
 export class ISeparatePool__factory {

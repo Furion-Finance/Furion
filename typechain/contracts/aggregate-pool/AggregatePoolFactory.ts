@@ -24,12 +24,14 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
   functions: {
     "allPoolsLength()": FunctionFragment;
     "checker()": FunctionFragment;
-    "createPool(address[])": FunctionFragment;
+    "createPool(address[],string,string)": FunctionFragment;
     "fur()": FunctionFragment;
     "getPool(uint256)": FunctionFragment;
     "oracle()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "setFur(address)": FunctionFragment;
+    "spFactory()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -43,17 +45,24 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
       | "oracle"
       | "owner"
       | "renounceOwnership"
+      | "setFur"
+      | "spFactory"
       | "transferOwnership",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "allPoolsLength", values?: undefined): string;
   encodeFunctionData(functionFragment: "checker", values?: undefined): string;
-  encodeFunctionData(functionFragment: "createPool", values: [PromiseOrValue<string>[]]): string;
+  encodeFunctionData(
+    functionFragment: "createPool",
+    values: [PromiseOrValue<string>[], PromiseOrValue<string>, PromiseOrValue<string>],
+  ): string;
   encodeFunctionData(functionFragment: "fur", values?: undefined): string;
   encodeFunctionData(functionFragment: "getPool", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+  encodeFunctionData(functionFragment: "setFur", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "spFactory", values?: undefined): string;
   encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
 
   decodeFunctionResult(functionFragment: "allPoolsLength", data: BytesLike): Result;
@@ -64,6 +73,8 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFur", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "spFactory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
 
   events: {
@@ -120,6 +131,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
     createPool(
       _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -133,6 +146,13 @@ export interface AggregatePoolFactory extends BaseContract {
 
     renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    spFactory(overrides?: CallOverrides): Promise<[string]>;
+
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -145,6 +165,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
   createPool(
     _tokens: PromiseOrValue<string>[],
+    _name: PromiseOrValue<string>,
+    _symbol: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
@@ -158,6 +180,13 @@ export interface AggregatePoolFactory extends BaseContract {
 
   renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
+  setFur(
+    _newFur: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
+  spFactory(overrides?: CallOverrides): Promise<string>;
+
   transferOwnership(
     _newOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -168,7 +197,12 @@ export interface AggregatePoolFactory extends BaseContract {
 
     checker(overrides?: CallOverrides): Promise<string>;
 
-    createPool(_tokens: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<string>;
+    createPool(
+      _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<string>;
 
     fur(overrides?: CallOverrides): Promise<string>;
 
@@ -179,6 +213,10 @@ export interface AggregatePoolFactory extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setFur(_newFur: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
+
+    spFactory(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(_newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
   };
@@ -204,6 +242,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
     createPool(
       _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
@@ -216,6 +256,13 @@ export interface AggregatePoolFactory extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
+
+    spFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
@@ -230,6 +277,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
     createPool(
       _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 
@@ -242,6 +291,13 @@ export interface AggregatePoolFactory extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
+
+    spFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,

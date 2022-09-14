@@ -23,7 +23,7 @@ import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListen
 export interface IAggregatePoolFactoryInterface extends utils.Interface {
   functions: {
     "allPoolsLength()": FunctionFragment;
-    "createPool(address[])": FunctionFragment;
+    "createPool(address[],string,string)": FunctionFragment;
     "getPool(uint256)": FunctionFragment;
     "oracle()": FunctionFragment;
   };
@@ -31,7 +31,10 @@ export interface IAggregatePoolFactoryInterface extends utils.Interface {
   getFunction(nameOrSignatureOrTopic: "allPoolsLength" | "createPool" | "getPool" | "oracle"): FunctionFragment;
 
   encodeFunctionData(functionFragment: "allPoolsLength", values?: undefined): string;
-  encodeFunctionData(functionFragment: "createPool", values: [PromiseOrValue<string>[]]): string;
+  encodeFunctionData(
+    functionFragment: "createPool",
+    values: [PromiseOrValue<string>[], PromiseOrValue<string>, PromiseOrValue<string>],
+  ): string;
   encodeFunctionData(functionFragment: "getPool", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
 
@@ -70,6 +73,8 @@ export interface IAggregatePoolFactory extends BaseContract {
 
     createPool(
       _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -82,6 +87,8 @@ export interface IAggregatePoolFactory extends BaseContract {
 
   createPool(
     _tokens: PromiseOrValue<string>[],
+    _name: PromiseOrValue<string>,
+    _symbol: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
@@ -92,7 +99,12 @@ export interface IAggregatePoolFactory extends BaseContract {
   callStatic: {
     allPoolsLength(overrides?: CallOverrides): Promise<BigNumber>;
 
-    createPool(_tokens: PromiseOrValue<string>[], overrides?: CallOverrides): Promise<string>;
+    createPool(
+      _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
+      overrides?: CallOverrides,
+    ): Promise<string>;
 
     getPool(_poolId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
@@ -106,6 +118,8 @@ export interface IAggregatePoolFactory extends BaseContract {
 
     createPool(
       _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
@@ -119,6 +133,8 @@ export interface IAggregatePoolFactory extends BaseContract {
 
     createPool(
       _tokens: PromiseOrValue<string>[],
+      _name: PromiseOrValue<string>,
+      _symbol: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 

@@ -31,6 +31,7 @@ export interface ISeparatePoolInterface extends utils.Interface {
     "redeem(uint256)": FunctionFragment;
     "release(uint256)": FunctionFragment;
     "sell(uint256)": FunctionFragment;
+    "setFur(address)": FunctionFragment;
   };
 
   getFunction(
@@ -43,7 +44,8 @@ export interface ISeparatePoolInterface extends utils.Interface {
       | "owner"
       | "redeem"
       | "release"
-      | "sell",
+      | "sell"
+      | "setFur",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "buy", values: [PromiseOrValue<BigNumberish>]): string;
@@ -58,6 +60,7 @@ export interface ISeparatePoolInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "redeem", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "release", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "sell", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "setFur", values: [PromiseOrValue<string>]): string;
 
   decodeFunctionResult(functionFragment: "buy", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "changeOwner", data: BytesLike): Result;
@@ -68,6 +71,7 @@ export interface ISeparatePoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "release", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sell", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFur", data: BytesLike): Result;
 
   events: {};
 }
@@ -136,6 +140,11 @@ export interface ISeparatePool extends BaseContract {
       _id: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
   };
 
   buy(
@@ -180,6 +189,11 @@ export interface ISeparatePool extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
+  setFur(
+    _newFur: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     buy(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
@@ -204,6 +218,8 @@ export interface ISeparatePool extends BaseContract {
     release(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     sell(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+
+    setFur(_newFur: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {};
@@ -250,6 +266,11 @@ export interface ISeparatePool extends BaseContract {
       _id: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -292,6 +313,11 @@ export interface ISeparatePool extends BaseContract {
 
     sell(
       _id: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
   };

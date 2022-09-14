@@ -33,6 +33,7 @@ export interface SeparatePoolFactoryInterface extends utils.Interface {
     "numOfPools()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "setFur(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -49,6 +50,7 @@ export interface SeparatePoolFactoryInterface extends utils.Interface {
       | "numOfPools"
       | "owner"
       | "renounceOwnership"
+      | "setFur"
       | "transferOwnership",
   ): FunctionFragment;
 
@@ -63,6 +65,7 @@ export interface SeparatePoolFactoryInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "numOfPools", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
+  encodeFunctionData(functionFragment: "setFur", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "transferOwnership", values: [PromiseOrValue<string>]): string;
 
   decodeFunctionResult(functionFragment: "allNfts", data: BytesLike): Result;
@@ -76,6 +79,7 @@ export interface SeparatePoolFactoryInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "numOfPools", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFur", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
 
   events: {
@@ -152,6 +156,11 @@ export interface SeparatePoolFactory extends BaseContract {
 
     renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -183,6 +192,11 @@ export interface SeparatePoolFactory extends BaseContract {
 
   renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
+  setFur(
+    _newFur: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
   transferOwnership(
     _newOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -210,6 +224,8 @@ export interface SeparatePoolFactory extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setFur(_newFur: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     transferOwnership(_newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
   };
@@ -258,6 +274,11 @@ export interface SeparatePoolFactory extends BaseContract {
 
     renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
+
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -289,6 +310,11 @@ export interface SeparatePoolFactory extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,

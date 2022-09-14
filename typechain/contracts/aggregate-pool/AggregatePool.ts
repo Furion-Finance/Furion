@@ -38,6 +38,7 @@ export interface AggregatePoolInterface extends utils.Interface {
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "registerToken(address)": FunctionFragment;
     "registered(address)": FunctionFragment;
+    "setFur(address)": FunctionFragment;
     "setStakeFee(uint256)": FunctionFragment;
     "setUnstakeFee(uint256)": FunctionFragment;
     "stake(address,uint256)": FunctionFragment;
@@ -69,6 +70,7 @@ export interface AggregatePoolInterface extends utils.Interface {
       | "permit"
       | "registerToken"
       | "registered"
+      | "setFur"
       | "setStakeFee"
       | "setUnstakeFee"
       | "stake"
@@ -118,6 +120,7 @@ export interface AggregatePoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "registerToken", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "registered", values: [PromiseOrValue<string>]): string;
+  encodeFunctionData(functionFragment: "setFur", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "setStakeFee", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "setUnstakeFee", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "stake", values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]): string;
@@ -155,6 +158,7 @@ export interface AggregatePoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "registerToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "registered", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFur", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setStakeFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setUnstakeFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
@@ -311,6 +315,11 @@ export interface AggregatePool extends BaseContract {
 
     registered(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[boolean]>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
     setStakeFee(
       _newStakeFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -420,6 +429,11 @@ export interface AggregatePool extends BaseContract {
 
   registered(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
 
+  setFur(
+    _newFur: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
   setStakeFee(
     _newStakeFee: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -522,6 +536,8 @@ export interface AggregatePool extends BaseContract {
     registerToken(_tokenAddress: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     registered(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<boolean>;
+
+    setFur(_newFur: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     setStakeFee(_newStakeFee: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
@@ -676,6 +692,11 @@ export interface AggregatePool extends BaseContract {
 
     registered(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
+
     setStakeFee(
       _newStakeFee: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -785,6 +806,11 @@ export interface AggregatePool extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     registered(arg0: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
 
     setStakeFee(
       _newStakeFee: PromiseOrValue<BigNumberish>,

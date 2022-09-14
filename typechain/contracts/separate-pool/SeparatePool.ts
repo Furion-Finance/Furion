@@ -20,6 +20,20 @@ import type {
 
 import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListener } from "../../common";
 
+export declare namespace SeparatePool {
+  export type LockInfoStruct = {
+    locker: PromiseOrValue<string>;
+    extended: PromiseOrValue<boolean>;
+    releaseTime: PromiseOrValue<BigNumberish>;
+  };
+
+  export type LockInfoStructOutput = [string, boolean, BigNumber] & {
+    locker: string;
+    extended: boolean;
+    releaseTime: BigNumber;
+  };
+}
+
 export interface SeparatePoolInterface extends utils.Interface {
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
@@ -36,12 +50,13 @@ export interface SeparatePoolInterface extends utils.Interface {
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "factory()": FunctionFragment;
     "getFurionId(uint256)": FunctionFragment;
-    "getReleaseTime(uint256)": FunctionFragment;
+    "getLockInfo(uint256)": FunctionFragment;
     "inPool(uint256)": FunctionFragment;
     "incomeMaker()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "lock(uint256)": FunctionFragment;
     "lockBatch(uint256[])": FunctionFragment;
+    "lockInfo(bytes32)": FunctionFragment;
     "name()": FunctionFragment;
     "nft()": FunctionFragment;
     "nonces(address)": FunctionFragment;
@@ -54,6 +69,7 @@ export interface SeparatePoolInterface extends utils.Interface {
     "sell(uint256)": FunctionFragment;
     "sellBatch(uint256[])": FunctionFragment;
     "setBuyFee(uint128)": FunctionFragment;
+    "setFur(address)": FunctionFragment;
     "setLockFee(uint128)": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
@@ -77,12 +93,13 @@ export interface SeparatePoolInterface extends utils.Interface {
       | "decreaseAllowance"
       | "factory"
       | "getFurionId"
-      | "getReleaseTime"
+      | "getLockInfo"
       | "inPool"
       | "incomeMaker"
       | "increaseAllowance"
       | "lock"
       | "lockBatch"
+      | "lockInfo"
       | "name"
       | "nft"
       | "nonces"
@@ -95,6 +112,7 @@ export interface SeparatePoolInterface extends utils.Interface {
       | "sell"
       | "sellBatch"
       | "setBuyFee"
+      | "setFur"
       | "setLockFee"
       | "symbol"
       | "totalSupply"
@@ -122,7 +140,7 @@ export interface SeparatePoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(functionFragment: "getFurionId", values: [PromiseOrValue<BigNumberish>]): string;
-  encodeFunctionData(functionFragment: "getReleaseTime", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "getLockInfo", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "inPool", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "incomeMaker", values?: undefined): string;
   encodeFunctionData(
@@ -131,6 +149,7 @@ export interface SeparatePoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "lock", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "lockBatch", values: [PromiseOrValue<BigNumberish>[]]): string;
+  encodeFunctionData(functionFragment: "lockInfo", values: [PromiseOrValue<BytesLike>]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nft", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [PromiseOrValue<string>]): string;
@@ -157,6 +176,7 @@ export interface SeparatePoolInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "sell", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "sellBatch", values: [PromiseOrValue<BigNumberish>[]]): string;
   encodeFunctionData(functionFragment: "setBuyFee", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "setFur", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "setLockFee", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "totalSupply", values?: undefined): string;
@@ -183,12 +203,13 @@ export interface SeparatePoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "decreaseAllowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getFurionId", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getReleaseTime", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getLockInfo", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "inPool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "incomeMaker", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "increaseAllowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lockBatch", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "lockInfo", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nft", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
@@ -201,6 +222,7 @@ export interface SeparatePoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "sell", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sellBatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setBuyFee", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setFur", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setLockFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "totalSupply", data: BytesLike): Result;
@@ -367,7 +389,10 @@ export interface SeparatePool extends BaseContract {
 
     getFurionId(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
-    getReleaseTime(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
+    getLockInfo(
+      _id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides,
+    ): Promise<[SeparatePool.LockInfoStructOutput]>;
 
     inPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[number]>;
 
@@ -388,6 +413,17 @@ export interface SeparatePool extends BaseContract {
       _ids: PromiseOrValue<BigNumberish>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
+
+    lockInfo(
+      arg0: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides,
+    ): Promise<
+      [string, boolean, BigNumber] & {
+        locker: string;
+        extended: boolean;
+        releaseTime: BigNumber;
+      }
+    >;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
@@ -443,6 +479,11 @@ export interface SeparatePool extends BaseContract {
 
     setBuyFee(
       _newFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<ContractTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<ContractTransaction>;
 
@@ -518,7 +559,7 @@ export interface SeparatePool extends BaseContract {
 
   getFurionId(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
-  getReleaseTime(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+  getLockInfo(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<SeparatePool.LockInfoStructOutput>;
 
   inPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
@@ -539,6 +580,17 @@ export interface SeparatePool extends BaseContract {
     _ids: PromiseOrValue<BigNumberish>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
+
+  lockInfo(
+    arg0: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides,
+  ): Promise<
+    [string, boolean, BigNumber] & {
+      locker: string;
+      extended: boolean;
+      releaseTime: BigNumber;
+    }
+  >;
 
   name(overrides?: CallOverrides): Promise<string>;
 
@@ -594,6 +646,11 @@ export interface SeparatePool extends BaseContract {
 
   setBuyFee(
     _newFee: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> },
+  ): Promise<ContractTransaction>;
+
+  setFur(
+    _newFur: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
   ): Promise<ContractTransaction>;
 
@@ -660,7 +717,10 @@ export interface SeparatePool extends BaseContract {
 
     getFurionId(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
-    getReleaseTime(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    getLockInfo(
+      _id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides,
+    ): Promise<SeparatePool.LockInfoStructOutput>;
 
     inPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
@@ -675,6 +735,17 @@ export interface SeparatePool extends BaseContract {
     lock(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
     lockBatch(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<void>;
+
+    lockInfo(
+      arg0: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides,
+    ): Promise<
+      [string, boolean, BigNumber] & {
+        locker: string;
+        extended: boolean;
+        releaseTime: BigNumber;
+      }
+    >;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -714,6 +785,8 @@ export interface SeparatePool extends BaseContract {
     sellBatch(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<void>;
 
     setBuyFee(_newFee: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
+
+    setFur(_newFur: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>;
 
     setLockFee(_newFee: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<void>;
 
@@ -849,7 +922,7 @@ export interface SeparatePool extends BaseContract {
 
     getFurionId(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getReleaseTime(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
+    getLockInfo(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     inPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -870,6 +943,8 @@ export interface SeparatePool extends BaseContract {
       _ids: PromiseOrValue<BigNumberish>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
+
+    lockInfo(arg0: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -925,6 +1000,11 @@ export interface SeparatePool extends BaseContract {
 
     setBuyFee(
       _newFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<BigNumber>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<BigNumber>;
 
@@ -1001,7 +1081,7 @@ export interface SeparatePool extends BaseContract {
 
     getFurionId(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getReleaseTime(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getLockInfo(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     inPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1022,6 +1102,8 @@ export interface SeparatePool extends BaseContract {
       _ids: PromiseOrValue<BigNumberish>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
+
+    lockInfo(arg0: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1077,6 +1159,11 @@ export interface SeparatePool extends BaseContract {
 
     setBuyFee(
       _newFee: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setFur(
+      _newFur: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
     ): Promise<PopulatedTransaction>;
 

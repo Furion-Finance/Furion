@@ -1,0 +1,17 @@
+{
+  "localhost": {},
+  "rinkeby": {
+    "0": {
+      "name": "fETH",
+      "address": "0x99dcd52242b43792E6ABFF79154eb75DaCF8e367"
+    },
+    "1": {
+      "name": "fFUR",
+      "address": "0xfE7cb8fd5Da38F47a9045dCFa2F68B75DEC53d1B"
+    },
+    "2": {
+      "name": "fUSDC",
+      "address": "0x0B35fF554Bd69e3dE65128F56050eE6c8A23BFd1"
+    }
+  }
+}

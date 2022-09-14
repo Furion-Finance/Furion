@@ -1,12 +1,23 @@
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
+import { readAddressList, storeAddressList } from "../../../scripts/contractAddress";
 import { deployUpgradeable } from "../../helpers";
 
-task("deploy:RiskManager", "Deploy risk manager contract")
-  .addParam("priceoracle", "Price oracle address")
-  .setAction(async function (taskArguments: TaskArguments, { ethers, upgrades }) {
-    const rm = await deployUpgradeable(ethers, upgrades, "RiskManager", [taskArguments.priceoracle]);
+const addressList = readAddressList();
 
-    console.log("Risk manager deployed to: ", rm.address);
-  });
+task("deploy:RiskManager", "Deploy risk manager contract").setAction(async function (
+  taskArguments: TaskArguments,
+  { ethers, upgrades },
+) {
+  const hre = require("hardhat");
+  const { network } = hre;
+  const _network = network.name == "hardhat" ? "localhost" : network.name;
+
+  const rm = await deployUpgradeable(ethers, upgrades, "RiskManager", [addressList[_network].PriceOracle]);
+
+  console.log(`Risk manager deployed to: ${rm.address} on ${_network}`);
+
+  addressList[_network].RiskManager = rm.address;
+  storeAddressList(addressList);
+});

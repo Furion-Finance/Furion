@@ -4,20 +4,19 @@ import type { TaskArguments } from "hardhat/types";
 import { readAddressList, storeAddressList } from "../../../scripts/contractAddress";
 import { deploy } from "../../helpers";
 
-const addressList = readAddressList();
-
-task("deploy:PriceOracle", "Deploy price oracle contract").setAction(async function (
+task("deploy:FurionPricingOracle", "Deploy furion pricing oracle contract").setAction(async function (
   taskArguments: TaskArguments,
   { ethers },
 ) {
   const hre = require("hardhat");
   const { network } = hre;
   const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const addressList = readAddressList();
 
-  const po = await deploy(ethers, "SimplePriceOracle", null);
+  const fpo = await deploy(ethers, "FurionPricingOracle", null);
 
-  console.log(`Price oracle deployed to: ${po.address} on ${_network}`);
+  console.log(`Furion pricing oracle deployed to: ${fpo.address} on ${_network}`);
 
-  addressList[_network].PriceOracle = po.address;
+  addressList[_network].FurionPricingOracle = fpo.address;
   storeAddressList(addressList);
 });

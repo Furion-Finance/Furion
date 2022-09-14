@@ -2,14 +2,14 @@ import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
 import {
-  clearSeparatePoolList,
+  clearAggregatePoolList,
   readAddressList,
-  resetSpCounter,
+  resetApCounter,
   storeAddressList,
 } from "../../../scripts/contractAddress";
 import { deploy } from "../../helpers";
 
-task("deploy:SeparatePoolFactory", "Deploy seaparate pool factory contract").setAction(async function (
+task("deploy:AggregatePoolFactory", "Deploy aggregate pool factory contract").setAction(async function (
   taskArguments: TaskArguments,
   { ethers },
 ) {
@@ -18,25 +18,26 @@ task("deploy:SeparatePoolFactory", "Deploy seaparate pool factory contract").set
   const _network = network.name == "hardhat" ? "localhost" : network.name;
   const addressList = readAddressList();
 
-  const spf = await deploy(
+  const apf = await deploy(
     ethers,
-    "SeparatePoolFactory",
-    addressList[_network].IncomeMaker,
+    "AggregatePoolFactory",
     addressList[_network].Checker,
     addressList[_network].FurionToken,
+    addressList[_network].FurionPricingOracle,
+    addressList[_network].SeparatePoolFactory,
   );
 
-  console.log(`Separate pool factory deployed to: ${spf.address} on ${_network}`);
+  console.log(`Aggregate pool factory deployed to: ${apf.address} on ${_network}`);
 
-  addressList[_network].SeparatePoolFactory = spf.address;
+  addressList[_network].AggregatePoolFactory = apf.address;
   storeAddressList(addressList);
 
-  resetSpCounter();
-  clearSeparatePoolList();
+  resetApCounter();
+  clearAggregatePoolList();
 
   const checker = await ethers.getContractAt("Checker", addressList[_network].Checker);
-  const tx = await checker.setSPFactory(spf.address);
+  const tx = await checker.setAPFactory(apf.address);
   await tx.wait();
 
-  console.log("Separate pool factory added to checker");
+  console.log("Aggregate pool factory added to checker");
 });

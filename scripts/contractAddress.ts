@@ -69,6 +69,84 @@ export const clearFarmingPoolList = function () {
 };
 
 ///
+/// Separate Pool Info Record
+///
+export let sp_counter = 0;
+
+export const incSpCounter = () => {
+  sp_counter++;
+};
+
+export const resetSpCounter = () => {
+  sp_counter = 0;
+};
+
+export const readSeparatePoolList = function () {
+  return JSON.parse(fs.readFileSync("info/SeparatePool.json", "utf-8"));
+};
+
+export const storeSeparatePoolList = function (separatePoolList: object) {
+  fs.writeFileSync("info/SeparatePool.json", JSON.stringify(separatePoolList, null, "\t"));
+};
+
+export const clearSeparatePoolList = function () {
+  const emptyList = { localhost: {}, rinkeby: {} };
+  fs.writeFileSync("info/SeparatePool.json", JSON.stringify(emptyList, null, "\t"));
+};
+
+///
+/// Aggregate Pool Info Record
+///
+export let ap_counter = 0;
+
+export const incApCounter = () => {
+  ap_counter++;
+};
+
+export const resetApCounter = () => {
+  ap_counter = 0;
+};
+
+export const readAggregatePoolList = function () {
+  return JSON.parse(fs.readFileSync("info/AggregatePool.json", "utf-8"));
+};
+
+export const storeAggregatePoolList = function (aggregatePoolList: object) {
+  fs.writeFileSync("info/AggregatePool.json", JSON.stringify(aggregatePoolList, null, "\t"));
+};
+
+export const clearAggregatePoolList = function () {
+  const emptyList = { localhost: {}, rinkeby: {} };
+  fs.writeFileSync("info/AggregatePool.json", JSON.stringify(emptyList, null, "\t"));
+};
+
+///
+/// Aggregate Pool Info Record
+///
+export let market_counter = 0;
+
+export const incMarketCounter = () => {
+  market_counter++;
+};
+
+export const resetMarketCounter = () => {
+  market_counter = 0;
+};
+
+export const readMarketList = function () {
+  return JSON.parse(fs.readFileSync("info/MoneyMarket.json", "utf-8"));
+};
+
+export const storeMarketList = function (marketList: object) {
+  fs.writeFileSync("info/MoneyMarket.json", JSON.stringify(marketList, null, "\t"));
+};
+
+export const clearMarketList = function () {
+  const emptyList = { localhost: {}, rinkeby: {} };
+  fs.writeFileSync("info/MoneyMarket.json", JSON.stringify(emptyList, null, "\t"));
+};
+
+///
 /// Signer Info Record
 ///
 export const readSignerList = function () {

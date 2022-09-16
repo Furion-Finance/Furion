@@ -30,8 +30,28 @@ task("deploy:JumpInterestRateModel", "Deploy jump interest rate model contract")
       kinkMantissa,
     );
 
+    console.log();
     console.log(`Jump interest rate model deployed to: ${jirm.address} on ${_network}`);
 
     addressList[_network].JumpInterestRateModel = jirm.address;
     storeAddressList(addressList);
+
+    if (_network != "localhost") {
+      try {
+        console.log("Waiting confirmations before verifying...");
+        await jirm.deployTransaction.wait(4);
+        await hre.run("verify:verify", {
+          address: jirm.address,
+          constructorArguments: [baseRateMantissa, multiplierMantissa, jumpMultiplierMantissa, kinkMantissa],
+        });
+      } catch (e) {
+        const array = e.message.split(" ");
+        if (array.includes("Verified") || array.includes("verified")) {
+          console.log("Already verified");
+        } else {
+          console.log(e);
+          console.log(`Check manually at https://${_network}.etherscan.io/address/${jirm.address}`);
+        }
+      }
+    }
   });

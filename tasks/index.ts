@@ -8,6 +8,8 @@ const deployNormalInterestRateModel = require("./deploy/money-market/normalInter
 const deployJumpInterestRateModel = require("./deploy/money-market/jumpInterestRateModel");
 const deployPriceOracle = require("./deploy/money-market/priceOracle");
 const deployRiskManager = require("./deploy/money-market/riskManager");
+
+const deployTestFurionPools = require("./deploy/furion-pools/testFurionPools");
 const deployTestMarket = require("./deploy/money-market/testMarket");
 
 const upgradeFEther = require("./upgrade/money-market/fether");
@@ -31,6 +33,7 @@ export {
   deployJumpInterestRateModel,
   deployPriceOracle,
   deployRiskManager,
+  deployTestFurionPools,
   deployTestMarket,
   upgradeFEther,
   upgradeFErc20,

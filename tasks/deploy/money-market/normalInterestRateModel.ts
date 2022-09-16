@@ -19,8 +19,28 @@ task("deploy:NormalInterestRateModel", "Deploy normal interest rate model contra
 
     const nirm = await deploy(ethers, "NormalInterestRateModel", baseRateMantissa, multiplierMantissa);
 
+    console.log();
     console.log(`Normal interest rate model deployed to: ${nirm.address} on ${_network}`);
 
     addressList[_network].NormalInterestRateModel = nirm.address;
     storeAddressList(addressList);
+
+    if (_network != "localhost") {
+      try {
+        console.log("Waiting confirmations before verifying...");
+        await nirm.deployTransaction.wait(4);
+        await hre.run("verify:verify", {
+          address: nirm.address,
+          constructorArguments: [baseRateMantissa, multiplierMantissa],
+        });
+      } catch (e) {
+        const array = e.message.split(" ");
+        if (array.includes("Verified") || array.includes("verified")) {
+          console.log("Already verified");
+        } else {
+          console.log(e);
+          console.log(`Check manually at https://${_network}.etherscan.io/address/${nirm.address}`);
+        }
+      }
+    }
   });

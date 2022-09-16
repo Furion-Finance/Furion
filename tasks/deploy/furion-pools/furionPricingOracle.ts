@@ -15,8 +15,33 @@ task("deploy:FurionPricingOracle", "Deploy furion pricing oracle contract").setA
 
   const fpo = await deploy(ethers, "FurionPricingOracle", null);
 
+  console.log();
   console.log(`Furion pricing oracle deployed to: ${fpo.address} on ${_network}`);
 
   addressList[_network].FurionPricingOracle = fpo.address;
   storeAddressList(addressList);
+
+  const init_price = await fpo.initPrice(addressList[_network].CoolCats, 1);
+  await init_price.wait();
+  const update_price = await fpo.updatePrice(addressList[_network].CoolCats, 0, (2.5e18).toString());
+  await update_price.wait();
+  console.log("Added Cool Cats price");
+
+  if (_network != "localhost") {
+    try {
+      console.log("Waiting confirmations before verifying...");
+      await fpo.deployTransaction.wait(4);
+      await hre.run("verify:verify", {
+        address: fpo.address,
+      });
+    } catch (e) {
+      const array = e.message.split(" ");
+      if (array.includes("Verified") || array.includes("verified")) {
+        console.log("Already verified");
+      } else {
+        console.log(e);
+        console.log(`Check manually at https://${_network}.etherscan.io/address/${fpo.address}`);
+      }
+    }
+  }
 });

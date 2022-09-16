@@ -71,16 +71,6 @@ export const clearFarmingPoolList = function () {
 ///
 /// Separate Pool Info Record
 ///
-export let sp_counter = 0;
-
-export const incSpCounter = () => {
-  sp_counter++;
-};
-
-export const resetSpCounter = () => {
-  sp_counter = 0;
-};
-
 export const readSeparatePoolList = function () {
   return JSON.parse(fs.readFileSync("info/SeparatePool.json", "utf-8"));
 };
@@ -90,23 +80,13 @@ export const storeSeparatePoolList = function (separatePoolList: object) {
 };
 
 export const clearSeparatePoolList = function () {
-  const emptyList = { localhost: {}, rinkeby: {} };
+  const emptyList = { localhost: { counter: 0 }, rinkeby: { counter: 0 } };
   fs.writeFileSync("info/SeparatePool.json", JSON.stringify(emptyList, null, "\t"));
 };
 
 ///
 /// Aggregate Pool Info Record
 ///
-export let ap_counter = 0;
-
-export const incApCounter = () => {
-  ap_counter++;
-};
-
-export const resetApCounter = () => {
-  ap_counter = 0;
-};
-
 export const readAggregatePoolList = function () {
   return JSON.parse(fs.readFileSync("info/AggregatePool.json", "utf-8"));
 };
@@ -116,23 +96,13 @@ export const storeAggregatePoolList = function (aggregatePoolList: object) {
 };
 
 export const clearAggregatePoolList = function () {
-  const emptyList = { localhost: {}, rinkeby: {} };
+  const emptyList = { localhost: { counter: 0 }, rinkeby: { counter: 0 } };
   fs.writeFileSync("info/AggregatePool.json", JSON.stringify(emptyList, null, "\t"));
 };
 
 ///
-/// Aggregate Pool Info Record
+/// Money Market Info Record
 ///
-export let market_counter = 0;
-
-export const incMarketCounter = () => {
-  market_counter++;
-};
-
-export const resetMarketCounter = () => {
-  market_counter = 0;
-};
-
 export const readMarketList = function () {
   return JSON.parse(fs.readFileSync("info/MoneyMarket.json", "utf-8"));
 };
@@ -142,7 +112,7 @@ export const storeMarketList = function (marketList: object) {
 };
 
 export const clearMarketList = function () {
-  const emptyList = { localhost: {}, rinkeby: {} };
+  const emptyList = { localhost: { counter: 0 }, rinkeby: { counter: 0 } };
   fs.writeFileSync("info/MoneyMarket.json", JSON.stringify(emptyList, null, "\t"));
 };
 

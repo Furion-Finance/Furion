@@ -1,0 +1,20 @@
+{
+  "localhost": [],
+  "rinkeby": [
+    {
+      "token0": "0x5F99b489CEe16e4AA6bc85a2329Db5984DdD6e4c",
+      "token1": "0xe36088F2d618E7533d8d0f5F16D3857A93Af29de",
+      "pair": "0x5B9d3547000a8B918110256046e643903aF4C2E5"
+    },
+    {
+      "token0": "0x5F99b489CEe16e4AA6bc85a2329Db5984DdD6e4c",
+      "token1": "0x3CB984229eF9aA46d602BE9177eeCd10811a6e71",
+      "pair": "0xA3f2cFA361fE7213276b6b860a2f7De8013E8A3b"
+    },
+    {
+      "token0": "0x3CB984229eF9aA46d602BE9177eeCd10811a6e71",
+      "token1": "0xe36088F2d618E7533d8d0f5F16D3857A93Af29de",
+      "pair": "0x953e94Ebe1EB60FB3D8ccEA3863bA25EdBCD812D"
+    }
+  ]
+}

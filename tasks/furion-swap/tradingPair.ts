@@ -3,7 +3,7 @@ import { formatUnits } from "ethers/lib/utils";
 import { task, types } from "hardhat/config";
 
 import { getTokenAddressOnMainnet } from "../../info/tokenAddress";
-import { readAddressList } from "../../scripts/contractAddress";
+import { readAddressList, readFurionSwapList, storeFurionSwapList } from "../../scripts/contractAddress";
 import {
   FurionSwapFactory,
   FurionSwapFactory__factory,
@@ -35,6 +35,7 @@ task("createPair", "Create new trading pair in FurionSwap")
     console.log("\nThe default signer is:", dev.address);
 
     const addressList = readAddressList();
+    const furionSwapList = readFurionSwapList();
 
     const factory = new FurionSwapFactory__factory(dev).attach(addressList[network.name].FurionSwapFactory);
 
@@ -42,6 +43,15 @@ task("createPair", "Create new trading pair in FurionSwap")
     console.log("Tx details:", await tx.wait());
 
     const pair = await factory.getPair(tokenA, tokenB);
+
+    const pairObject = {
+      token0: taskArgs.token0,
+      token1: taskArgs.token1,
+      pair: pair,
+    };
+    furionSwapList[network.name].push(pairObject);
+
+    storeFurionSwapList(furionSwapList);
 
     console.log("\n Finish creating new pair for FurionSwap, with pair address", pair, "\n");
   });

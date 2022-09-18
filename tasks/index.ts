@@ -21,6 +21,27 @@ const createAggregatePool = require("./furion-pools/aggregatePoolFactory");
 
 const accounts = require("./accounts");
 
+const deployProxyAdmin = require("./deploy/proxy/proxyAdmin");
+const deployTestProxy = require("./deploy/proxy/testProxy");
+
+const deployFurion = require("./deploy/tokens/furionToken");
+const deployMockToken = require("./deploy/tokens/mockTokens");
+const deployMockNFT = require("./deploy/tokens/mockNFT");
+const deployTestClaim = require("./deploy/tokens/testClaim");
+const deployTestTokens = require("./deploy/tokens/testTokens");
+
+const deployFurionSwapFactory = require("./deploy/furion-swap/furionSwapFactory");
+const deployFurionSwapRouter = require("./deploy/furion-swap/furionSwapRouter");
+const deployTestFurionSwap = require("./deploy/furion-swap/testFurionSwap");
+
+const createPair = require("./furion-swap/tradingPair");
+const addFarmingMinter = require("./furion-farming/farmingPool");
+
+const deployFurionFarming = require("./deploy/furion-farming/furionFarming");
+const deployTestFarming = require("./deploy/furion-farming/testFarming");
+
+const deployTestnet = require("./deploy/testnet");
+
 export {
   accounts,
   deployChecker,
@@ -40,4 +61,19 @@ export {
   upgradeRiskManager,
   createSeparatePool,
   createAggregatePool,
+  deployProxyAdmin,
+  deployTestProxy,
+  deployFurion,
+  deployMockToken,
+  deployMockNFT,
+  deployTestClaim,
+  deployTestTokens,
+  deployFurionSwapFactory,
+  deployFurionSwapRouter,
+  deployTestFurionSwap,
+  createPair,
+  addFarmingMinter,
+  deployFurionFarming,
+  deployTestFarming,
+  deployTestnet,
 };

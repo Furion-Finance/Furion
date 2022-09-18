@@ -27,11 +27,11 @@ export const readFurionSwapList = function () {
   return JSON.parse(fs.readFileSync("info/FurionSwap.json", "utf-8"));
 };
 
-export const storeNaughtyPoolList = function (FurionSwapList: object) {
+export const storeFurionSwapList = function (FurionSwapList: object) {
   fs.writeFileSync("info/FurionSwap.json", JSON.stringify(FurionSwapList, null, "\t"));
 };
 
-export const clearNaughtyPoolList = function () {
+export const clearFurionSwapList = function () {
   const emptyList = {};
   fs.writeFileSync("info/FurionSwap.json", JSON.stringify(emptyList, null, "\t"));
 };

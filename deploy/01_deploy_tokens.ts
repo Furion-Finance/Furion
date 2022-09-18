@@ -11,8 +11,10 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 //      - Mock WETH
 // Tags:
 //    - Tokens
+// for testnet version, we will also deploy TestClaim contract, and add minter for this contract
 import { getTokenAddressOnMainnet } from "../info/tokenAddress";
 import { readAddressList, storeAddressList } from "../scripts/contractAddress";
+import "../tasks/tokens/mintBurn";
 
 const wethAddress: string = getTokenAddressOnMainnet("WETH");
 
@@ -86,6 +88,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       log: true,
     });
     addressList[network.name].TestClaim = testClaim.address;
+
+    // add minter for this TestClaim
+    await hre.run("addMinterBurner", {
+      type: "minter",
+      name: "test_claim",
+      token: "FurionToken",
+    });
+    console.log("Successfully add minter for TestClaim contract");
   }
 
   // Store the address list after deployment

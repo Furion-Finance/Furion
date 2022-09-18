@@ -7,5 +7,24 @@
       "reward": "2000.0"
     }
   },
-  "rinkeby": {}
+  "rinkeby": {
+    "6": {
+      "name": "1",
+      "address": "0x5B9d3547000a8B918110256046e643903aF4C2E5",
+      "poolId": 6,
+      "reward": "1.0"
+    },
+    "7": {
+      "name": "2",
+      "address": "0xA3f2cFA361fE7213276b6b860a2f7De8013E8A3b",
+      "poolId": 7,
+      "reward": "2.0"
+    },
+    "8": {
+      "name": "3",
+      "address": "0x953e94Ebe1EB60FB3D8ccEA3863bA25EdBCD812D",
+      "poolId": 8,
+      "reward": "3.0"
+    }
+  }
 }

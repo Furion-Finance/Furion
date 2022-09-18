@@ -13,7 +13,7 @@ task("deploy:TestFurionFarming", "Deploy all farming contracts and add farming p
   const _network = network.name == "hardhat" ? "localhost" : network.name;
   const furionSwapList = readFurionSwapList();
 
-  //   await hre.run("deploy:FurionFarming");
+  await hre.run("deploy:FurionFarming");
 
   const lpTokens = furionSwapList[_network];
   for (let index = 0; index < lpTokens.length; index++) {

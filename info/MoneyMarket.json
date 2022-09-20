@@ -3,18 +3,6 @@
     "counter": 0
   },
   "rinkeby": {
-    "0": {
-      "name": "fETH",
-      "address": "0xe27DCC472553430A4F1dfa6e5938D91521ddDae8"
-    },
-    "1": {
-      "name": "fFUR",
-      "address": "0xeb0dbC38d73426B96Ac88Ea17cAD4213d73A296F"
-    },
-    "2": {
-      "name": "fUSDC",
-      "address": "0x1Aa5176F1503fb0650B77bFC251349105a3317F0"
-    },
-    "counter": 3
+    "counter": 0
   }
 }

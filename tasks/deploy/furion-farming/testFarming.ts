@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
-import { readFurionSwapList } from "../../../scripts/contractAddress";
+import { clearFarmingPoolList, readFurionSwapList } from "../../../scripts/contractAddress";
 
 task("deploy:TestFurionFarming", "Deploy all farming contracts and add farming pools").setAction(async function (
   taskArguments: TaskArguments,
@@ -12,6 +12,8 @@ task("deploy:TestFurionFarming", "Deploy all farming contracts and add farming p
   const { network } = hre;
   const _network = network.name == "hardhat" ? "localhost" : network.name;
   const furionSwapList = readFurionSwapList();
+
+  clearFarmingPoolList();
 
   await hre.run("deploy:FurionFarming");
 

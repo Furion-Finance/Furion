@@ -36,11 +36,14 @@ const deployTestFurionSwap = require("./deploy/furion-swap/testFurionSwap");
 
 const createPair = require("./furion-swap/tradingPair");
 const addFarmingMinter = require("./furion-farming/farmingPool");
+const addMinterBurner = require("./tokens/mintBurn");
 
 const deployFurionFarming = require("./deploy/furion-farming/furionFarming");
 const deployTestFarming = require("./deploy/furion-farming/testFarming");
 
 const deployTestnet = require("./deploy/testnet");
+
+const addFarmingPool = require("./furion-farming/farmingPool");
 
 export {
   accounts,
@@ -73,7 +76,9 @@ export {
   deployTestFurionSwap,
   createPair,
   addFarmingMinter,
+  addMinterBurner,
   deployFurionFarming,
   deployTestFarming,
   deployTestnet,
+  addFarmingPool,
 };

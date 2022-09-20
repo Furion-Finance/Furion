@@ -32,7 +32,10 @@ export const storeFurionSwapList = function (FurionSwapList: object) {
 };
 
 export const clearFurionSwapList = function () {
-  const emptyList = {};
+  const emptyList = {
+    localhost: [],
+    rinkeby: [],
+  };
   fs.writeFileSync("info/FurionSwap.json", JSON.stringify(emptyList, null, "\t"));
 };
 
@@ -64,7 +67,10 @@ export const storeFarmingPoolList = function (farmingPoolList: object) {
 };
 
 export const clearFarmingPoolList = function () {
-  const emptyList = {};
+  const emptyList = {
+    localhost: {},
+    rinkeby: {},
+  };
   fs.writeFileSync("info/FarmingPool.json", JSON.stringify(emptyList, null, "\t"));
 };
 

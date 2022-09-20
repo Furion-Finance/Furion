@@ -20,6 +20,7 @@ task("deploy:ProxyAdmin", "Deploy proxy admin").setAction(async function (taskAr
   addressList[_network].ProxyAdmin = proxy.address;
   proxyAddressList[_network] = proxy.address;
   storeAddressList(addressList);
+  storeProxyAdmin(proxyAddressList);
 
   if (_network != "localhost") {
     try {

@@ -3,6 +3,10 @@
     "counter": 0
   },
   "rinkeby": {
-    "counter": 0
+    "0": {
+      "name": "Cool Cats",
+      "address": "0x4a1F7aD842210ba18605ECe48da5AD52f61657Fb"
+    },
+    "counter": 1
   }
 }

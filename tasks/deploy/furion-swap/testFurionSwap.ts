@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
-import { readAddressList } from "../../../scripts/contractAddress";
+import { clearFurionSwapList, readAddressList } from "../../../scripts/contractAddress";
 
 task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pairs").setAction(async function (
   taskArguments: TaskArguments,
@@ -15,6 +15,8 @@ task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pair
 
   await hre.run("deploy:FurionSwapFactory");
   await hre.run("deploy:FurionSwapV2Router");
+
+  clearFurionSwapList();
 
   await hre.run("createPair", {
     token0: addressList[_network].FurionToken,

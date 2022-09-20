@@ -24,7 +24,7 @@ task("deploy:TestClaim", "Deploy TestClaim contract").setAction(async function (
   console.log();
   console.log(`TestClaim deployed to: ${testClaim.address} on ${_network}`);
 
-  addressList[_network].testClaim = testClaim.address;
+  addressList[_network].TestClaim = testClaim.address;
   storeAddressList(addressList);
 
   if (_network != "localhost") {

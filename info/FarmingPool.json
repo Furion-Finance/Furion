@@ -1,29 +1,22 @@
 {
-  "localhost": {
-    "1": {
-      "name": "USD",
-      "address": "0x0944729C5125576a7DB450F7F730dC5A2a1E1359",
-      "poolId": 1,
-      "reward": "2000.0"
-    }
-  },
+  "localhost": {},
   "rinkeby": {
-    "6": {
+    "1": {
       "name": "1",
-      "address": "0x5B9d3547000a8B918110256046e643903aF4C2E5",
-      "poolId": 6,
+      "address": "0x964E5e70845E5513C7723c6CB5dac9329186A454",
+      "poolId": 1,
       "reward": "1.0"
     },
-    "7": {
+    "2": {
       "name": "2",
-      "address": "0xA3f2cFA361fE7213276b6b860a2f7De8013E8A3b",
-      "poolId": 7,
+      "address": "0x7f30e10eB9166ECa3AEa0C9F258D306c2f79C144",
+      "poolId": 2,
       "reward": "2.0"
     },
-    "8": {
+    "3": {
       "name": "3",
-      "address": "0x953e94Ebe1EB60FB3D8ccEA3863bA25EdBCD812D",
-      "poolId": 8,
+      "address": "0x96A2A2ECA308C1313aa199bFCCA7Aa94E60ce71E",
+      "poolId": 3,
       "reward": "3.0"
     }
   }

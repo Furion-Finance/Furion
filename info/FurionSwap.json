@@ -2,19 +2,25 @@
   "localhost": [],
   "rinkeby": [
     {
-      "token0": "0xfc02bC25D053f9e8792FE8b5811E70c83DCc3745",
-      "token1": "0x68365b73Fc829085F18500da4E40Fdd3cAD35675",
-      "pair": "0x964E5e70845E5513C7723c6CB5dac9329186A454"
+      "token0": "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
+      "token1": "0x2c3657C66B505348ec17a959E881842cd51CF304",
+      "name0": "FUR",
+      "name1": "ETH",
+      "pair": "0x0CDC65EEcfCa4df59E612eEB8d7AFe78D1f9E779"
     },
     {
-      "token0": "0xfc02bC25D053f9e8792FE8b5811E70c83DCc3745",
-      "token1": "0xbe329eb65d5dd9B65bF3275be554B7389Ba640de",
-      "pair": "0x7f30e10eB9166ECa3AEa0C9F258D306c2f79C144"
+      "token0": "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
+      "token1": "0xD0ba865684fF8fDdA85911B0B0E54860Fc4BE920",
+      "name0": "FUR",
+      "name1": "USDT",
+      "pair": "0x8A9904B0e141717da2e2c2267503d4e13495b6E1"
     },
     {
-      "token0": "0xbe329eb65d5dd9B65bF3275be554B7389Ba640de",
-      "token1": "0x68365b73Fc829085F18500da4E40Fdd3cAD35675",
-      "pair": "0x96A2A2ECA308C1313aa199bFCCA7Aa94E60ce71E"
+      "token0": "0xD0ba865684fF8fDdA85911B0B0E54860Fc4BE920",
+      "token1": "0x2c3657C66B505348ec17a959E881842cd51CF304",
+      "name0": "USDT",
+      "name1": "ETH",
+      "pair": "0x76B6106E1e19bdfa051b834F239580B8238B8537"
     }
   ]
 }

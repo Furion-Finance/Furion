@@ -20,13 +20,18 @@ import {
 task("createPair", "Create new trading pair in FurionSwap")
   .addParam("token0", "Address of token A")
   .addParam("token1", "Address of token B")
+  .addParam("name0", "Name of token A")
+  .addParam("name1", "Name of token B")
   .setAction(async (taskArgs, hre) => {
     const tokenA = taskArgs.token0;
     const tokenB = taskArgs.token1;
 
+    const nameA = taskArgs.name0;
+    const nameB = taskArgs.name1;
+
     console.log("\n Creating new trading pair for FurionSwap... \n");
-    console.log("Address of tokenA:", tokenA);
-    console.log("\nAddress of tokenB", tokenB);
+    console.log("Address of tokenA:", tokenA, nameA);
+    console.log("\nAddress of tokenB", tokenB, nameB);
 
     const { network } = hre;
 
@@ -47,6 +52,8 @@ task("createPair", "Create new trading pair in FurionSwap")
     const pairObject = {
       token0: taskArgs.token0,
       token1: taskArgs.token1,
+      name0: nameA,
+      name1: nameB,
       pair: pair,
     };
     furionSwapList[network.name].push(pairObject);

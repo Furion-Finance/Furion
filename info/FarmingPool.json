@@ -2,20 +2,20 @@
   "localhost": {},
   "rinkeby": {
     "1": {
-      "name": "1",
-      "address": "0x964E5e70845E5513C7723c6CB5dac9329186A454",
+      "name": "FUR-ETH",
+      "address": "0x0CDC65EEcfCa4df59E612eEB8d7AFe78D1f9E779",
       "poolId": 1,
       "reward": "1.0"
     },
     "2": {
-      "name": "2",
-      "address": "0x7f30e10eB9166ECa3AEa0C9F258D306c2f79C144",
+      "name": "FUR-USDT",
+      "address": "0x8A9904B0e141717da2e2c2267503d4e13495b6E1",
       "poolId": 2,
       "reward": "2.0"
     },
     "3": {
-      "name": "3",
-      "address": "0x96A2A2ECA308C1313aa199bFCCA7Aa94E60ce71E",
+      "name": "USDT-ETH",
+      "address": "0x76B6106E1e19bdfa051b834F239580B8238B8537",
       "poolId": 3,
       "reward": "3.0"
     }

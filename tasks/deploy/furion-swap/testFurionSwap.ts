@@ -21,16 +21,22 @@ task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pair
   await hre.run("createPair", {
     token0: addressList[_network].FurionToken,
     token1: addressList[_network].WETH,
+    name0: "FUR",
+    name1: "ETH",
   });
 
   await hre.run("createPair", {
     token0: addressList[_network].FurionToken,
     token1: addressList[_network].MockUSD,
+    name0: "FUR",
+    name1: "USDT",
   });
 
   await hre.run("createPair", {
     token0: addressList[_network].MockUSD,
     token1: addressList[_network].WETH,
+    name0: "USDT",
+    name1: "ETH",
   });
 
   console.log("Successfully deploy all furion-swap contracts, and create three trading pairs");

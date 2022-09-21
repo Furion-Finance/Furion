@@ -16,12 +16,12 @@ task("deploy:TestFurionFarming", "Deploy all farming contracts and add farming p
   clearFarmingPoolList();
 
   await hre.run("deploy:FurionFarming");
-
   const lpTokens = furionSwapList[_network];
   for (let index = 0; index < lpTokens.length; index++) {
+    let name = lpTokens[index].name0 + "-" + lpTokens[index].name1;
     let lp = lpTokens[index].pair;
     await hre.run("addFarmingPool", {
-      name: index + 1 + "",
+      name: name,
       address: lp,
       reward: index + 1 + "",
     });

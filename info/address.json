@@ -1,5 +1,7 @@
 {
-  "localhost": {},
+  "localhost": {
+    "VoteEscrowedFurion": "0x34B104CfFa8aD12aE59EDa8bfc1F2325d3FFF8dD"
+  },
   "rinkeby": {
     "ProxyAdmin": "0x1449e339254AF3D2c1036708296B9E710140B3Aa",
     "FurionToken": "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
@@ -17,6 +19,7 @@
     "FurionSwapV2Router": "0xcEC410bD3B332ff6f93E66B2FbC32F4E115f0169",
     "FarmingPoolUpgradeable": "0xd2532bb560CE44e76FcA01Dc338E5D5217BFA9FA",
     "PriceOracle": "0x470debEeA58974F5a7Bc0A2331bB335ce8E4F840",
-    "JumpInterestRateModel": "0xD66eA9a52769e64195a71fd54E267029Af0cc270"
+    "JumpInterestRateModel": "0xD66eA9a52769e64195a71fd54E267029Af0cc270",
+    "VoteEscrowedFurion": "0x10167fe3f4349C97F0d7eE6AeB084d7d7C148497"
   }
 }

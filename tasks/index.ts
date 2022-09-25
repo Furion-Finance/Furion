@@ -43,6 +43,10 @@ const deployTestFarming = require("./deploy/furion-farming/testFarming");
 
 const deployTestnet = require("./deploy/testnet");
 
+const deployVoteEscrowedFurion = require("./deploy/furion-staking/veFUR");
+const testDeployVoteEscrowedFurion = require("./deploy/furion-staking/testVoteEscrowedFurion");
+const veFURFunctions = require("./furion-staking/veFUR");
+
 const addFarmingPool = require("./furion-farming/farmingPool");
 
 export {
@@ -81,4 +85,7 @@ export {
   deployTestFarming,
   deployTestnet,
   addFarmingPool,
+  deployVoteEscrowedFurion,
+  testDeployVoteEscrowedFurion,
+  veFURFunctions,
 };

@@ -153,3 +153,15 @@ export const getLinkAddress = function (networkName: string) {
 
   return obj[networkName];
 };
+
+///
+/// Deployment args record
+///
+
+export const readArgs = function () {
+  return JSON.parse(fs.readFileSync("info/verify.json", "utf-8"));
+};
+
+export const storeArgs = function (args: object) {
+  fs.writeFileSync("info/verify.json", JSON.stringify(args, null, "\t"));
+};

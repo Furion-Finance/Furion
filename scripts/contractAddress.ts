@@ -86,7 +86,7 @@ export const storeSeparatePoolList = function (separatePoolList: object) {
 };
 
 export const clearSeparatePoolList = function () {
-  const emptyList = { localhost: { counter: 0 }, rinkeby: { counter: 0 } };
+  const emptyList = { localhost: [], rinkeby: [] };
   fs.writeFileSync("info/SeparatePool.json", JSON.stringify(emptyList, null, "\t"));
 };
 
@@ -102,7 +102,7 @@ export const storeAggregatePoolList = function (aggregatePoolList: object) {
 };
 
 export const clearAggregatePoolList = function () {
-  const emptyList = { localhost: { counter: 0 }, rinkeby: { counter: 0 } };
+  const emptyList = { localhost: [], rinkeby: [] };
   fs.writeFileSync("info/AggregatePool.json", JSON.stringify(emptyList, null, "\t"));
 };
 
@@ -118,7 +118,7 @@ export const storeMarketList = function (marketList: object) {
 };
 
 export const clearMarketList = function () {
-  const emptyList = { localhost: { counter: 0 }, rinkeby: { counter: 0 } };
+  const emptyList = { localhost: [], rinkeby: [] };
   fs.writeFileSync("info/MoneyMarket.json", JSON.stringify(emptyList, null, "\t"));
 };
 

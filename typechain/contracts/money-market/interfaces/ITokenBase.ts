@@ -23,13 +23,10 @@ import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListen
 export interface ITokenBaseInterface extends utils.Interface {
   functions: {
     "acceptAdmin()": FunctionFragment;
-    "accrueInterest()": FunctionFragment;
     "balanceOfUnderlying(address)": FunctionFragment;
     "borrowBalanceCurrent(address)": FunctionFragment;
-    "borrowBalanceStored(address)": FunctionFragment;
     "borrowRatePerBlock()": FunctionFragment;
     "exchangeRateCurrent()": FunctionFragment;
-    "exchangeRateStored()": FunctionFragment;
     "getAccountSnapshot(address)": FunctionFragment;
     "getLastAccrualBlock()": FunctionFragment;
     "getRiskManager()": FunctionFragment;
@@ -42,13 +39,10 @@ export interface ITokenBaseInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "acceptAdmin"
-      | "accrueInterest"
       | "balanceOfUnderlying"
       | "borrowBalanceCurrent"
-      | "borrowBalanceStored"
       | "borrowRatePerBlock"
       | "exchangeRateCurrent"
-      | "exchangeRateStored"
       | "getAccountSnapshot"
       | "getLastAccrualBlock"
       | "getRiskManager"
@@ -59,13 +53,10 @@ export interface ITokenBaseInterface extends utils.Interface {
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "acceptAdmin", values?: undefined): string;
-  encodeFunctionData(functionFragment: "accrueInterest", values?: undefined): string;
   encodeFunctionData(functionFragment: "balanceOfUnderlying", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "borrowBalanceCurrent", values: [PromiseOrValue<string>]): string;
-  encodeFunctionData(functionFragment: "borrowBalanceStored", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "borrowRatePerBlock", values?: undefined): string;
   encodeFunctionData(functionFragment: "exchangeRateCurrent", values?: undefined): string;
-  encodeFunctionData(functionFragment: "exchangeRateStored", values?: undefined): string;
   encodeFunctionData(functionFragment: "getAccountSnapshot", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "getLastAccrualBlock", values?: undefined): string;
   encodeFunctionData(functionFragment: "getRiskManager", values?: undefined): string;
@@ -78,13 +69,10 @@ export interface ITokenBaseInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "supplyRatePerBlock", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "acceptAdmin", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "accrueInterest", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOfUnderlying", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrowBalanceCurrent", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "borrowBalanceStored", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrowRatePerBlock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "exchangeRateCurrent", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "exchangeRateStored", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getAccountSnapshot", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getLastAccrualBlock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRiskManager", data: BytesLike): Result;
@@ -256,8 +244,6 @@ export interface ITokenBase extends BaseContract {
   functions: {
     acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
     balanceOfUnderlying(
       _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -265,13 +251,9 @@ export interface ITokenBase extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
     borrowRatePerBlock(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getAccountSnapshot(
       _account: PromiseOrValue<string>,
@@ -301,8 +283,6 @@ export interface ITokenBase extends BaseContract {
 
   acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-  accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
   balanceOfUnderlying(
     _account: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -310,13 +290,9 @@ export interface ITokenBase extends BaseContract {
 
   borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-  borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
   borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
   exchangeRateCurrent(overrides?: CallOverrides): Promise<BigNumber>;
-
-  exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
 
   getAccountSnapshot(
     _account: PromiseOrValue<string>,
@@ -346,19 +322,13 @@ export interface ITokenBase extends BaseContract {
   callStatic: {
     acceptAdmin(overrides?: CallOverrides): Promise<void>;
 
-    accrueInterest(overrides?: CallOverrides): Promise<void>;
-
     balanceOfUnderlying(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
     borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<BigNumber>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountSnapshot(
       _account: PromiseOrValue<string>,
@@ -465,8 +435,6 @@ export interface ITokenBase extends BaseContract {
   estimateGas: {
     acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-
     balanceOfUnderlying(
       _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -474,13 +442,9 @@ export interface ITokenBase extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
     borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<BigNumber>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountSnapshot(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -508,8 +472,6 @@ export interface ITokenBase extends BaseContract {
   populateTransaction: {
     acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-
     balanceOfUnderlying(
       _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> },
@@ -517,13 +479,9 @@ export interface ITokenBase extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     borrowRatePerBlock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAccountSnapshot(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

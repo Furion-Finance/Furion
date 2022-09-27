@@ -323,13 +323,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "accrueInterest",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "address",
@@ -368,25 +361,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_account",
-        type: "address",
-      },
-    ],
-    name: "borrowBalanceStored",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "borrowRatePerBlock",
     outputs: [
@@ -402,19 +376,6 @@ const _abi = [
   {
     inputs: [],
     name: "exchangeRateCurrent",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "exchangeRateStored",
     outputs: [
       {
         internalType: "uint256",

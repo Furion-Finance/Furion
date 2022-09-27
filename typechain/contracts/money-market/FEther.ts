@@ -26,7 +26,6 @@ export interface FEtherInterface extends utils.Interface {
     "DOMAIN_SEPARATOR()": FunctionFragment;
     "IS_FTOKEN()": FunctionFragment;
     "acceptAdmin()": FunctionFragment;
-    "accrueInterest()": FunctionFragment;
     "admin()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -34,7 +33,6 @@ export interface FEtherInterface extends utils.Interface {
     "balanceOfUnderlying(address)": FunctionFragment;
     "borrow(uint256)": FunctionFragment;
     "borrowBalanceCurrent(address)": FunctionFragment;
-    "borrowBalanceStored(address)": FunctionFragment;
     "borrowIndex()": FunctionFragment;
     "borrowRatePerBlock()": FunctionFragment;
     "checker()": FunctionFragment;
@@ -42,7 +40,6 @@ export interface FEtherInterface extends utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "exchangeRateCurrent()": FunctionFragment;
-    "exchangeRateStored()": FunctionFragment;
     "getAccountSnapshot(address)": FunctionFragment;
     "getLastAccrualBlock()": FunctionFragment;
     "getRiskManager()": FunctionFragment;
@@ -88,7 +85,6 @@ export interface FEtherInterface extends utils.Interface {
       | "DOMAIN_SEPARATOR"
       | "IS_FTOKEN"
       | "acceptAdmin"
-      | "accrueInterest"
       | "admin"
       | "allowance"
       | "approve"
@@ -96,7 +92,6 @@ export interface FEtherInterface extends utils.Interface {
       | "balanceOfUnderlying"
       | "borrow"
       | "borrowBalanceCurrent"
-      | "borrowBalanceStored"
       | "borrowIndex"
       | "borrowRatePerBlock"
       | "checker"
@@ -104,7 +99,6 @@ export interface FEtherInterface extends utils.Interface {
       | "decimals"
       | "decreaseAllowance"
       | "exchangeRateCurrent"
-      | "exchangeRateStored"
       | "getAccountSnapshot"
       | "getLastAccrualBlock"
       | "getRiskManager"
@@ -148,7 +142,6 @@ export interface FEtherInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "DOMAIN_SEPARATOR", values?: undefined): string;
   encodeFunctionData(functionFragment: "IS_FTOKEN", values?: undefined): string;
   encodeFunctionData(functionFragment: "acceptAdmin", values?: undefined): string;
-  encodeFunctionData(functionFragment: "accrueInterest", values?: undefined): string;
   encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(functionFragment: "allowance", values: [PromiseOrValue<string>, PromiseOrValue<string>]): string;
   encodeFunctionData(
@@ -159,7 +152,6 @@ export interface FEtherInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "balanceOfUnderlying", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "borrow", values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(functionFragment: "borrowBalanceCurrent", values: [PromiseOrValue<string>]): string;
-  encodeFunctionData(functionFragment: "borrowBalanceStored", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "borrowIndex", values?: undefined): string;
   encodeFunctionData(functionFragment: "borrowRatePerBlock", values?: undefined): string;
   encodeFunctionData(functionFragment: "checker", values?: undefined): string;
@@ -170,7 +162,6 @@ export interface FEtherInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
   ): string;
   encodeFunctionData(functionFragment: "exchangeRateCurrent", values?: undefined): string;
-  encodeFunctionData(functionFragment: "exchangeRateStored", values?: undefined): string;
   encodeFunctionData(functionFragment: "getAccountSnapshot", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "getLastAccrualBlock", values?: undefined): string;
   encodeFunctionData(functionFragment: "getRiskManager", values?: undefined): string;
@@ -245,7 +236,6 @@ export interface FEtherInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "DOMAIN_SEPARATOR", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "IS_FTOKEN", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "acceptAdmin", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "accrueInterest", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -253,7 +243,6 @@ export interface FEtherInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "balanceOfUnderlying", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrowBalanceCurrent", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "borrowBalanceStored", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrowIndex", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "borrowRatePerBlock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "checker", data: BytesLike): Result;
@@ -261,7 +250,6 @@ export interface FEtherInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decreaseAllowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "exchangeRateCurrent", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "exchangeRateStored", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getAccountSnapshot", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getLastAccrualBlock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRiskManager", data: BytesLike): Result;
@@ -499,8 +487,6 @@ export interface FEther extends BaseContract {
 
     acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-    accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
     admin(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
@@ -526,8 +512,6 @@ export interface FEther extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>;
-
     borrowIndex(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     borrowRatePerBlock(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -548,8 +532,6 @@ export interface FEther extends BaseContract {
     ): Promise<ContractTransaction>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getAccountSnapshot(
       _account: PromiseOrValue<string>,
@@ -709,8 +691,6 @@ export interface FEther extends BaseContract {
 
   acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
 
-  accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<ContractTransaction>;
-
   admin(overrides?: CallOverrides): Promise<string>;
 
   allowance(
@@ -736,8 +716,6 @@ export interface FEther extends BaseContract {
 
   borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-  borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
   borrowIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -758,8 +736,6 @@ export interface FEther extends BaseContract {
   ): Promise<ContractTransaction>;
 
   exchangeRateCurrent(overrides?: CallOverrides): Promise<BigNumber>;
-
-  exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
 
   getAccountSnapshot(
     _account: PromiseOrValue<string>,
@@ -919,8 +895,6 @@ export interface FEther extends BaseContract {
 
     acceptAdmin(overrides?: CallOverrides): Promise<void>;
 
-    accrueInterest(overrides?: CallOverrides): Promise<void>;
-
     admin(overrides?: CallOverrides): Promise<string>;
 
     allowance(
@@ -943,8 +917,6 @@ export interface FEther extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
     borrowIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -962,8 +934,6 @@ export interface FEther extends BaseContract {
     ): Promise<boolean>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<BigNumber>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountSnapshot(
       _account: PromiseOrValue<string>,
@@ -1207,8 +1177,6 @@ export interface FEther extends BaseContract {
 
     acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
 
-    accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<BigNumber>;
-
     admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
@@ -1234,8 +1202,6 @@ export interface FEther extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
-
     borrowIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowRatePerBlock(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1256,8 +1222,6 @@ export interface FEther extends BaseContract {
     ): Promise<BigNumber>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<BigNumber>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAccountSnapshot(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1405,8 +1369,6 @@ export interface FEther extends BaseContract {
 
     acceptAdmin(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
 
-    accrueInterest(overrides?: Overrides & { from?: PromiseOrValue<string> }): Promise<PopulatedTransaction>;
-
     admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
@@ -1432,8 +1394,6 @@ export interface FEther extends BaseContract {
 
     borrowBalanceCurrent(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    borrowBalanceStored(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     borrowIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     borrowRatePerBlock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1454,8 +1414,6 @@ export interface FEther extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     exchangeRateCurrent(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    exchangeRateStored(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAccountSnapshot(_account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

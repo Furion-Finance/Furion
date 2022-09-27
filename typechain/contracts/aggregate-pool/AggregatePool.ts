@@ -31,6 +31,7 @@ export interface AggregatePoolInterface extends utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "factory()": FunctionFragment;
+    "incomeMaker()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
@@ -63,6 +64,7 @@ export interface AggregatePoolInterface extends utils.Interface {
       | "decimals"
       | "decreaseAllowance"
       | "factory"
+      | "incomeMaker"
       | "increaseAllowance"
       | "name"
       | "nonces"
@@ -99,6 +101,7 @@ export interface AggregatePoolInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
   ): string;
   encodeFunctionData(functionFragment: "factory", values?: undefined): string;
+  encodeFunctionData(functionFragment: "incomeMaker", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>],
@@ -151,6 +154,7 @@ export interface AggregatePoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decreaseAllowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "incomeMaker", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "increaseAllowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
@@ -285,6 +289,8 @@ export interface AggregatePool extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<[string]>;
 
+    incomeMaker(overrides?: CallOverrides): Promise<[string]>;
+
     increaseAllowance(
       spender: PromiseOrValue<string>,
       addedValue: PromiseOrValue<BigNumberish>,
@@ -399,6 +405,8 @@ export interface AggregatePool extends BaseContract {
 
   factory(overrides?: CallOverrides): Promise<string>;
 
+  incomeMaker(overrides?: CallOverrides): Promise<string>;
+
   increaseAllowance(
     spender: PromiseOrValue<string>,
     addedValue: PromiseOrValue<BigNumberish>,
@@ -509,6 +517,8 @@ export interface AggregatePool extends BaseContract {
     ): Promise<boolean>;
 
     factory(overrides?: CallOverrides): Promise<string>;
+
+    incomeMaker(overrides?: CallOverrides): Promise<string>;
 
     increaseAllowance(
       spender: PromiseOrValue<string>,
@@ -662,6 +672,8 @@ export interface AggregatePool extends BaseContract {
 
     factory(overrides?: CallOverrides): Promise<BigNumber>;
 
+    incomeMaker(overrides?: CallOverrides): Promise<BigNumber>;
+
     increaseAllowance(
       spender: PromiseOrValue<string>,
       addedValue: PromiseOrValue<BigNumberish>,
@@ -776,6 +788,8 @@ export interface AggregatePool extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    incomeMaker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseAllowance(
       spender: PromiseOrValue<string>,

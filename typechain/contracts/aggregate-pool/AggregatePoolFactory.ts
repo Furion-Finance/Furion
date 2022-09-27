@@ -27,6 +27,7 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
     "createPool(address[],string,string)": FunctionFragment;
     "fur()": FunctionFragment;
     "getPool(uint256)": FunctionFragment;
+    "incomeMaker()": FunctionFragment;
     "oracle()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -42,6 +43,7 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
       | "createPool"
       | "fur"
       | "getPool"
+      | "incomeMaker"
       | "oracle"
       | "owner"
       | "renounceOwnership"
@@ -58,6 +60,7 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "fur", values?: undefined): string;
   encodeFunctionData(functionFragment: "getPool", values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: "incomeMaker", values?: undefined): string;
   encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
@@ -70,6 +73,7 @@ export interface AggregatePoolFactoryInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "createPool", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "fur", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getPool", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "incomeMaker", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
@@ -140,6 +144,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
     getPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
+    incomeMaker(overrides?: CallOverrides): Promise<[string]>;
+
     oracle(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
@@ -174,6 +180,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
   getPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
+  incomeMaker(overrides?: CallOverrides): Promise<string>;
+
   oracle(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
@@ -207,6 +215,8 @@ export interface AggregatePoolFactory extends BaseContract {
     fur(overrides?: CallOverrides): Promise<string>;
 
     getPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
+
+    incomeMaker(overrides?: CallOverrides): Promise<string>;
 
     oracle(overrides?: CallOverrides): Promise<string>;
 
@@ -251,6 +261,8 @@ export interface AggregatePoolFactory extends BaseContract {
 
     getPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
+    incomeMaker(overrides?: CallOverrides): Promise<BigNumber>;
+
     oracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -285,6 +297,8 @@ export interface AggregatePoolFactory extends BaseContract {
     fur(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPool(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    incomeMaker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

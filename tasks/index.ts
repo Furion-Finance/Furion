@@ -1,4 +1,4 @@
-const deployChecker = require("./deploy/checker.ts");
+const deployChecker = require("./deploy/furion-pools/checker");
 const deploySeparatePoolFactory = require("./deploy/furion-pools/separatePoolFactory");
 const deployFurionPricingOracle = require("./deploy/furion-pools/furionPricingOracle");
 const dpeloyAggregatePoolFactory = require("./deploy/furion-pools/aggregatePoolFactory");
@@ -16,10 +16,14 @@ const upgradeFEther = require("./upgrade/money-market/fether");
 const upgradeFErc20 = require("./upgrade/money-market/ferc20");
 const upgradeRiskManager = require("./upgrade/money-market/riskManager");
 
+const checker = require("./furion-pools/checker");
 const createSeparatePool = require("./furion-pools/separatePoolFactory");
 const createAggregatePool = require("./furion-pools/aggregatePoolFactory");
+const riskManager = require("./money-market/riskManager");
+const priceOracle = require("./money-market/priceOracle");
 
 const accounts = require("./accounts");
+const verifyer = require("./verifyer");
 
 const deployProxyAdmin = require("./deploy/proxy/proxyAdmin");
 const deployTestProxy = require("./deploy/proxy/testProxy");
@@ -57,6 +61,7 @@ const addFarmingPool = require("./furion-farming/farmingPool");
 
 export {
   accounts,
+  verifyer,
   deployChecker,
   deploySeparatePoolFactory,
   deployFurionPricingOracle,

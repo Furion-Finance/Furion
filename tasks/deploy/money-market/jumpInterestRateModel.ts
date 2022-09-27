@@ -16,7 +16,12 @@ task("deploy:JumpInterestRateModel", "Deploy jump interest rate model contract")
 
     const network = getNetwork();
 
-    const args = [baseRateMantissa, multiplierMantissa, jumpMultiplierMantissa, kinkMantissa];
+    const args = [
+      baseRateMantissa.toString(),
+      multiplierMantissa.toString(),
+      jumpMultiplierMantissa.toString(),
+      kinkMantissa.toString(),
+    ];
     const jirm = await deploy(ethers, "JumpInterestRateModel", args);
 
     console.log();

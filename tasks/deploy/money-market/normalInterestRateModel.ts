@@ -12,7 +12,7 @@ task("deploy:NormalInterestRateModel", "Deploy normal interest rate model contra
 
     const network = getNetwork();
 
-    const args = [baseRateMantissa, multiplierMantissa];
+    const args = [baseRateMantissa.toString(), multiplierMantissa.toString()];
     const nirm = await deploy(ethers, "NormalInterestRateModel", args);
 
     console.log();

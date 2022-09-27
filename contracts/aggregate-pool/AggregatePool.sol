@@ -18,6 +18,7 @@ contract AggregatePool is ERC20Permit {
     ISeparatePoolFactory spFactory;
 
     address public immutable factory;
+    address public immutable incomeMaker;
     // Will be immutable for income sharing vault
     // Fees in this contract are in the form of FFT
     address public owner;
@@ -47,6 +48,7 @@ contract AggregatePool is ERC20Permit {
     );
 
     constructor(
+        address _incomeMaker,
         address _fur,
         address _oracle,
         address _spFactory,
@@ -56,6 +58,7 @@ contract AggregatePool is ERC20Permit {
         string memory _tokenSymbol
     ) ERC20Permit(_tokenName) ERC20(_tokenName, _tokenSymbol) {
         factory = msg.sender;
+        incomeMaker = _incomeMaker;
         FUR = IERC20(_fur);
         oracle = IFurionPricingOracle(_oracle);
         spFactory = ISeparatePoolFactory(_spFactory);
@@ -148,7 +151,7 @@ contract AggregatePool is ERC20Permit {
         uint256 mintAmount = (_amount * tokenRefPrice) / fftRefPrice;
 
         // Transfer FUR (fees)
-        FUR.transferFrom(msg.sender, owner, stakeFee);
+        FUR.transferFrom(msg.sender, incomeMaker, stakeFee);
         // Transfer pool tokens to be staked
         IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
         // Mint FFT
@@ -175,7 +178,7 @@ contract AggregatePool is ERC20Permit {
         uint256 retrieveAmount = (_amount * fftRefPrice) / tokenRefPrice;
 
         // Transfer FUR (fees)
-        FUR.transferFrom(msg.sender, owner, unstakeFee);
+        FUR.transferFrom(msg.sender, incomeMaker, unstakeFee);
         // Burn FFT used for exchange
         _burn(msg.sender, _amount);
 

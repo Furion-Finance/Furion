@@ -16,6 +16,7 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
 
     address public fur;
     address public oracle;
+    address public immutable incomeMaker;
     address public immutable checker;
     address public immutable spFactory;
 
@@ -31,11 +32,13 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
     event PoolCreated(address poolAddress, uint256 id);
 
     constructor(
+        address _incomeMaker,
         address _checker,
         address _fur,
         address _oracle,
         address _spFactory
     ) {
+        incomeMaker = _incomeMaker;
         checker = _checker;
         fur = _fur;
         oracle = _oracle;
@@ -104,6 +107,7 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
         );*/
         poolAddress = address(
             new AggregatePool{salt: _salt}(
+                incomeMaker,
                 fur,
                 oracle,
                 spFactory,

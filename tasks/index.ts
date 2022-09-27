@@ -47,6 +47,12 @@ const deployVoteEscrowedFurion = require("./deploy/furion-staking/veFUR");
 const testDeployVoteEscrowedFurion = require("./deploy/furion-staking/testVoteEscrowedFurion");
 const veFURFunctions = require("./furion-staking/veFUR");
 
+const deployIncomeMaker = require("./deploy/income-sharing/incomeMaker");
+const deployIncomeSharingVault = require("./deploy/income-sharing/incomeSharingVault");
+const testDeployIncomeSharing = require("./deploy/income-sharing/testIncomeSharing");
+const incomeMakerFunctions = require("./income-sharing/incomeMaker");
+const incomeSharingVaultFunctions = require("./income-sharing/incomeSharingVault");
+
 const addFarmingPool = require("./furion-farming/farmingPool");
 
 export {
@@ -88,4 +94,9 @@ export {
   deployVoteEscrowedFurion,
   testDeployVoteEscrowedFurion,
   veFURFunctions,
+  deployIncomeMaker,
+  deployIncomeSharingVault,
+  testDeployIncomeSharing,
+  incomeMakerFunctions,
+  incomeSharingVaultFunctions,
 };

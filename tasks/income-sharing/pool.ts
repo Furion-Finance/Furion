@@ -1,3 +1,4 @@
+/*
 import "@nomiclabs/hardhat-ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import { task, types } from "hardhat/config";
@@ -147,3 +148,5 @@ task("updateLastRewardBalance", "Update last reward balance").setAction(async (_
   const final = await vault.lastRewardBalance(1);
   console.log("Final: ", formatUnits(final, 6));
 });
+
+*/

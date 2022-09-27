@@ -1,3 +1,4 @@
+/*
 import "@nomiclabs/hardhat-ethers";
 import { task } from "hardhat/config";
 
@@ -88,3 +89,5 @@ task("addIncomeSharingWL", "Add income sharing contract to veDEG whitelist").set
 
   console.log("\n Finish Adding income sharing contract to veDEG whitelist... \n");
 });
+
+*/

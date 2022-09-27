@@ -1,11 +1,46 @@
 import "@nomiclabs/hardhat-ethers";
-import { formatUnits } from "ethers/lib/utils";
+import { formatUnits, parseUnits } from "ethers/lib/utils";
 import { task, types } from "hardhat/config";
 
 import { readAddressList } from "../../scripts/contractAddress";
-import { FurionToken__factory, IncomeMaker__factory } from "../../typechain";
+import { FurionToken__factory, IncomeMaker, IncomeMaker__factory } from "../../typechain";
 
-task("collectSwapIncome", "Collect income from FurionSwap to income sharing vault")
+// tasks
+// 1. initialize
+// 2. collectSwapIncome
+// 3. emergencyWithdraw
+// 4. setIncomeToken
+// 5. setIncomeProportion
+
+// 6. incomeToken
+// 7. incomeProportion
+
+// tasks modifying the state of the contract
+task("IncomeMaker:initialize", "Initialize Income Maker")
+  .addParam("incomeToken", "Address of an income token", null, types.string)
+  .addParam("furionSwapFactory", "Address of the Furion Swap Factory", null, types.string)
+  .addParam("furionSwapRouter", "Address of the Furion Swap Router", null, types.string)
+  .addParam("incomeSharingVault", "Address of the income sharing vault", null, types.string)
+  .setAction(async (TaskArguments, hre) => {
+    const _incomeToken = TaskArguments.incomeToken;
+    const _factory = TaskArguments.furionSwapFactory;
+    const _router = TaskArguments.furionSwapRouter;
+    const _incomeSharingVault = TaskArguments.incomeSharingVault;
+    const { network } = hre;
+
+    const _network = network.name == "hardhat" ? "localhost" : network.name;
+    const addresses = readAddressList();
+
+    const incomeMakerFactory: IncomeMaker__factory = await hre.ethers.getContractFactory("IncomeMaker");
+    const incomeMaker: IncomeMaker = incomeMakerFactory.attach(addresses[_network].IncomeMaker);
+
+    const tx = await incomeMaker.initialize(_incomeToken, _router, _factory, _incomeSharingVault);
+    await tx.wait();
+
+    console.log("Task IncomeMaker:initialize ended successfully");
+  });
+
+task("IncomeMaker:collectSwapIncome", "Collect income from FurionSwap to income sharing vault Income Maker")
   .addParam("token0", "Address of token0 from FurionSwap pair", null, types.string)
   .addParam("token1", "Address of token1 from FurionSwap pair", null, types.string)
   .setAction(async (taskArgs, hre) => {
@@ -35,4 +70,98 @@ task("collectSwapIncome", "Collect income from FurionSwap to income sharing vaul
 
     const balAfter = await furion.balanceOf(addressList[network.name].IncomeSharingVault);
     console.log("Income sharing vault bal after: ", formatUnits(balAfter, 18));
+
+    console.log("Task IncomeMaker:collectSwapIncome ended successfully");
   });
+
+task("IncomeMaker:emergencyWithdraw", "Emergency Withdraw Income Maker")
+  .addParam("tokenAddress", "Address of the token", null, types.string)
+  .addParam("tokenAmount", "Amount of the token", null, types.string)
+  .setAction(async (TaskArguments, hre) => {
+    const _tokenAddress = TaskArguments.tokenAddress;
+    const _tokenAmount = TaskArguments.tokenAmount;
+    const { network } = hre;
+
+    const _network = network.name == "hardhat" ? "localhost" : network.name;
+    const addresses = readAddressList();
+
+    const incomeMakerFactory: IncomeMaker__factory = await hre.ethers.getContractFactory("IncomeMaker");
+    const incomeMaker: IncomeMaker = incomeMakerFactory.attach(addresses[_network].IncomeMaker);
+
+    const tx = await incomeMaker.emergencyWithdraw(_tokenAddress, _tokenAmount);
+    await tx.wait();
+
+    console.log("Task IncomeMaker:emergencyWithdraw ended successfully");
+  });
+
+task("IncomeMaker:setIncomeToken", "Set New Income Token Income Maker")
+  .addParam("tokenAddress", "Address of the token", null, types.string)
+  .setAction(async (TaskArguments, hre) => {
+    const _tokenAddress = TaskArguments.tokenAddress;
+    const { network } = hre;
+
+    const _network = network.name == "hardhat" ? "localhost" : network.name;
+    const addresses = readAddressList();
+
+    const incomeMakerFactory: IncomeMaker__factory = await hre.ethers.getContractFactory("IncomeMaker");
+    const incomeMaker: IncomeMaker = incomeMakerFactory.attach(addresses[_network].IncomeMaker);
+
+    const tx = await incomeMaker.setIncomeToken(_tokenAddress);
+    await tx.wait();
+
+    console.log("Task IncomeMaker:emergencyWithdraw ended successfully");
+  });
+
+task("IncomeMaker:setIncomeProportion", "Set New Income Proportion Income Maker")
+  .addParam("proportionValue", "Value of the proportion", null, types.string)
+  .setAction(async (TaskArguments, hre) => {
+    const _value = parseUnits(TaskArguments.proportionValue);
+    const { network } = hre;
+
+    const _network = network.name == "hardhat" ? "localhost" : network.name;
+    const addresses = readAddressList();
+
+    const incomeMakerFactory: IncomeMaker__factory = await hre.ethers.getContractFactory("IncomeMaker");
+    const incomeMaker: IncomeMaker = incomeMakerFactory.attach(addresses[_network].IncomeMaker);
+
+    const tx = await incomeMaker.setIncomeProportion(_value);
+    await tx.wait();
+
+    console.log("Task IncomeMaker:setIncomeProportion ended successfully");
+  });
+
+// tasks reading state of the contract
+task("IncomeMaker:incomeToken", "Income Token Income Maker").setAction(async (TaskArguments, hre) => {
+  console.log("Reading the Income Token address from Income Maker contract");
+
+  const { network } = hre;
+
+  const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const addresses = readAddressList();
+
+  const incomeMakerFactory: IncomeMaker__factory = await hre.ethers.getContractFactory("IncomeMaker");
+  const incomeMaker: IncomeMaker = incomeMakerFactory.attach(addresses[_network].IncomeMaker);
+
+  const token = await incomeMaker.incomeToken();
+  console.log("Income Token: ", token);
+
+  console.log("Task IncomeMaker:incomeToken ended successfully");
+});
+
+task("IncomeMaker:incomeProportion", "Income Proportion Income Maker").setAction(async (TaskArguments, hre) => {
+  console.log("Reading the Income Proportion from Income Maker contract");
+
+  const { network } = hre;
+
+  const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const addresses = readAddressList();
+  console.log("Income Maker address: ", addresses[_network].IncomeMaker);
+  const incomeMakerFactory: IncomeMaker__factory = await hre.ethers.getContractFactory("IncomeMaker");
+  const incomeMaker: IncomeMaker = incomeMakerFactory.attach(addresses[_network].IncomeMaker);
+  console.log("The contract is ", incomeMaker);
+
+  const value = await incomeMaker.incomeProportion();
+  console.log("Income Token: ", formatUnits(value));
+
+  console.log("Task IncomeMaker:incomeProportion ended successfully");
+});

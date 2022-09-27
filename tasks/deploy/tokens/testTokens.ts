@@ -14,7 +14,7 @@ task("deploy:TestFurionTokens", "Deploy all tokens contracts and TestClaim").set
 
   await hre.run("addMinterBurner", {
     type: "minter",
-    name: "test_claim",
+    name: "TestClaim",
     token: "FurionToken",
   });
 

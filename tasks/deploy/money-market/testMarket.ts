@@ -2,14 +2,14 @@ import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
 import { clearMarketList, readAddressList, readMarketList } from "../../../scripts/contractAddress";
+import { getNetwork } from "../../helpers";
 
 task("deploy:TestMarket", "Deploy all money market contracts").setAction(async function (
   taskArguments: TaskArguments,
   { ethers, upgrades },
 ) {
   const hre = require("hardhat");
-  const { network } = hre;
-  const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const network = getNetwork();
 
   clearMarketList();
 

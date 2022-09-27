@@ -2,22 +2,45 @@ import { DeployFunction, ProxyOptions } from "hardhat-deploy/types";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
-import { readAddressList, storeAddressList } from "../../../scripts/contractAddress";
+import { readAddressList } from "../../../scripts/contractAddress";
+import { deployUpgradeable, getNetwork, writeUpgradeableDeployment } from "../../helpers";
 
 task("deploy:FurionFarming", "Deploy FurionFarming contract").setAction(async function (
   taskArguments: TaskArguments,
   { ethers, upgrades },
 ) {
   const hre = require("hardhat");
+  const network = getNetwork();
+  const addressList = readAddressList();
 
-  const { deployments, getNamedAccounts, network } = hre;
+  const fur = await ethers.getContractAt("FurionToken", addressList[network].FurionToken);
+
+  const farmingPoolUpgradeable = await deployUpgradeable(ethers, upgrades, "FarmingPoolUpgradeable", [fur.address]);
+
+  console.log();
+  console.log(`FurionFarmingPool deployed to: ${farmingPoolUpgradeable.address} on ${network}`);
+
+  const implementation = await upgrades.erc1967.getImplementationAddress(farmingPoolUpgradeable.address);
+  writeUpgradeableDeployment(network, "FarmingPoolUpgradeable", farmingPoolUpgradeable.address, implementation);
+
+  await hre.run("addFarmingMinter");
+});
+
+/*task("deploy:FurionFarming", "Deploy FurionFarming contract").setAction(async function (
+  taskArguments: TaskArguments,
+  { ethers, upgrades },
+) {
+  const hre = require("hardhat");
+
+  const { deployments, getNamedAccounts } = hre;
   const { deploy, get } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const network = getNetwork();
   const addressList = readAddressList();
+  const argsList = readArgs();
 
-  const furion = await ethers.getContractAt("FurionToken", addressList[_network].FurionToken);
+  const furion = await ethers.getContractAt("FurionToken", addressList[network].FurionToken);
 
   // Always use the same proxy admin
   const proxyOptions: ProxyOptions = {
@@ -40,29 +63,16 @@ task("deploy:FurionFarming", "Deploy FurionFarming contract").setAction(async fu
   });
 
   console.log();
-  console.log(`FurionFarmingPool deployed to: ${farmingPoolUpgradeable.address} on ${_network}`);
+  console.log(`FurionFarmingPool deployed to: ${farmingPoolUpgradeable.address} on ${network}`);
 
-  addressList[_network].FarmingPoolUpgradeable = farmingPoolUpgradeable.address;
+  addressList[network].FarmingPoolUpgradeable = farmingPoolUpgradeable.address;
   storeAddressList(addressList);
-
-  if (_network != "localhost") {
-    const implementation = await upgrades.erc1967.getImplementationAddress(farmingPoolUpgradeable.address);
-    try {
-      console.log("Waiting confirmations before verifying...");
-      //   await farmingPoolUpgradeable.deployTransaction.wait(4);
-      await hre.run("verify:verify", {
-        address: implementation,
-      });
-    } catch (e: any) {
-      const array = e.message.split(" ");
-      if (array.includes("Verified") || array.includes("verified")) {
-        console.log("Already verified");
-      } else {
-        console.log(e);
-        console.log(`Check manually at https://${_network}.etherscan.io/address/${implementation}`);
-      }
-    }
+  argsList[network].FarmingPoolUpgradeable = {
+    address: farmingPoolUpgradeable.address,
+    args: []
   }
+  storeArgs(argsList);
 
   await hre.run("addFarmingMinter");
 });
+*/

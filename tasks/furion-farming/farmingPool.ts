@@ -10,28 +10,23 @@ import {
   FurionToken,
   FurionToken__factory,
 } from "../../typechain";
+import { getNetwork, writeFarmingPool } from "../helpers";
 
 const addressList = readAddressList();
 const farmingPoolList = readFarmingPoolList();
 
-task("addFarmingMinter", "Add FUR minter to farming contract").setAction(async (_, hre) => {
-  const { network } = hre;
+task("addFarmingMinter", "Add FUR minter to farming contract").setAction(async (_, { ethers }) => {
+  const network = getNetwork();
 
-  // Signers
-  const [dev] = await hre.ethers.getSigners();
-  console.log("The default signer is: ", dev.address);
-
-  const farmingPoolAddress = addressList[network.name].FarmingPoolUpgradeable;
-  const FurionTokenAddress = addressList[network.name].FurionToken;
+  const farmingPoolAddress = addressList[network].FarmingPoolUpgradeable;
 
   // Get the contract instance
-  const FurionToken: FurionToken__factory = await hre.ethers.getContractFactory("FurionToken");
-  const Furion: FurionToken = FurionToken.attach(FurionTokenAddress);
+  const fur = await ethers.getContractAt("FurionToken", addressList[network].FurionToken);
 
   // Add minter for Furion token
-  const isAlready = await Furion.isMinter(farmingPoolAddress);
+  const isAlready = await fur.isMinter(farmingPoolAddress);
   if (!isAlready) {
-    const tx = await Furion.addMinter(farmingPoolAddress);
+    const tx = await fur.addMinter(farmingPoolAddress);
     console.log(await tx.wait());
   }
   console.log("\nFinish adding minter for farming contract...\n");
@@ -44,7 +39,7 @@ task("addFarmingPool", "Add new farming pool")
   .addParam("name", "The name of the new farming pool", "unnamed", types.string)
   .addParam("address", "The LP token address to be added", null, types.string)
   .addParam("reward", "Initial FUR reward per second", null, types.string)
-  .setAction(async (taskArgs, hre) => {
+  .setAction(async (taskArgs, { ethers }) => {
     const poolName = taskArgs.name;
     const lptokenAddress = taskArgs.address;
     const basicFurionPerSecond = taskArgs.reward;
@@ -53,17 +48,12 @@ task("addFarmingPool", "Add new farming pool")
     console.log("LP token address to be added: ", lptokenAddress);
     console.log("Basic reward speed: ", basicFurionPerSecond, "Furion/second");
 
-    const { network } = hre;
+    const network = getNetwork();
 
-    // Signers
-    const [dev] = await hre.ethers.getSigners();
-    console.log("The default signer is: ", dev.address);
-
-    const farmingPoolAddress = addressList[network.name].FarmingPoolUpgradeable;
-    console.log("The farming pool address of ", network.name, " is: ", farmingPoolAddress);
-
-    const FarmingPool: FarmingPoolUpgradeable__factory = await hre.ethers.getContractFactory("FarmingPoolUpgradeable");
-    const farmingPool: FarmingPoolUpgradeable = FarmingPool.attach(farmingPoolAddress);
+    const farmingPool = await ethers.getContractAt(
+      "FarmingPoolUpgradeable",
+      addressList[network].FarmingPoolUpgradeable,
+    );
 
     console.log("farming basic speed", parseUnits(basicFurionPerSecond).toString());
 
@@ -84,10 +74,7 @@ task("addFarmingPool", "Add new farming pool")
       poolId: poolId.toNumber(),
       reward: formatEther(poolInfo.basicFurionPerSecond),
     };
-    farmingPoolList[network.name][poolId.toNumber()] = poolObject;
-
-    console.log("Farming pool list now: ", farmingPoolList);
-    storeFarmingPoolList(farmingPoolList);
+    writeFarmingPool(network, poolObject);
   });
 
 task("setFarmingPoolFurionReward", "Set the Furion reward of a farming pool")
@@ -101,16 +88,12 @@ task("setFarmingPoolFurionReward", "Set the Furion reward of a farming pool")
     console.log("Pool id to be set: ", poolId);
     console.log("New reward speed: ", basicFurionPerSecond * 86400, "Furion/day");
 
-    const { network } = hre;
+    const network = getNetwork();
 
-    // Signers
-    const [dev] = await hre.ethers.getSigners();
-    console.log("The default signer is: ", dev.address);
-
-    const farmingPoolAddress = addressList[network.name].FarmingPoolUpgradeable;
-    console.log("The farming pool address of ", network.name, " is: ", farmingPoolAddress);
-    const FarmingPool: FarmingPoolUpgradeable__factory = await hre.ethers.getContractFactory("FarmingPoolUpgradeable");
-    const farmingPool: FarmingPoolUpgradeable = FarmingPool.attach(farmingPoolAddress);
+    const farmingPool = await ethers.getContractAt(
+      "FarmingPoolUpgradeable",
+      addressList[network].FarmingPoolUpgradeable,
+    );
 
     // Set the start block
     const tx = await farmingPool.setFurionReward(poolId, parseUnits(basicFurionPerSecond), false);
@@ -121,7 +104,7 @@ task("setFarmingPoolFurionReward", "Set the Furion reward of a farming pool")
     console.log("Furion reward after set: basic - ", formatEther(poolInfo.basicFurionPerSecond));
 
     // Store the new farming pool
-    farmingPoolList[network.name][poolId].reward = formatEther(poolInfo.basicFurionPerSecond);
+    farmingPoolList[network][poolId].reward = formatEther(poolInfo.basicFurionPerSecond);
     console.log("Farming pool list now: ", farmingPoolList);
     storeFarmingPoolList(farmingPoolList);
   });

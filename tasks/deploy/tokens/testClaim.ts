@@ -16,7 +16,7 @@ task("deploy:TestClaim", "Deploy TestClaim contract").setAction(async function (
   const testClaim = await deploy(ethers, "TestClaim", args);
 
   console.log();
-  console.log(`TestClaim deployed to: ${testClaim.address} on ${_network}`);
+  console.log(`TestClaim deployed to: ${testClaim.address} on ${network}`);
 
   writeDeployment(network, "TestClaim", testClaim.address, args);
 });

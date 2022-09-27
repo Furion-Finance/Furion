@@ -28,13 +28,13 @@ task("deploy:TestMarket", "Deploy all money market contracts").setAction(async f
   const addressList = readAddressList();
   await hre.run("deploy:FEther");
   await hre.run("deploy:FErc20", {
-    underlying: addressList[_network].FurionToken,
+    underlying: addressList[network].FurionToken,
     jump: "false",
     name: "Furion Furion Token",
     symbol: "fFUR",
   });
   await hre.run("deploy:FErc20", {
-    underlying: addressList[_network].MockUSD,
+    underlying: addressList[network].MockUSD,
     jump: "true",
     name: "Furion USD",
     symbol: "fUSDC",
@@ -42,24 +42,20 @@ task("deploy:TestMarket", "Deploy all money market contracts").setAction(async f
 
   const marketList = readMarketList();
   // Set price oracle prices
-  const po = await ethers.getContractAt("SimplePriceOracle", addressList[_network].PriceOracle);
-  await po.setUnderlyingPrice(
-    marketList[_network]["0"].address,
-    ethers.utils.parseUnits("1700", 18),
-    (1e18).toString(),
-  );
+  const po = await ethers.getContractAt("SimplePriceOracle", addressList[network].PriceOracle);
+  await po.setUnderlyingPrice(marketList[network]["0"].address, ethers.utils.parseUnits("1700", 18), (1e18).toString());
   console.log("Price of ETH set");
-  await po.setUnderlyingPrice(marketList[_network]["1"].address, (5e18).toString(), (1e18).toString());
+  await po.setUnderlyingPrice(marketList[network]["1"].address, (5e18).toString(), (1e18).toString());
   console.log("Price of FUR set");
-  await po.setUnderlyingPrice(marketList[_network]["2"].address, (1e18).toString(), (1e6).toString());
+  await po.setUnderlyingPrice(marketList[network]["2"].address, (1e18).toString(), (1e6).toString());
   console.log("Price of USDC set");
 
   // Support markets
-  const rm = await ethers.getContractAt("RiskManager", addressList[_network].RiskManager);
-  await rm.supportMarket(marketList[_network]["0"].address, (0.6e18).toString(), 2);
+  const rm = await ethers.getContractAt("RiskManager", addressList[network].RiskManager);
+  await rm.supportMarket(marketList[network]["0"].address, (0.6e18).toString(), 2);
   console.log("fETH supported");
-  await rm.supportMarket(marketList[_network]["1"].address, (0.4e18).toString(), 3);
+  await rm.supportMarket(marketList[network]["1"].address, (0.4e18).toString(), 3);
   console.log("fFUR supported");
-  await rm.supportMarket(marketList[_network]["2"].address, (0.85e18).toString(), 1);
+  await rm.supportMarket(marketList[network]["2"].address, (0.85e18).toString(), 1);
   console.log("fUSDC supported");
 });

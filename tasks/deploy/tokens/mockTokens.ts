@@ -14,7 +14,7 @@ task("deploy:MockToken", "Deploy mock token contracts").setAction(async function
   const mockUSD = await deploy(ethers, "MockUSD", []);
 
   console.log();
-  console.log(`Mock USD deployed to: ${mockUSD.address} on ${_network}`);
+  console.log(`Mock USD deployed to: ${mockUSD.address} on ${network}`);
 
   writeDeployment(network, "MockUSD", mockUSD.address, []);
 
@@ -22,7 +22,7 @@ task("deploy:MockToken", "Deploy mock token contracts").setAction(async function
   const weth = await deploy(ethers, "WETH9", []);
 
   console.log();
-  console.log(`Mock WETH deployed to: ${weth.address} on ${_network}`);
+  console.log(`Mock WETH deployed to: ${weth.address} on ${network}`);
 
   writeDeployment(network, "WETH", weth.address, []);
 });

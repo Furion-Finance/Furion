@@ -25,5 +25,5 @@ task("deploy:IncomeMaker", "Deploy Income Maker contract").setAction(async funct
 
   writeUpgradeableDeployment(network, "IncomeMaker", im.address, args);
 
-  await hre.run("Swap:SetIncomeMaker", { incomemaker: addressList[network].IncomeMaker });
+  await hre.run("Swap:SetIncomeMaker", { incomemaker: im.address });
 });

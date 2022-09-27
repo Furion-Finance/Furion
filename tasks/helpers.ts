@@ -4,11 +4,19 @@ import { Contract, ContractFactory } from "ethers";
 
 import {
   readAddressList,
+  readAggregatePoolList,
   readArgs,
+  readFarmingPoolList,
+  readFurionSwapList,
   readMarketList,
+  readSeparatePoolList,
   storeAddressList,
+  storeAggregatePoolList,
   storeArgs,
+  storeFarmingPoolList,
+  storeFurionSwapList,
   storeMarketList,
+  storeSeparatePoolList,
 } from "../scripts/contractAddress";
 
 export const getNetwork = () => {
@@ -17,6 +25,8 @@ export const getNetwork = () => {
   const _network = network.name == "hardhat" ? "localhost" : network.name;
   return _network;
 };
+
+/********************************* Store addresses & args *************************************/
 
 export const writeDeployment = (network: string, name: string, _address: string, _args: Array<any>) => {
   const addressList = readAddressList();
@@ -38,17 +48,56 @@ export const writeUpgradeableDeployment = (network: string, name: string, _addre
   storeArgs(argsList);
 };
 
+export const writeSeparatePool = (network: string, _name: string, _address: string, _args: Array<any>) => {
+  const spList = readSeparatePoolList();
+  spList[network].push({ name: _name, address: _address });
+  storeSeparatePoolList(spList);
+
+  const argsList = readArgs();
+  const finalName = _name + " Separate Pool";
+  argsList[network][finalName] = { address: _address, args: _args };
+  storeArgs(argsList);
+};
+
+export const writeAggregatePool = (network: string, _name: string, _address: string, _args: Array<any>) => {
+  const apList = readAggregatePoolList();
+  apList[network].push({ name: _name, address: _address });
+  storeAggregatePoolList(apList);
+
+  const argsList = readArgs();
+  const finalName = _name + " Aggregate Pool";
+  argsList[network][finalName] = { address: _address, args: _args };
+  storeArgs(argsList);
+};
+
 export const writeMarketDeployment = (network: string, _name: string, _address: string, implementation: string) => {
   const marketList = readMarketList();
-  const counter = marketList[network]["counter"];
-  marketList[network][counter] = { name: _name, address: _address };
-  marketList[network]["counter"]++;
+  marketList[network].push({ name: _name, address: _address });
   storeMarketList(marketList);
 
   const argsList = readArgs();
   argsList[network][_name] = { address: implementation, args: [] };
   storeArgs(argsList);
 };
+
+export const writeFarmingPool = (network: string, poolObject: object) => {
+  const fpList = readFarmingPoolList();
+  fpList[network][poolObject.poolId] = poolObject;
+  storeFarmingPoolList(fpList);
+};
+
+export const writeSwap = (network: string, pairObject: object) => {
+  const swapList = readFurionSwapList();
+  swapList[network].push(pairObject);
+  storeFurionSwapList(swapList);
+
+  const argsList = readArgs();
+  const finalName = `${pairObject.name0}-${pairObject.name1} Swap Pair`;
+  argsList[network][finalName] = { address: pairObject.pair, args: [] };
+  storeArgs(argsList);
+};
+
+/**************************************** Deployment ****************************************/
 
 export const deploy = async (ethers: HardhatEthersHelpers, artifact: string, params: Array<any>) => {
   const signers: SignerWithAddress[] = await ethers.getSigners();

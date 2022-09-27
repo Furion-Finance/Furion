@@ -13,6 +13,7 @@ task("deploy:AggregatePoolFactory", "Deploy aggregate pool factory contract").se
   const addressList = readAddressList();
 
   const args = [
+    addressList[network].IncomeMaker,
     addressList[network].Checker,
     addressList[network].FurionToken,
     addressList[network].FurionPricingOracle,

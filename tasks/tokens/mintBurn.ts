@@ -4,6 +4,7 @@ import { subtask, task, types } from "hardhat/config";
 
 import { readAddressList } from "../../scripts/contractAddress";
 import { FurionToken__factory, MockUSD__factory } from "../../typechain";
+import { getNetwork } from "../helpers";
 
 // npx hardhat addMinterBurner --type minter --name StakingPoolFactory --network localhost
 task("addMinterBurner", "Add minter/burner manually for certain token")
@@ -18,14 +19,14 @@ task("addMinterBurner", "Add minter/burner manually for certain token")
 
     const addressList = readAddressList();
 
-    const { network } = hre;
+    const network = getNetwork();
 
     // Get the token contract instance
     const TokenContract = await hre.ethers.getContractFactory(tokenName);
-    const token = TokenContract.attach(addressList[network.name][tokenName]);
+    const token = TokenContract.attach(addressList[network][tokenName]);
 
     // Get the minter address to be added
-    const newMinterContract = addressList[network.name][minterContractName];
+    const newMinterContract = addressList[network][minterContractName];
 
     if (newMinterContract == "" || !newMinterContract) {
       console.log("No minter address found");

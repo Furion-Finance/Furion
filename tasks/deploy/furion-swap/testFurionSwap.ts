@@ -18,21 +18,21 @@ task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pair
 
   clearFurionSwapList();
 
-  await hre.run("createPair", {
+  await hre.run("create:SwapPair", {
     token0: addressList[network].FurionToken,
     token1: addressList[network].WETH,
     name0: "FUR",
     name1: "ETH",
   });
 
-  await hre.run("createPair", {
+  await hre.run("create:SwapPair", {
     token0: addressList[network].FurionToken,
     token1: addressList[network].MockUSD,
     name0: "FUR",
     name1: "USDT",
   });
 
-  await hre.run("createPair", {
+  await hre.run("create:SwapPair", {
     token0: addressList[network].MockUSD,
     token1: addressList[network].WETH,
     name0: "USDT",

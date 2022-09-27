@@ -12,7 +12,7 @@ task("deploy:FurionSwapFactory", "Deploy FurionSwapFactory contract").setAction(
   const network = getNetwork();
   const addressList = readAddressList();
 
-  const args = [addressList[network].IncomeMaker];
+  const args = ["0x0000000000000000000000000000000000000000"];
   const furionSwapFactory = await deploy(ethers, "FurionSwapFactory", args);
 
   console.log();

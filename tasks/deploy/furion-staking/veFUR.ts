@@ -17,5 +17,5 @@ task("deploy:veFUR", "Deploy veFUR contract").setAction(async function (
   console.log(`VoteEscrowedFurion deployed to: ${veFUR.address} on ${network}`);
 
   const implementation = await upgrades.erc1967.getImplementationAddress(veFUR.address);
-  writeUpgradeableDeployment(network, "VoteEscrowedFurion", verFUR.address, implementation);
+  writeUpgradeableDeployment(network, "VoteEscrowedFurion", veFUR.address, implementation);
 });

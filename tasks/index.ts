@@ -2,14 +2,14 @@ const deployChecker = require("./deploy/furion-pools/checker");
 const deploySeparatePoolFactory = require("./deploy/furion-pools/separatePoolFactory");
 const deployFurionPricingOracle = require("./deploy/furion-pools/furionPricingOracle");
 const dpeloyAggregatePoolFactory = require("./deploy/furion-pools/aggregatePoolFactory");
+const deployTestFurionPools = require("./deploy/furion-pools/testFurionPools");
+
 const deployFErc20 = require("./deploy/money-market/ferc20");
 const deployFEther = require("./deploy/money-market/fether");
 const deployNormalInterestRateModel = require("./deploy/money-market/normalInterestRateModel");
 const deployJumpInterestRateModel = require("./deploy/money-market/jumpInterestRateModel");
 const deployPriceOracle = require("./deploy/money-market/priceOracle");
 const deployRiskManager = require("./deploy/money-market/riskManager");
-
-const deployTestFurionPools = require("./deploy/furion-pools/testFurionPools");
 const deployTestMarket = require("./deploy/money-market/testMarket");
 
 const upgradeFEther = require("./upgrade/money-market/fether");
@@ -39,6 +39,7 @@ const deployFurionSwapRouter = require("./deploy/furion-swap/furionSwapRouter");
 const deployTestFurionSwap = require("./deploy/furion-swap/testFurionSwap");
 
 const createPair = require("./furion-swap/tradingPair");
+const swapFactory = require("./furion-swap/swapFactory");
 const addFarmingMinter = require("./furion-farming/farmingPool");
 const addMinterBurner = require("./tokens/mintBurn");
 
@@ -51,13 +52,11 @@ const deployVoteEscrowedFurion = require("./deploy/furion-staking/veFUR");
 const testDeployVoteEscrowedFurion = require("./deploy/furion-staking/testVoteEscrowedFurion");
 const veFURFunctions = require("./furion-staking/veFUR");
 
-const deployIncomeMaker = require("./deploy/income-sharing/incomeMaker");
-const deployIncomeSharingVault = require("./deploy/income-sharing/incomeSharingVault");
-const testDeployIncomeSharing = require("./deploy/income-sharing/testIncomeSharing");
-const incomeMakerFunctions = require("./income-sharing/incomeMaker");
-const incomeSharingVaultFunctions = require("./income-sharing/incomeSharingVault");
-
 const addFarmingPool = require("./furion-farming/farmingPool");
+
+const deployIncomeSharingVault = require("./deploy/income-sharing/incomeSharingVault");
+const deployIncomeMaker = require("./deploy/income-sharing/incomeMaker");
+const deployTestIncomeSharing = require("./deploy/income-sharing/testIncomeSharing");
 
 export {
   accounts,
@@ -90,6 +89,7 @@ export {
   deployFurionSwapRouter,
   deployTestFurionSwap,
   createPair,
+  swapFactory,
   addFarmingMinter,
   addMinterBurner,
   deployFurionFarming,
@@ -99,9 +99,7 @@ export {
   deployVoteEscrowedFurion,
   testDeployVoteEscrowedFurion,
   veFURFunctions,
-  deployIncomeMaker,
   deployIncomeSharingVault,
-  testDeployIncomeSharing,
-  incomeMakerFunctions,
-  incomeSharingVaultFunctions,
+  deployIncomeMaker,
+  deployTestIncomeSharing,
 };

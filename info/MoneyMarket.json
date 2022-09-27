@@ -1,8 +1,18 @@
 {
-  "localhost": {
-    "counter": 0
-  },
-  "rinkeby": {
-    "counter": 0
-  }
+  "localhost": [],
+  "rinkeby": [],
+  "goerli": [
+    {
+      "name": "fETH",
+      "address": "0xb4D0Ee5Aa559b838453Cc31Daa8b24DF37be751f"
+    },
+    {
+      "name": "fFUR",
+      "address": "0xf3342Efc237173917D2aCf57A3EBc2E814dB5Ec6"
+    },
+    {
+      "name": "fUSDC",
+      "address": "0x50cB039005e5842Bd9c1EcE5a75D7D924574D64b"
+    }
+  ]
 }

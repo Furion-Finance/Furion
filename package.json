@@ -98,7 +98,7 @@
     "size": "hardhat size-contracts",
     "verify:rinkeby:args": "hardhat verify --network rinkeby --constructor-args",
     "verify:rinkeby": "hardhat verify --network rinkeby",
-    "run:rinkeby": "hardhat run --network rinkeby",
+    "task:goerli": "hardhat --network goerli",
     "task:rinkeby": "hardhat --network rinkeby"
   },
   "dependencies": {

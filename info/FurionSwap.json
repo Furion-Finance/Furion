@@ -1,26 +1,27 @@
 {
   "localhost": [],
-  "rinkeby": [
+  "rinkeby": [],
+  "goerli": [
     {
-      "token0": "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
-      "token1": "0x2c3657C66B505348ec17a959E881842cd51CF304",
+      "token0": "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
+      "token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
       "name0": "FUR",
       "name1": "ETH",
-      "pair": "0x0CDC65EEcfCa4df59E612eEB8d7AFe78D1f9E779"
+      "pair": "0x32f59273A81A1db248dcd2ffE1E566e0e2531b93"
     },
     {
-      "token0": "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
-      "token1": "0xD0ba865684fF8fDdA85911B0B0E54860Fc4BE920",
+      "token0": "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
+      "token1": "0x62d3B764626A52FDe2D868b7e093863bEAe4336b",
       "name0": "FUR",
       "name1": "USDT",
-      "pair": "0x8A9904B0e141717da2e2c2267503d4e13495b6E1"
+      "pair": "0x625Ef1669D989E5D1dF2AB5623d31083FdB3ef9b"
     },
     {
-      "token0": "0xD0ba865684fF8fDdA85911B0B0E54860Fc4BE920",
-      "token1": "0x2c3657C66B505348ec17a959E881842cd51CF304",
+      "token0": "0x62d3B764626A52FDe2D868b7e093863bEAe4336b",
+      "token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
       "name0": "USDT",
       "name1": "ETH",
-      "pair": "0x76B6106E1e19bdfa051b834F239580B8238B8537"
+      "pair": "0x78A6583630a9389AD575A7934524a6015207Ea65"
     }
   ]
 }

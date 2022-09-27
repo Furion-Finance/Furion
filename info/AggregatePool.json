@@ -1,12 +1,10 @@
 {
-  "localhost": {
-    "counter": 0
-  },
-  "rinkeby": {
-    "0": {
+  "localhost": [],
+  "rinkeby": [],
+  "goerli": [
+    {
       "name": "Cool Cats",
-      "address": "0xF3Bd5266B65E35b3d250a26D031A4a8D7F7b64C5"
-    },
-    "counter": 1
-  }
+      "address": "0x2f5Ab18cbE2f02b3D5e582DF3c870C8b41422754"
+    }
+  ]
 }

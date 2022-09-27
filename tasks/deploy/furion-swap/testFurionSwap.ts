@@ -2,6 +2,7 @@ import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
 import { clearFurionSwapList, readAddressList } from "../../../scripts/contractAddress";
+import { getNetwork } from "../../helpers";
 
 task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pairs").setAction(async function (
   taskArguments: TaskArguments,
@@ -9,8 +10,7 @@ task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pair
 ) {
   const hre = require("hardhat");
 
-  const { network } = hre;
-  const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const network = getNetwork();
   const addressList = readAddressList();
 
   await hre.run("deploy:FurionSwapFactory");
@@ -19,22 +19,22 @@ task("deploy:TestFurionSwap", "Deploy all furion-swap contracts and trading pair
   clearFurionSwapList();
 
   await hre.run("createPair", {
-    token0: addressList[_network].FurionToken,
-    token1: addressList[_network].WETH,
+    token0: addressList[network].FurionToken,
+    token1: addressList[network].WETH,
     name0: "FUR",
     name1: "ETH",
   });
 
   await hre.run("createPair", {
-    token0: addressList[_network].FurionToken,
-    token1: addressList[_network].MockUSD,
+    token0: addressList[network].FurionToken,
+    token1: addressList[network].MockUSD,
     name0: "FUR",
     name1: "USDT",
   });
 
   await hre.run("createPair", {
-    token0: addressList[_network].MockUSD,
-    token1: addressList[_network].WETH,
+    token0: addressList[network].MockUSD,
+    token1: addressList[network].WETH,
     name0: "USDT",
     name1: "ETH",
   });

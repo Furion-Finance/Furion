@@ -2,6 +2,7 @@ import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
 import { clearFarmingPoolList, readFurionSwapList } from "../../../scripts/contractAddress";
+import { getNetwork } from "../../helpers";
 
 task("deploy:TestFurionFarming", "Deploy all farming contracts and add farming pools").setAction(async function (
   taskArguments: TaskArguments,
@@ -9,14 +10,13 @@ task("deploy:TestFurionFarming", "Deploy all farming contracts and add farming p
 ) {
   const hre = require("hardhat");
 
-  const { network } = hre;
-  const _network = network.name == "hardhat" ? "localhost" : network.name;
+  const network = getNetwork();
   const furionSwapList = readFurionSwapList();
 
   clearFarmingPoolList();
 
   await hre.run("deploy:FurionFarming");
-  const lpTokens = furionSwapList[_network];
+  const lpTokens = furionSwapList[network];
   for (let index = 0; index < lpTokens.length; index++) {
     let name = lpTokens[index].name0 + "-" + lpTokens[index].name1;
     let lp = lpTokens[index].pair;

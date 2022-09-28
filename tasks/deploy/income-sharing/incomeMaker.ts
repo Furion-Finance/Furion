@@ -23,7 +23,8 @@ task("deploy:IncomeMaker", "Deploy Income Maker contract").setAction(async funct
   console.log();
   console.log(`Income Maker deployed to: ${im.address} on ${network}`);
 
-  writeUpgradeableDeployment(network, "IncomeMaker", im.address, args);
+  const implementation = await upgrades.erc1967.getImplementationAddress(im.address);
+  writeUpgradeableDeployment(network, "IncomeMaker", im.address, implementation);
 
   await hre.run("Swap:SetIncomeMaker", { incomemaker: im.address });
 });

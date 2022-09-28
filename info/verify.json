@@ -207,16 +207,11 @@
       "args": []
     },
     "IncomeSharingVault": {
-      "address": ["0x569Af9F95c2cA272637fc46972985cFc89Ba5389"],
+      "address": "0xf25CfC9e7fbFA594136F63769F21427071682e41",
       "args": []
     },
     "IncomeMaker": {
-      "address": [
-        "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
-        "0x87132C7dBd0D6D6A73c9Df24382f546c2E6fa21A",
-        "0xf856Bd95D26D1AD159df54bae8Aa49B39c72A9d0",
-        "0xEAD691D69B525eEEb03206891A40f7C7C5C8538F"
-      ],
+      "address": "0xDb80Fe2d03a89FA9e8F8575CEA5da8DB6b945e24",
       "args": []
     },
     "Checker": {

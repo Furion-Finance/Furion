@@ -7,7 +7,7 @@ import { getNetwork } from "./helpers";
 const furionPools = ["Checker", "SeparatePoolFactory", "AggregatePoolFactory", "FurionPricingOracle"];
 const markets = ["JumpInterestRateModel", "NormalInterestRateModel", "PriceOracle", "RiskManager"];
 
-task("verifyer", "Verify contract")
+task("verifier", "Verify contract")
   .addParam("name", "Name of contract")
   .setAction(async function (taskArguments: TaskArguments) {
     const network = await getNetwork();
@@ -47,7 +47,7 @@ task("verifyer", "Verify contract")
     console.log("Contract not found");
   });
 
-task("verifyer:All", "Verify all contracts").setAction(async function (taskArguments: TaskArguments) {
+task("verifier:All", "Verify all contracts").setAction(async function (taskArguments: TaskArguments) {
   const network = getNetwork();
   if (network === "localhost") {
     console.log("Cannot verify on localhost");
@@ -79,7 +79,7 @@ task("verifyer:All", "Verify all contracts").setAction(async function (taskArgum
   }
 });
 
-task("verifyer:FurionPools", "Verify all furion pools related contracts").setAction(async function (
+task("verifier:FurionPools", "Verify all furion pools related contracts").setAction(async function (
   taskArguments: TaskArguments,
 ) {
   const network = getNetwork();
@@ -113,7 +113,7 @@ task("verifyer:FurionPools", "Verify all furion pools related contracts").setAct
   }
 });
 
-task("verifyer:Market", "Verify all money market related contracts").setAction(async function (
+task("verifier:Market", "Verify all money market related contracts").setAction(async function (
   taskArguments: TaskArguments,
 ) {
   const network = getNetwork();

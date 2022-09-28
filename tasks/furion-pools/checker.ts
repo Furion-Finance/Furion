@@ -12,6 +12,7 @@ task("Checker:SetSPF", "Set separate pool factory")
 
     const checker = await ethers.getContractAt("Checker", addressList[network].Checker);
     const tx = await checker.setSPFactory(taskArguments.spf);
+    await tx.wait(4);
     console.log("Separate pool factory added to checker");
   });
 
@@ -23,5 +24,6 @@ task("Checker:SetAPF", "Set aggregate pool factory")
 
     const checker = await ethers.getContractAt("Checker", addressList[network].Checker);
     const tx = await checker.setAPFactory(taskArguments.apf);
+    await tx.wait(4);
     console.log("Aggregate pool factory added to checker");
   });

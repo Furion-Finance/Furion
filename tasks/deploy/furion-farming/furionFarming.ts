@@ -23,6 +23,7 @@ task("deploy:FurionFarming", "Deploy FurionFarming contract").setAction(async fu
   const implementation = await upgrades.erc1967.getImplementationAddress(farmingPoolUpgradeable.address);
   writeUpgradeableDeployment(network, "FarmingPoolUpgradeable", farmingPoolUpgradeable.address, implementation);
 
+  await farmingPoolUpgradeable.deployTransaction.wait(4);
   await hre.run("addFarmingMinter");
 });
 

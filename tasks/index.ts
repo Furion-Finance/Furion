@@ -57,6 +57,8 @@ const addFarmingPool = require("./furion-farming/farmingPool");
 const deployIncomeSharingVault = require("./deploy/income-sharing/incomeSharingVault");
 const deployIncomeMaker = require("./deploy/income-sharing/incomeMaker");
 const deployTestIncomeSharing = require("./deploy/income-sharing/testIncomeSharing");
+const incomeSharingVaultFunctions = require("./income-sharing/incomeSharingVault");
+const incomeMakerFunctions = require("./income-sharing/incomeMaker");
 
 export {
   accounts,
@@ -102,4 +104,6 @@ export {
   deployIncomeSharingVault,
   deployIncomeMaker,
   deployTestIncomeSharing,
+  incomeSharingVaultFunctions,
+  incomeMakerFunctions,
 };

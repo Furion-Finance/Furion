@@ -151,6 +151,23 @@
         "0x22BA730714BbE51fbFb8Cb329a52E73951e95B9e",
         "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E"
       ]
+    },
+    "IncomeSharingVault": {
+      "address": ["0x4adDF5E16F97452cFbDb70d9E44800E533fdaC11"],
+      "args": []
+    },
+    "IncomeMaker": {
+      "address": [
+        "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
+        "0x28369430ea0a034a6267f1bab946036eaef54213",
+        "0x1277d73f140e69f78759E92016a6337dd63a2154",
+        "0xdcE75065EdaA97586a548E6fAEAefd5b3d951bFB"
+      ],
+      "args": []
+    },
+    "VoteEscrowedFurion": {
+      "address": "0x6a64E59bb8cC095a49b04B3dAFf7d9042fe44CE3",
+      "args": []
     }
   },
   "goerli": {

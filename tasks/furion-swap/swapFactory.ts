@@ -1,4 +1,4 @@
-import { task } from "hardhat/config";
+import { task, types } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
 import { readAddressList } from "../../scripts/contractAddress";

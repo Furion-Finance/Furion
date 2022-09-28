@@ -18,5 +18,6 @@ task("deploy:IncomeSharingVault", "Deploy Income Sharing Vault contract").setAct
   console.log();
   console.log(`Income Sharing Vault deployed to: ${isv.address} on ${network}`);
 
-  writeUpgradeableDeployment(network, "IncomeSharingVault", isv.address, args);
+  const implementation = await upgrades.erc1967.getImplementationAddress(isv.address);
+  writeUpgradeableDeployment(network, "IncomeSharingVault", isv.address, implementation);
 });

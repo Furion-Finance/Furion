@@ -23,7 +23,7 @@ const riskManager = require("./money-market/riskManager");
 const priceOracle = require("./money-market/priceOracle");
 
 const accounts = require("./accounts");
-const verifyer = require("./verifyer");
+const verifier = require("./verifier");
 
 const deployProxyAdmin = require("./deploy/proxy/proxyAdmin");
 const deployTestProxy = require("./deploy/proxy/testProxy");
@@ -62,7 +62,7 @@ const incomeMakerFunctions = require("./income-sharing/incomeMaker");
 
 export {
   accounts,
-  verifyer,
+  verifier,
   deployChecker,
   deploySeparatePoolFactory,
   deployFurionPricingOracle,

@@ -15,6 +15,7 @@ task("deploy:TestMarket", "Deploy all money market contracts").setAction(async f
 
   await hre.run("deploy:PriceOracle");
   await hre.run("deploy:RiskManager");
+  await hre.run("RM:SetVeFUR");
   await hre.run("deploy:NormalInterestRateModel", {
     baserate: "0.03",
     multiplier: "0.2",

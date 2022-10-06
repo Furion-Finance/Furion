@@ -33,3 +33,15 @@ task("RM:SupportMarket", "Support given market")
 
     console.log("Market not found");
   });
+
+task("RM:SetVeFUR", "Set veFUR for calculating collateral factor boost")
+  //.addParam("vefur", "Address of veFUR")
+  .setAction(async function (taskArguments: TaskArguments, { ethers }) {
+    const network = getNetwork();
+    const addressList = readAddressList();
+
+    const rm = await ethers.getContractAt("RiskManager", addressList[network].RiskManager);
+    await rm.setVeToken(addressList[network].VoteEscrowedFurion);
+
+    console.log("veFUR set");
+  });

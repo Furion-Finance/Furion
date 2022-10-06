@@ -108,13 +108,11 @@ abstract contract TokenBase is
         external
         onlyAdmin
     {
-        accrueInterest();
+        (uint256 borrows, uint256 reserves, uint256 index) = accrueInfo();
+        accrueInterest(index);
+        totalBorrows = borrows;
+        totalReserves = reserves;
 
-        // Ensure market state is up-to-date
-        require(
-            lastAccrualBlock == block.number,
-            "TokenBase: Market state not yet updated"
-        );
         require(
             _newReserveFactorMantissa < RESERVE_FACTOR_MAX_MANTISSA,
             "TokenBase: Invalid reserve factor"
@@ -175,17 +173,18 @@ abstract contract TokenBase is
     function getAccountSnapshot(address _account)
         external
         view
-        override
         returns (
             uint256,
             uint256,
             uint256
         )
     {
+        (uint256 borrows, uint256 reserves, uint256 index) = accrueInfo();
+
         return (
             balanceOf(_account),
-            borrowBalanceCurrent(_account),
-            exchangeRateCurrent()
+            borrowBalanceCalc(_account, index),
+            exchangeRateCalc(borrows, reserves)
         );
     }
 
@@ -194,18 +193,9 @@ abstract contract TokenBase is
      * @return The borrow interest rate per block, scaled by 1e18
      */
     function borrowRatePerBlock() external view override returns (uint256) {
-        (
-            uint256 _totalBorrows,
-            uint256 _totalReserves,
+        (uint256 borrows, uint256 reserves, ) = accrueInfo();
 
-        ) = accrueInterestCalc();
-
-        return
-            interestRateModel.getBorrowRate(
-                totalCash,
-                _totalBorrows,
-                _totalReserves
-            );
+        return interestRateModel.getBorrowRate(totalCash, borrows, reserves);
     }
 
     /**
@@ -213,17 +203,13 @@ abstract contract TokenBase is
      * @return The supply interest rate per block, scaled by 1e18
      */
     function supplyRatePerBlock() external view override returns (uint256) {
-        (
-            uint256 _totalBorrows,
-            uint256 _totalReserves,
-
-        ) = accrueInterestCalc();
+        (uint256 borrows, uint256 reserves, ) = accrueInfo();
 
         return
             interestRateModel.getSupplyRate(
                 totalCash,
-                _totalBorrows,
-                _totalReserves,
+                borrows,
+                reserves,
                 reserveFactorMantissa
             );
     }
@@ -233,9 +219,9 @@ abstract contract TokenBase is
      * @return The total borrows with interest
      */
     function totalBorrowsCurrent() public view returns (uint256) {
-        (uint256 _totalBorrows, , ) = accrueInterestCalc();
+        (uint256 borrows, , ) = accrueInfo();
 
-        return _totalBorrows;
+        return borrows;
     }
 
     function borrowBalanceCurrent(address _account)
@@ -243,7 +229,7 @@ abstract contract TokenBase is
         view
         returns (uint256)
     {
-        (, , uint256 _borrowIndex) = accrueInterestCalc();
+        (, , uint256 index) = accrueInfo();
 
         // Get borrowBalance and borrowIndex
         BorrowSnapshot memory snapshot = accountBorrows[_account];
@@ -259,7 +245,7 @@ abstract contract TokenBase is
         /* Calculate new borrow balance using the interest index:
          *  principal * how much borrowIndex has increased
          */
-        return (snapshot.principal * _borrowIndex) / snapshot.interestIndex;
+        return (snapshot.principal * index) / snapshot.interestIndex;
     }
 
     /**
@@ -273,8 +259,8 @@ abstract contract TokenBase is
      * that market is not up-to-date when the function is called. Call 'current' version
      * functions for accurate results.
      */
-    function borrowBalanceStored(address _account)
-        public
+    function borrowBalanceCalc(address _account, uint256 _index)
+        internal
         view
         returns (uint256)
     {
@@ -292,50 +278,15 @@ abstract contract TokenBase is
         /* Calculate new borrow balance using the interest index:
          *  principal * how much borrowIndex has increased
          */
-        return (snapshot.principal * borrowIndex) / snapshot.interestIndex;
-    }
-
-    function exchangeRateCurrent() public view returns (uint256) {
-        (
-            uint256 _totalBorrows,
-            uint256 _totalReserves,
-
-        ) = accrueInterestCalc();
-
-        uint256 _totalSupply = totalSupply();
-        if (_totalSupply == 0) {
-            /*
-             * If there are no tokens minted:
-             *  exchangeRate = initialExchangeRate
-             */
-            return initialExchangeRateMantissa;
-        } else {
-            /*
-             * Otherwise:
-             *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
-             */
-            uint256 cashPlusBorrowsMinusReserves = totalCash +
-                _totalBorrows -
-                _totalReserves;
-            uint256 exchangeRate = (cashPlusBorrowsMinusReserves * expScale) /
-                _totalSupply;
-
-            return exchangeRate;
-        }
+        return (snapshot.principal * _index) / snapshot.interestIndex;
     }
 
     /**
-     * @notice Calculates the exchange rate from the underlying to the fToken
-     * @dev This function does not accrue interest before calculating the exchange rate
-     * @return calculated exchange rate scaled by 1e18
-     *
-     * NOTE: Despite being free to call, it may not be accurate when called externally
-     * by non-Furion contracts because lastAccrualBlock will not be equal to current
-     * block number provided that accrueInterest() is not called beforehand, meaning
-     * that market is not up-to-date when the function is called. Call 'current' version
-     * functions for accurate results.
+     * @notice Exchange rate of current block
      */
-    function exchangeRateStored() public view returns (uint256) {
+    function exchangeRateCurrent() public view returns (uint256) {
+        (uint256 borrows, uint256 reserves, ) = accrueInfo();
+
         uint256 _totalSupply = totalSupply();
         if (_totalSupply == 0) {
             /*
@@ -349,8 +300,8 @@ abstract contract TokenBase is
              *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
              */
             uint256 cashPlusBorrowsMinusReserves = totalCash +
-                totalBorrows -
-                totalReserves;
+                borrows -
+                reserves;
             uint256 exchangeRate = (cashPlusBorrowsMinusReserves * expScale) /
                 _totalSupply;
 
@@ -359,10 +310,40 @@ abstract contract TokenBase is
     }
 
     /**
-     * @notice CALCULATE borrow index and market info of current block
+     * @notice Calculated exchange rate based on given params
+     */
+    function exchangeRateCalc(uint256 _borrows, uint256 _reserves)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply == 0) {
+            /*
+             * If there are no tokens minted:
+             *  exchangeRate = initialExchangeRate
+             */
+            return initialExchangeRateMantissa;
+        } else {
+            /*
+             * Otherwise:
+             *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
+             */
+            uint256 cashPlusBorrowsMinusReserves = totalCash +
+                _borrows -
+                _reserves;
+            uint256 exchangeRate = (cashPlusBorrowsMinusReserves * expScale) /
+                _totalSupply;
+
+            return exchangeRate;
+        }
+    }
+
+    /**
+     * @notice CALCULATE market info of current block
      * @return New total borrow, new total reserve, new borrow index
      */
-    function accrueInterestCalc()
+    function accrueInfo()
         internal
         view
         returns (
@@ -371,76 +352,70 @@ abstract contract TokenBase is
             uint256
         )
     {
-        uint256 currentBlockNumber = block.number;
-        uint256 _lastAccrualBlock = lastAccrualBlock;
+        uint256 borrows = totalBorrows;
+        uint256 reserves = totalReserves;
+        uint256 index = borrowIndex;
+        uint256 blockDelta = block.number - lastAccrualBlock;
 
-        if (currentBlockNumber == _lastAccrualBlock) {
-            return (totalBorrows, totalReserves, borrowIndex);
+        if (blockDelta > 0) {
+            uint256 borrowsPrior = borrows;
+            uint256 reservesPrior = reserves;
+            uint256 indexPrior = index;
+
+            // Calculate the current borrow interest rate
+            uint256 borrowRatePerBlockMantissa = interestRateModel
+                .getBorrowRate(totalCash, borrowsPrior, reservesPrior);
+            require(
+                borrowRatePerBlockMantissa <= BORROW_RATE_MAX_MANTISSA,
+                "TokenBase: Borrow rate is absurdly high"
+            );
+
+            /*
+             * Calculate the interest accumulated into borrows and reserves and the new index:
+             *  simpleInterestFactor = borrowRate * blockDelta
+             *  interestAccumulated = simpleInterestFactor * totalBorrows
+             *  totalBorrowsNew = interestAccumulated + totalBorrows
+             *  totalReservesNew = interestAccumulated * reserveFactor + totalReserves
+             *  borrowIndexNew = simpleInterestFactor * borrowIndex + borrowIndex
+             */
+
+            Exp memory simpleInterestFactor = mul_(
+                Exp({mantissa: borrowRatePerBlockMantissa}),
+                blockDelta
+            );
+            index = mul_ScalarTruncateAddUInt(
+                simpleInterestFactor,
+                indexPrior,
+                indexPrior
+            );
+
+            // Need to use the same method used to calculate borrow balance (i.e. multiply
+            // by how much borrowIndex increased) of an account to prevent mismatch due
+            // to roudings during arithmetic operations
+            borrows = (borrows * index) / indexPrior;
+            uint256 interestAccumulated = borrows - borrowsPrior;
+            reserves = mul_ScalarTruncateAddUInt(
+                Exp({mantissa: reserveFactorMantissa}),
+                interestAccumulated,
+                reservesPrior
+            );
         }
 
-        uint256 borrowsPrior = totalBorrows;
-        uint256 reservesPrior = totalReserves;
-        uint256 borrowIndexPrior = borrowIndex;
-
-        // Calculate the current borrow interest rate
-        uint256 borrowRatePerBlockMantissa = interestRateModel.getBorrowRate(
-            totalCash,
-            borrowsPrior,
-            reservesPrior
-        );
-        require(
-            borrowRatePerBlockMantissa <= BORROW_RATE_MAX_MANTISSA,
-            "borrow rate is absurdly high"
-        );
-
-        // Calculate the number of blocks elapsed since the last accrual
-        uint256 blockDelta = currentBlockNumber - _lastAccrualBlock;
-
-        /*
-         * Calculate the interest accumulated into borrows and reserves and the new index:
-         *  simpleInterestFactor = borrowRate * blockDelta
-         *  interestAccumulated = simpleInterestFactor * totalBorrows
-         *  totalBorrowsNew = interestAccumulated + totalBorrows
-         *  totalReservesNew = interestAccumulated * reserveFactor + totalReserves
-         *  borrowIndexNew = simpleInterestFactor * borrowIndex + borrowIndex
-         */
-
-        Exp memory simpleInterestFactor = mul_(
-            Exp({mantissa: borrowRatePerBlockMantissa}),
-            blockDelta
-        );
-        uint256 borrowIndexNew = mul_ScalarTruncateAddUInt(
-            simpleInterestFactor,
-            borrowIndexPrior,
-            borrowIndexPrior
-        );
-
-        // Need to use the same method used to calculate borrow balance (i.e. multiply
-        // by how much borrowIndex increased) of an account to prevent mismatch due
-        // to roudings during arithmetic operations
-        uint256 totalBorrowsNew = (borrowsPrior * borrowIndexNew) /
-            borrowIndexPrior;
-        uint256 interestAccumulated = totalBorrowsNew - borrowsPrior;
-        uint256 totalReservesNew = mul_ScalarTruncateAddUInt(
-            Exp({mantissa: reserveFactorMantissa}),
-            interestAccumulated,
-            reservesPrior
-        );
-
-        return (totalBorrowsNew, totalReservesNew, borrowIndexNew);
+        return (borrows, reserves, index);
     }
 
     /**
-     * @notice WRITE & UPDATE borrow index and market info
+     * @notice Update borrow index to keep track of interest accumulation
+     * @dev Called in all market actions. Borrows and reserves are updated separately
+     *  only when borrowing / repaying to save gas
      */
-    function accrueInterest() public {
-        // Short-circuit accumulating 0 interest
+    function accrueInterest(uint256 _borrowIndex) internal {
         if (lastAccrualBlock == block.number) {
             return;
         }
 
         // We write the calculated values into storage
-        (totalBorrows, totalReserves, borrowIndex) = accrueInterestCalc();
+        borrowIndex = _borrowIndex;
         lastAccrualBlock = block.number;
     }
 
@@ -450,26 +425,18 @@ abstract contract TokenBase is
      * @param _supplyAmount The amount of the underlying asset to supply
      */
     function supplyInternal(address _supplier, uint256 _supplyAmount) internal {
-        // Update market state
-        accrueInterest();
+        (uint256 borrows, uint256 reserves, uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         require(
             riskManager.supplyAllowed(address(this)),
             "TokenBase: Supply disallowed by risk manager"
         );
-        // Ensure market state is up-to-date
-        require(
-            lastAccrualBlock == block.number,
-            "TokenBase: Market state not yet updated"
-        );
 
-        // We can call the stored version here because accrueInterest() has already
-        // been called earlier
-        Exp memory exchangeRate = Exp({mantissa: exchangeRateStored()});
-
-        /////////////////////////
-        // EFFECTS & INTERACTIONS
-        // (No safe failures beyond this point)
+        // Get current exchange rate
+        Exp memory exchangeRate = Exp({
+            mantissa: exchangeRateCalc(borrows, reserves)
+        });
 
         /*
          *  We call `doTransferIn` giving the supplier and the supplyAmount.
@@ -480,11 +447,7 @@ abstract contract TokenBase is
          */
         doTransferIn(_supplier, _supplyAmount);
 
-        /*
-         * We get the current exchange rate and calculate the number of cTokens to be minted:
-         *  mintTokens = actualMintAmount / exchangeRate
-         */
-
+        // We get the current exchange rate and calculate the number of cTokens to be minted         */
         uint256 mintTokens = div_(_supplyAmount, exchangeRate);
         _mint(_supplier, mintTokens);
 
@@ -504,17 +467,18 @@ abstract contract TokenBase is
         uint256 _redeemTokens,
         uint256 _redeemAmount
     ) internal {
-        // Update market state
-        accrueInterest();
+        (uint256 borrows, uint256 reserves, uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         require(
             _redeemTokens == 0 || _redeemAmount == 0,
             "TokenBase: One of redeemTokens or redeemAmount must be zero"
         );
 
-        // We can call the stored version because accrueInterest() has already been
-        // called earlier
-        Exp memory exchangeRate = Exp({mantissa: exchangeRateStored()});
+        // Get current exchange rate
+        Exp memory exchangeRate = Exp({
+            mantissa: exchangeRateCalc(borrows, reserves)
+        });
 
         uint256 redeemTokens;
         uint256 redeemAmount;
@@ -531,11 +495,6 @@ abstract contract TokenBase is
         require(
             riskManager.redeemAllowed(address(this), _redeemer, redeemTokens),
             "TokenBase: Redeem disallowed by risk manager"
-        );
-        // Ensure market is up-to-date
-        require(
-            lastAccrualBlock == block.number,
-            "TokenBase: Market state not yet updated"
         );
         // Fail gracefully if protocol has insufficient cash
         require(
@@ -565,17 +524,12 @@ abstract contract TokenBase is
      * @param _borrowAmount The amount of the underlying asset to borrow
      */
     function borrowInternal(address _borrower, uint256 _borrowAmount) internal {
-        // Update market state
-        accrueInterest();
+        (uint256 borrows, , uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         require(
             riskManager.borrowAllowed(address(this), _borrower, _borrowAmount),
             "TokenBase: Borrow disallowed by risk manager"
-        );
-        // Ensure market is up-to-date
-        require(
-            lastAccrualBlock == block.number,
-            "TokenBase: Market state not yet updated"
         );
         // Fail gracefully if protocol has insufficient cash
         require(
@@ -584,12 +538,9 @@ abstract contract TokenBase is
         );
 
         // We calculate the new borrower and total borrow balances, failing on overflow
-        //
-        // stored version can be used here because accrueInterest() has already
-        // been called earlier
-        uint256 borrowBalancePrev = borrowBalanceStored(_borrower);
-        uint256 borrowBalanceNew = borrowBalancePrev + _borrowAmount;
-        uint256 totalBorrowsNew = totalBorrows + _borrowAmount;
+        uint256 borrowBalanceNew = borrowBalanceCalc(_borrower, index) +
+            _borrowAmount;
+        uint256 totalBorrowsNew = borrows + _borrowAmount;
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -600,7 +551,7 @@ abstract contract TokenBase is
          *  Note: Avoid token reentrancy attacks by writing increased borrow before external transfer.
         `*/
         accountBorrows[_borrower].principal = borrowBalanceNew;
-        accountBorrows[_borrower].interestIndex = borrowIndex;
+        accountBorrows[_borrower].interestIndex = index;
         totalBorrows = totalBorrowsNew;
 
         /*
@@ -631,34 +582,22 @@ abstract contract TokenBase is
         address _borrower,
         uint256 _repayAmount
     ) internal {
-        // Update market state
-        accrueInterest();
+        (uint256 borrows, , uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         require(
             riskManager.repayBorrowAllowed(address(this)),
             "TokenBase: Repay disallowed by risk manager"
         );
-        // Ensure market is up-to-date
-        require(
-            lastAccrualBlock == block.number,
-            "TokenBase: Market state not yet updated"
-        );
 
         // We fetch the amount the borrower owes, with accumulated interest
-        //
-        // Stored version can be used here because accrueInterest() has already
-        // been called earlier
-        uint256 borrowBalancePrev = borrowBalanceStored(_borrower);
+        uint256 borrowBalancePrev = borrowBalanceCalc(_borrower, index);
 
         // If repayAmount == max value of uint256, repay total amount owed,
         // else repay given amount
         uint256 actualRepayAmount = _repayAmount == type(uint256).max
             ? borrowBalancePrev
             : _repayAmount;
-
-        /////////////////////////
-        // EFFECTS & INTERACTIONS
-        // (No safe failures beyond this point)
 
         /*
          * We call doTransferIn for the payer and the repayAmount
@@ -677,13 +616,13 @@ abstract contract TokenBase is
         uint256 borrowBalanceNew = actualRepayAmount > borrowBalancePrev
             ? 0
             : borrowBalancePrev - actualRepayAmount;
-        uint256 totalBorrowsNew = actualRepayAmount > totalBorrows
+        uint256 totalBorrowsNew = actualRepayAmount > borrows
             ? 0
-            : totalBorrows - actualRepayAmount;
+            : borrows - actualRepayAmount;
 
         /* We write the previously calculated values into storage */
         accountBorrows[_borrower].principal = borrowBalanceNew;
-        accountBorrows[_borrower].interestIndex = borrowIndex;
+        accountBorrows[_borrower].interestIndex = index;
         totalBorrows = totalBorrowsNew;
 
         /* We emit a RepayBorrow event */
@@ -710,12 +649,10 @@ abstract contract TokenBase is
         uint256 _repayAmount,
         address _fTokenCollateral
     ) internal {
-        // Update market state
-        accrueInterest();
+        (, , uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         ITokenBase collateral = ITokenBase(_fTokenCollateral);
-        // Update collateeral asset market state
-        collateral.accrueInterest();
 
         /* Fail if liquidate not allowed */
         require(
@@ -726,11 +663,6 @@ abstract contract TokenBase is
                 _repayAmount
             ),
             "TokenBase: Liquidation disallowed by risk manager"
-        );
-        // Ensure borrow market is up-to-date
-        require(
-            lastAccrualBlock == block.number,
-            "TokenBase: Market state not yet updated"
         );
         // Ensure collateral market is also up-to-date
         require(
@@ -751,13 +683,11 @@ abstract contract TokenBase is
         // Fail if repayBorrow fails
         repayBorrowInternal(_liquidator, _borrower, _repayAmount);
 
-        /////////////////////////
-        // EFFECTS & INTERACTIONS
-        // (No safe failures beyond this point
-
-        // Call seize functions of fTokenCollateral contract for token seizure.
-        // If this is also the collateral, run seizeInternal to avoid re-entrancy,
-        // otherwise make an external call
+        /**
+         * Call seize functions of fTokenCollateral contract for token seizure.
+         * If this is also the collateral, run seizeInternal to avoid re-entrancy,
+         * otherwise make an external call
+         */
         if (_fTokenCollateral == address(this)) {
             seizeInternal(address(this), _liquidator, _borrower, _repayAmount);
         } else {
@@ -793,6 +723,9 @@ abstract contract TokenBase is
         address _borrower,
         uint256 _repayAmount
     ) internal {
+        (, , uint256 index) = accrueInfo();
+        accrueInterest(index);
+
         // We calculate the number of collateral tokens that will be seized
         (uint256 seizeTotal, uint256 repayValue) = riskManager
             .liquidateCalculateSeizeTokens(
@@ -834,10 +767,6 @@ abstract contract TokenBase is
                 uint256 protocolSeizeAmount,
                 uint256 totalReservesNew
             ) = seizeAllocation(seizeTotal);
-
-            /////////////////////////
-            // EFFECTS & INTERACTIONS
-            // (No safe failures beyond this point)
 
             // Indirect token transfer through minting and burning
             _burn(_borrower, seizeTotal);
@@ -889,7 +818,7 @@ abstract contract TokenBase is
         liquidatorSeizeTokens = _seizeTotal - protocolSeizeTokens;
 
         // Convert amount of fToken for reserve to underlying asset
-        Exp memory exchangeRate = Exp({mantissa: exchangeRateStored()});
+        Exp memory exchangeRate = Exp({mantissa: exchangeRateCurrent()});
         // mul_ScalarTruncate: exp, uint -> uint
         protocolSeizeAmount = mul_ScalarTruncate(
             exchangeRate,
@@ -1062,8 +991,8 @@ abstract contract TokenBase is
         override
         returns (bool)
     {
-        // Update market state
-        accrueInterest();
+        (, , uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         address owner = _msgSender();
         // Risk manager transferAllowed
@@ -1081,8 +1010,8 @@ abstract contract TokenBase is
         address to,
         uint256 amount
     ) public override returns (bool) {
-        // Update market state
-        accrueInterest();
+        (, , uint256 index) = accrueInfo();
+        accrueInterest(index);
 
         // Risk manager transferAllowed
         require(

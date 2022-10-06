@@ -366,7 +366,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
 
     /**
      * @dev Checks if the account should be allowed to redeem fTokens for underlying
-     *  asset in the given market.
+     *  asset in the given market, i.e. check if it will create shortfall / a shortfall
+     *  already exists
      * @param _redeemTokens Amount of fTokens used for redemption.
      */
     function redeemAllowed(
@@ -507,9 +508,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
 
         // Stored version used because accrueInterest() has been called at the
         // beginning of liquidateBorrowInternal()
-        uint256 borrowBalance = ITokenBase(_fTokenBorrowed).borrowBalanceStored(
-            _borrower
-        );
+        uint256 borrowBalance = ITokenBase(_fTokenBorrowed)
+            .borrowBalanceCurrent(_borrower);
 
         (, uint256 shortfall, uint256 highestBorrowTier) = getAccountLiquidity(
             _borrower
@@ -748,7 +748,8 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
             }
 
             vars.collateralFactor = Exp({
-                mantissa: markets[vars.asset].collateralFactorMantissa + 0 //collateralFactorBoost(_account)
+                mantissa: markets[vars.asset].collateralFactorMantissa +
+                    collateralFactorBoost(_account)
             });
 
             vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
@@ -877,7 +878,7 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
         // Stored version used because accrueInterest() already called at the
         // beginning of liquidateBorrowInternal()
         uint256 collateralExchangeRateMantissa = ITokenBase(_fTokenCollateral)
-            .exchangeRateStored(); // Note: reverts on error
+            .exchangeRateCurrent(); // Note: reverts on error
 
         //   (value / underyling) * exchangeRate
         // = (value /underlying) * (underlying / token)

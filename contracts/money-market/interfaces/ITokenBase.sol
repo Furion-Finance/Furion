@@ -109,16 +109,7 @@ interface ITokenBase {
         view
         returns (uint256);
 
-    function borrowBalanceStored(address _account)
-        external
-        view
-        returns (uint256);
-
     function exchangeRateCurrent() external view returns (uint256);
-
-    function exchangeRateStored() external view returns (uint256);
-
-    function accrueInterest() external;
 
     function seize(
         address _liquidator,

@@ -113,7 +113,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Get complete lock  info of NFT
+     * @dev Get complete lock info of NFT
      */
     function getLockInfo(uint256 _id) public view returns (LockInfo memory) {
         bytes32 fId = getFurionId(_id);
@@ -207,7 +207,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
     }
 
     /**
-     * @dev Lock NFT to pool and get 500 pool tokens
+     * @dev Lock NFT to pool for 30 days and get 500 pool tokens, paying 150 FUR as fees
      */
     function lock(uint256 _id) external {
         _lock(_id, true);
@@ -222,7 +222,7 @@ contract SeparatePool is ERC20Permit, IERC721Receiver {
         require(length < 10, "SeparatePool: Can only buy 9 NFTs at once");
 
         uint256 mintTotal = LOCK_MINT_AMOUNT * length;
-        uint256 feeTotal = buyFee * length;
+        uint256 feeTotal = lockFee * length;
         FUR.transferFrom(msg.sender, incomeMaker, feeTotal);
 
         for (uint256 i; i < length; ) {

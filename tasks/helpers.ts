@@ -72,7 +72,15 @@ export const writeAggregatePool = (network: string, _name: string, _address: str
 
 export const writeMarketDeployment = (network: string, _name: string, _address: string, implementation: string) => {
   const marketList = readMarketList();
-  marketList[network].push({ name: _name, address: _address });
+  let names = [];
+  for (let market of marketList[network]) {
+    names.push(market.name);
+  }
+  if (names.includes(_name)) {
+    marketList[network][names.indexOf(_name)].address = _address;
+  } else {
+    marketList[network].push({ name: _name, address: _address });
+  }
   storeMarketList(marketList);
 
   const argsList = readArgs();

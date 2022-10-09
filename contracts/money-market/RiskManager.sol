@@ -494,11 +494,6 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
             initiationBlockNumber > 0,
             "RiskManager: Liquidation not yet initiated"
         );
-        // Cannot liquidate if auction has expired (60 blocks passed since last initiation)
-        require(
-            initiationBlockNumber + 60 > block.number,
-            "RiskManager: Reset auction required"
-        );
 
         require(
             markets[_fTokenBorrowed].isListed &&
@@ -516,6 +511,11 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
         );
         // The borrower must have shortfall in order to be liquidatable
         require(shortfall > 0, "RiskManager: Insufficient shortfall");
+        // Cannot liquidate if auction has expired (60 blocks passed since last initiation)
+        require(
+            initiationBlockNumber + 60 > block.number,
+            "RiskManager: Reset auction required"
+        );
         // Liquidation should start from highest tier borrows
         // (i.e. first repay collateral tier borrows then cross-tier...)
         require(
@@ -556,7 +556,7 @@ contract RiskManager is Initializable, RiskManagerStorage, IRiskManager {
         );
 
         require(
-            markets[_fTokenBorrowed].isListed ||
+            markets[_fTokenBorrowed].isListed &&
                 markets[_fTokenCollateral].isListed,
             "RiskManager: Market is not listed"
         );

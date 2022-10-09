@@ -54,6 +54,12 @@ interface ITokenBase {
         address fTokenCollateral
     );
 
+    event LiquidationProtected(
+        bytes32 _id,
+        address _borrower,
+        address _liquidator
+    );
+
     event TokenSeized(address from, address to, uint256 amount);
 
     /**

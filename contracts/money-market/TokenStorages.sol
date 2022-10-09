@@ -65,12 +65,17 @@ contract TokenBaseStorage is ExponentialNoError {
     struct LiquidationProtection {
         address borrower;
         address liquidator;
+        uint96 time;
         uint128 value;
         uint128 tokenSeized;
     }
 
-    // Block timestamp -> liquidation protectin detail
-    mapping(uint256 => LiquidationProtection) public liquidationProtection;
+    // For generating unique ID for liquidation protection
+    // How many times one has been liquidated
+    mapping(address => uint256) public liquidationCount;
+
+    // Unique ID -> liquidation protection detail
+    mapping(bytes32 => LiquidationProtection) public liquidationProtection;
 }
 
 contract FErc20Storage {

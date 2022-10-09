@@ -214,6 +214,12 @@ abstract contract TokenBase is
             );
     }
 
+    function borrowIndexCurrent() public view returns (uint256) {
+        (, , uint256 index) = accrueInfo();
+
+        return index;
+    }
+
     /**
      * @notice Returns the current total borrows plus accrued interest
      * @return The total borrows with interest
@@ -649,9 +655,6 @@ abstract contract TokenBase is
         uint256 _repayAmount,
         address _fTokenCollateral
     ) internal {
-        (, , uint256 index) = accrueInfo();
-        accrueInterest(index);
-
         ITokenBase collateral = ITokenBase(_fTokenCollateral);
 
         /* Fail if liquidate not allowed */
@@ -663,11 +666,6 @@ abstract contract TokenBase is
                 _repayAmount
             ),
             "TokenBase: Liquidation disallowed by risk manager"
-        );
-        // Ensure collateral market is also up-to-date
-        require(
-            collateral.getLastAccrualBlock() == block.number,
-            "TokenBase: Collateral market state not yet updated"
         );
         // Fail if borrower = liquidator
         require(
@@ -723,9 +721,6 @@ abstract contract TokenBase is
         address _borrower,
         uint256 _repayAmount
     ) internal {
-        (, , uint256 index) = accrueInfo();
-        accrueInterest(index);
-
         // We calculate the number of collateral tokens that will be seized
         (uint256 seizeTotal, uint256 repayValue) = riskManager
             .liquidateCalculateSeizeTokens(
@@ -743,7 +738,6 @@ abstract contract TokenBase is
             seizeTotal
         );
         require(allowed, "TokenBase: Token seizure disallowed by risk manager");
-
         // Fail if borrower = liquidator, already checked in `liquidaetBorrowInterna()`
         // require(borrower != liquidator);
 
@@ -754,13 +748,22 @@ abstract contract TokenBase is
             // Store seized tokens in market contract
             _mint(address(this), seizeTotal);
 
-            LiquidationProtection storage lp = liquidationProtection[
-                block.timestamp
-            ];
+            bytes32 id = keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    _borrower,
+                    liquidationCount[_borrower]
+                )
+            );
+            liquidationCount[_borrower]++;
+            LiquidationProtection storage lp = liquidationProtection[id];
             lp.borrower = _borrower;
             lp.liquidator = _liquidator;
+            lp.time = uint96(block.timestamp);
             lp.value = uint128(repayValue);
             lp.tokenSeized = uint128(seizeTotal);
+
+            emit LiquidationProtected(id, _borrower, _liquidator);
         } else {
             (
                 uint256 liquidatorSeizeTokens,
@@ -832,13 +835,13 @@ abstract contract TokenBase is
      * @notice Liquidators can claim seized tokens locked for liquidation protection
      *  if the liquidated account did not pay 1.2x to reclaim tokens after 24 hours
      *  of the liquidation.
-     * @param _timestamp Block timestamp of when the protection is initiated
+     * @param _id Unique ID of liquidation protection
      */
-    function claimLiquidation(uint256 _timestamp) external {
-        LiquidationProtection memory lp = liquidationProtection[_timestamp];
+    function claimLiquidation(bytes32 _id) external {
+        LiquidationProtection memory lp = liquidationProtection[_id];
 
         require(
-            block.timestamp > _timestamp + 1 days,
+            block.timestamp > uint256(lp.time) + 1 days,
             "TokenBase: Time limit not passed"
         );
         require(
@@ -871,22 +874,22 @@ abstract contract TokenBase is
             totalReservesNew
         );
 
-        delete liquidationProtection[_timestamp];
+        delete liquidationProtection[_id];
     }
 
     /**
      * @notice Borrowers who get liquidated can reclaim the seized tokens if they
      *  pay 1.2x the amount liquidators repaid within 24 hours after liquidation.
-     * @param _timestamp Block timestamp of when the protection is initiated
+     * @param _id Unique ID of liquidation protection
      *
      * NOTE: Unit for getUnderlyingPrice of price oracle is ETH, therefore no need
      * to query value.
      */
-    function repayLiquidationWithEth(uint256 _timestamp) external payable {
-        LiquidationProtection memory lp = liquidationProtection[_timestamp];
+    function repayLiquidationWithEth(bytes32 _id) external payable {
+        LiquidationProtection memory lp = liquidationProtection[_id];
 
         require(
-            block.timestamp < _timestamp + 1 days,
+            block.timestamp < uint256(lp.time) + 1 days,
             "TokenBase: Time limit passed"
         );
         require(
@@ -896,16 +899,19 @@ abstract contract TokenBase is
 
         // 1.2x multiplier
         uint256 valueAfterMultiplier = (uint256(lp.value) * 120) / 100;
-
-        require(
-            msg.value >= valueAfterMultiplier,
-            "TokenBase: Not enough ETH given"
+        (uint256 EthPriceMantissa, ) = oracle.getUnderlyingPrice(address(this));
+        // div_: uint, exp -> uint
+        uint256 EthToRepay = div_(
+            valueAfterMultiplier,
+            Exp({mantissa: EthPriceMantissa})
         );
 
-        uint256 spareEth = msg.value - valueAfterMultiplier;
+        require(msg.value >= EthToRepay, "TokenBase: Not enough ETH given");
+
+        uint256 spareEth = msg.value - EthToRepay;
 
         // Contract immediately transfers received ETH to liquidator
-        payable(lp.liquidator).transfer(valueAfterMultiplier);
+        payable(lp.liquidator).transfer(EthToRepay);
         // Refund spare ETH
         if (spareEth > 0) {
             payable(msg.sender).transfer(spareEth);
@@ -916,22 +922,20 @@ abstract contract TokenBase is
         _burn(address(this), tokenSeized256);
         _mint(lp.borrower, tokenSeized256);
 
-        delete liquidationProtection[_timestamp];
+        delete liquidationProtection[_id];
     }
 
     /**
      * @notice Borrowers who get liquidated can reclaim the seized tokens if they
      *  pay 1.2x the amount liquidators repaid within 24 hours after liquidation.
-     * @param _timestamp Block timestamp of when the protection is initiated
+     * @param _id Unique ID of liquidation protection
      * @param _fToken Address of market where the underlying asset is used for repaying
      */
-    function repayLiquidationWithErc(uint256 _timestamp, address _fToken)
-        external
-    {
-        LiquidationProtection memory lp = liquidationProtection[_timestamp];
+    function repayLiquidationWithErc(bytes32 _id, address _fToken) external {
+        LiquidationProtection memory lp = liquidationProtection[_id];
 
         require(
-            block.timestamp < _timestamp + 1 days,
+            block.timestamp < uint256(lp.time) + 1 days,
             "TokenBase: Time limit passed"
         );
         require(
@@ -950,10 +954,10 @@ abstract contract TokenBase is
         // 1.2x multiplier
         uint256 valueAfterMultiplier = (uint256(lp.value) * 120) / 100;
 
-        address underlyingAsset = IFErc20(_fToken).getUnderlying();
         (uint256 underlyingPriceMantissa, ) = oracle.getUnderlyingPrice(
             _fToken
         );
+        address underlyingAsset = IFErc20(_fToken).getUnderlying();
         // div_: uint, exp -> uint
         uint256 underlyingToRepay = div_(
             valueAfterMultiplier,
@@ -972,7 +976,7 @@ abstract contract TokenBase is
         _burn(address(this), tokenSeized256);
         _mint(msg.sender, tokenSeized256);
 
-        delete liquidationProtection[_timestamp];
+        delete liquidationProtection[_id];
     }
 
     /***************************** ERC20 Override *****************************/

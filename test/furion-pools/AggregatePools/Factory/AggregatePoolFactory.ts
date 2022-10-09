@@ -20,12 +20,7 @@ describe("Aggregate Pool Factory", function () {
   });
 
   beforeEach(async function () {
-    const { nft, nft1, furT, checker, spf, apf, sp, sp1 } = await this.loadFixture(deployAPFFixture);
-    this.nft = nft;
-    this.nft1 = nft1;
-    this.furT = furT;
-    this.checker = checker;
-    this.spf = spf;
+    const { apf, sp, sp1 } = await this.loadFixture(deployAPFFixture);
     this.apf = apf;
     this.sp = sp;
     this.sp1 = sp1;
@@ -33,27 +28,27 @@ describe("Aggregate Pool Factory", function () {
 
   context("PoolCreation", async function () {
     it("should create aggregate pool with single token and register token", async function () {
-      const AggregatePool = await this.apf.callStatic.createPool([this.sp.address]);
+      const apAddress = await this.apf.callStatic.createPool([this.sp.address], "Single", "SING");
       // Check event emission
-      await expect(this.apf.createPool([this.sp.address])).to.emit(this.apf, "PoolCreated");
+      await expect(this.apf.createPool([this.sp.address], "Single", "SING")).to.emit(this.apf, "PoolCreated");
       // Check state change on factory contract
-      expect(await this.apf.getPool(1)).to.equal(AggregatePool);
+      expect(await this.apf.getPool(1)).to.equal(apAddress);
 
       // Connect to deployed aggregate pool contract
-      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
+      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", apAddress);
 
       // Check registtration
       expect(await this.ap.registered(this.sp.address)).to.equal(true);
     });
 
     it("should create aggregate pools with multiple tokens and register token", async function () {
-      const AggregatePool = await this.apf.callStatic.createPool([this.sp.address, this.sp1.address]);
-      await this.apf.createPool([this.sp.address, this.sp1.address]);
+      const apAddress = await this.apf.callStatic.createPool([this.sp.address, this.sp1.address], "Multiple", "MUL");
+      await this.apf.createPool([this.sp.address, this.sp1.address], "Multiple", "MUL");
       // Check state change on factory contract
-      expect(await this.apf.getPool(1)).to.equal(AggregatePool);
+      expect(await this.apf.getPool(1)).to.equal(apAddress);
 
       // Connect to deployed aggregate pool contract
-      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
+      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", apAddress);
 
       // Check registtration
       expect(await this.ap.registered(this.sp.address)).to.equal(true);
@@ -61,17 +56,17 @@ describe("Aggregate Pool Factory", function () {
     });
 
     it("should create different pools", async function () {
-      const AggregatePool = await this.apf.callStatic.createPool([this.sp.address]);
-      await this.apf.createPool([this.sp.address]);
-      const AggregatePool1 = await this.apf.callStatic.createPool([this.sp.address, this.sp1.address]);
-      await this.apf.createPool([this.sp.address, this.sp1.address]);
+      const apAddress = await this.apf.callStatic.createPool([this.sp.address], "Single", "SING");
+      await this.apf.createPool([this.sp.address], "Single", "SING");
+      const apAddress1 = await this.apf.callStatic.createPool([this.sp.address, this.sp1.address], "Multiple", "MUL");
+      await this.apf.createPool([this.sp.address, this.sp1.address], "Multiple", "MUL");
       // Check state change on factory contract
-      expect(await this.apf.getPool(1)).to.equal(AggregatePool);
-      expect(await this.apf.getPool(2)).to.equal(AggregatePool1);
+      expect(await this.apf.getPool(1)).to.equal(apAddress);
+      expect(await this.apf.getPool(2)).to.equal(apAddress1);
 
       // Connect to aggregate pools
-      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool);
-      this.ap1 = <AggregatePool>await ethers.getContractAt("AggregatePool", AggregatePool1);
+      this.ap = <AggregatePool>await ethers.getContractAt("AggregatePool", apAddress);
+      this.ap1 = <AggregatePool>await ethers.getContractAt("AggregatePool", apAddress1);
 
       // Check registration
       expect(await this.ap.registered(this.sp.address)).to.equal(true);

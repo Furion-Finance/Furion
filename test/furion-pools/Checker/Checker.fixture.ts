@@ -38,14 +38,18 @@ export async function deployCheckerFixture(): Promise<{
   const checker = <Checker>await checkerFactory.connect(admin).deploy();
   await checker.deployed();
 
-  // Deploy project pool factory
+  // Deploy separate pool factory
   const spfFactory: SeparatePoolFactory__factory = await ethers.getContractFactory("SeparatePoolFactory");
-  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(checker.address, furT.address);
+  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(admin.address, checker.address, furT.address);
   await spf.deployed();
 
-  // Deploy root pool factory
+  // Deploy aggregate pool factory
   const apfFactory: AggregatePoolFactory__factory = await ethers.getContractFactory("AggregatePoolFactory");
-  const apf = <AggregatePoolFactory>await apfFactory.connect(admin).deploy(checker.address, furT.address);
+  const apf = <AggregatePoolFactory>(
+    await apfFactory
+      .connect(admin)
+      .deploy(admin.address, checker.address, furT.address, "0x0000000000000000000000000000000000000000", spf.address)
+  );
   await apf.deployed();
 
   return { nft, furT, checker, spf, apf };

@@ -52,12 +52,12 @@ describe("Checker", async function () {
     await this.checker.connect(this.signers.admin).addToken(this.furT.address);
     expect(await this.checker.isFurionToken(this.furT.address)).to.equal(true);
 
-    const sp = await this.spf.callStatic.createPool(this.nft.address);
+    const spAddress = await this.spf.callStatic.createPool(this.nft.address);
     await this.spf.createPool(this.nft.address);
-    expect(await this.checker.isFurionToken(sp)).to.equal(true);
+    expect(await this.checker.isFurionToken(spAddress)).to.equal(true);
 
-    const ap = await this.apf.callStatic.createPool([sp]);
-    await this.apf.createPool([sp]);
-    expect(await this.checker.isFurionToken(ap)).to.equal(true);
+    const apAddress = await this.apf.callStatic.createPool([spAddress], "Single", "SING");
+    await this.apf.createPool([spAddress], "Single", "SING");
+    expect(await this.checker.isFurionToken(apAddress)).to.equal(true);
   });
 });

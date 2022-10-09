@@ -2,7 +2,8 @@ import { BigNumber } from "@ethersproject/bignumber";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import hre from "hardhat";
+
+import { mineBlocks } from "../../utils";
 
 function mantissa(amount: string): BigNumber {
   return ethers.utils.parseUnits(amount, 18);
@@ -55,7 +56,7 @@ export function borrowTest(): void {
       await this.feth.connect(bob).borrow(maxBorrow);
 
       // Accrue interest which creates shortfall
-      await this.feth.accrueInterest();
+      await mineBlocks(1);
 
       // Attempt to borrow 0.1 ETH
       await expect(this.feth.connect(bob).borrow(mantissa("0.1"))).to.be.revertedWith(
@@ -73,13 +74,11 @@ export function borrowTest(): void {
       const multiplierMantissa: BigNumber = borrowRatePerYearMantissa.add(mantissa("1"));
       const calNewBorrowIndex: BigNumber = oldBorrowIndex.mul(multiplierMantissa).div(mantissa("1"));
 
-      // Mine 2102399 blocks and update market
-      await hre.network.provider.send("hardhat_mine", [ethers.utils.hexValue(2102399)]);
-      // Update market state, making no. of blocks mined 2102400
-      await this.feth.accrueInterest();
+      // Mine 2102400 blocks
+      await mineBlocks(2102400);
 
       // Get new borrow balance
-      const newBorrowIndex: BigNumber = await this.feth.borrowIndex();
+      const newBorrowIndex: BigNumber = await this.feth.borrowIndexCurrent();
       expect(newBorrowIndex).to.equal(calNewBorrowIndex);
     });
   });

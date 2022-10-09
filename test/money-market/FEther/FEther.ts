@@ -13,7 +13,8 @@ describe("FEther", function () {
   });
 
   beforeEach(async function () {
-    const { spo, rm, nirm, feth, ffur } = await this.loadFixture(deployFEtherFixture);
+    const { checker, spo, rm, nirm, feth, ffur } = await this.loadFixture(deployFEtherFixture);
+    this.checker = checker;
     this.spo = spo;
     this.rm = rm;
     this.nirm = nirm;
@@ -21,13 +22,13 @@ describe("FEther", function () {
     this.ffur = ffur;
   });
 
-  supplyTest();
+  //supplyTest();
 
-  redeemTest();
+  //redeemTest();
 
-  borrowTest();
+  //borrowTest();
 
-  repayTest();
+  //repayTest();
 
   liquidateTest();
 });

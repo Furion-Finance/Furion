@@ -1,9 +1,30 @@
-import { BigNumber } from "ethers";
+import { BigNumber, Contract, ContractFactory } from "ethers";
 
 // import { ethers } from "hardhat";
 
 const hre = require("hardhat");
 const ethers = hre.ethers;
+const upgrades = hre.upgrades;
+
+export const deploy = async (contractName: string, params: Array<any>) => {
+  const signers = await ethers.getSigners();
+
+  const factory: ContractFactory = await ethers.getContractFactory(contractName);
+  let contract: Contract;
+
+  if (params.length > 0) contract = await factory.connect(signers[0]).deploy(...params);
+  else contract = await factory.connect(signers[0]).deploy();
+
+  return await contract.deployed();
+};
+
+export const deployUpgradeable = async (contractName: string, params: Array<any>) => {
+  const signers = await ethers.getSigners();
+  const factory: ContractFactory = await ethers.getContractFactory(contractName);
+  const contract: Contract = await upgrades.deployProxy(factory, params);
+
+  return await contract.deployed();
+};
 
 export const toWei = (etherAmount: string) => {
   return ethers.utils.parseUnits(etherAmount);
@@ -37,13 +58,7 @@ export const getLatestBlockTimestamp = async (provider: any) => {
 };
 
 export const mineBlocks = async (blockNumber: number) => {
-  while (blockNumber > 0) {
-    blockNumber--;
-    await hre.network.provider.request({
-      method: "evm_mine",
-      params: [],
-    });
-  }
+  await hre.network.provider.send("hardhat_mine", [ethers.utils.hexValue(blockNumber)]);
 };
 
 // Get the current timestamp in seconds

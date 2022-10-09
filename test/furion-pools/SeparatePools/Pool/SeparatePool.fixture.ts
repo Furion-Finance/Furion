@@ -32,10 +32,7 @@ function su(amount: string): BigNumber {
 
 export async function deploySPFixture(): Promise<{
   nft: NFTest;
-  nft1: NFTest1;
   furT: FurionTokenTest;
-  checker: Checker;
-  spf: SeparatePoolFactory;
   sp: SeparatePool;
 }> {
   const signers: SignerWithAddress[] = await ethers.getSigners();
@@ -65,10 +62,6 @@ export async function deploySPFixture(): Promise<{
   );
   await nft.deployed();
 
-  const nft1Factory = await ethers.getContractFactory("NFTest1");
-  const nft1 = <NFTest1>await nft1Factory.connect(admin).deploy([admin.address, bob.address, alice.address]);
-  await nft1.deployed();
-
   // Deploy FUR
   const furTFactory = await ethers.getContractFactory("FurionTokenTest");
   const furT = <FurionTokenTest>await furTFactory.connect(admin).deploy([admin.address, bob.address, alice.address]);
@@ -83,7 +76,7 @@ export async function deploySPFixture(): Promise<{
   await checker.deployed();
 
   const spfFactory = await ethers.getContractFactory("SeparatePoolFactory");
-  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(checker.address, furT.address);
+  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(admin.address, checker.address, furT.address);
   await spf.deployed();
 
   // Set factory
@@ -93,5 +86,13 @@ export async function deploySPFixture(): Promise<{
   await spf.createPool(nft.address);
   const sp = <SeparatePool>await ethers.getContractAt("SeparatePool", poolAddress);
 
-  return { nft, nft1, furT, checker, spf, sp };
+  // Approve NFT & FUR spending by separate pool
+  await nft.connect(admin).setApprovalForAll(sp.address, true);
+  await nft.connect(bob).setApprovalForAll(sp.address, true);
+  await nft.connect(alice).setApprovalForAll(sp.address, true);
+  await furT.connect(admin).approve(sp.address, su("1000"));
+  await furT.connect(bob).approve(sp.address, su("1000"));
+  await furT.connect(alice).approve(sp.address, su("1000"));
+
+  return { nft, furT, sp };
 }

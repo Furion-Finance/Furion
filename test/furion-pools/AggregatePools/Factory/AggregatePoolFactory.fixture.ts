@@ -27,11 +27,6 @@ import type { NFTest__factory } from "../../../../src/types/factories/contracts/
 // alice: 1000
 
 export async function deployAPFFixture(): Promise<{
-  nft: NFTest;
-  nft1: NFTest1;
-  furT: FurionTokenTest;
-  checker: Checker;
-  spf: SeparatePoolFactory;
   apf: AggregatePoolFactory;
   sp: SeparatePool;
   sp1: SeparatePool;
@@ -63,12 +58,17 @@ export async function deployAPFFixture(): Promise<{
   const checker = <Checker>await checkerFactory.connect(admin).deploy();
   await checker.deployed();
 
+  // Deploy factories
   const spfFactory = await ethers.getContractFactory("SeparatePoolFactory");
-  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(checker.address, furT.address);
+  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(admin.address, checker.address, furT.address);
   await spf.deployed();
 
   const apfFactory = await ethers.getContractFactory("AggregatePoolFactory");
-  const apf = <AggregatePoolFactory>await apfFactory.connect(admin).deploy(checker.address, furT.address);
+  const apf = <AggregatePoolFactory>(
+    await apfFactory
+      .connect(admin)
+      .deploy(admin.address, checker.address, furT.address, "0x0000000000000000000000000000000000000000", spf.address)
+  );
   await apf.deployed();
 
   // Set factory
@@ -76,12 +76,12 @@ export async function deployAPFFixture(): Promise<{
   await checker.connect(admin).setAPFactory(apf.address);
 
   // Create project pools
-  const SeparatePool = await spf.callStatic.createPool(nft.address);
+  const spAddress = await spf.callStatic.createPool(nft.address);
   await spf.createPool(nft.address);
-  const SeparatePool1 = await spf.callStatic.createPool(nft1.address);
+  const spAddress1 = await spf.callStatic.createPool(nft1.address);
   await spf.createPool(nft1.address);
-  const sp = <SeparatePool>await ethers.getContractAt("SeparatePool", SeparatePool);
-  const sp1 = <SeparatePool>await ethers.getContractAt("SeparatePool", SeparatePool1);
+  const sp = <SeparatePool>await ethers.getContractAt("SeparatePool", spAddress);
+  const sp1 = <SeparatePool>await ethers.getContractAt("SeparatePool", spAddress1);
 
-  return { nft, nft1, furT, checker, spf, apf, sp, sp1 };
+  return { apf, sp, sp1 };
 }

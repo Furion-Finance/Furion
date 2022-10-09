@@ -20,11 +20,9 @@ describe("Separate Pool Factory", function () {
   });
 
   beforeEach(async function () {
-    const { nft, nft1, furT, checker, spf } = await this.loadFixture(deploySPFFixture);
+    const { nft, nft1, spf } = await this.loadFixture(deploySPFFixture);
     this.nft = nft;
     this.nft1 = nft1;
-    this.furT = furT;
-    this.checker = checker;
     this.spf = spf;
   });
 

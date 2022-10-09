@@ -2,6 +2,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import hre from "hardhat";
 
 function mantissa(amount: string): BigNumber {
   return ethers.utils.parseUnits(amount, 18);
@@ -49,6 +50,7 @@ export function redeemTest(): void {
     });
 
     it("should succeed with amount of ETH to redeem provided", async function () {
+      // Disable mining immediately upon receiving tx
       // Check for event first to avoid result mismatch due to interest accrual
       await expect(this.feth.connect(bob).redeemUnderlying(redeemAmount))
         .to.emit(this.feth, "Redeem")
@@ -63,6 +65,10 @@ export function redeemTest(): void {
         bob,
         redeemAmount,
       );
+    });
+
+    it("should fail with redeem amount greater than amount supplied", async function () {
+      await expect(this.feth.connect(bob).redeemUnderlying(ethSupplied.add(1))).to.be.reverted;
     });
 
     it("should fail with redeem amount greater than or equal to cash in market", async function () {

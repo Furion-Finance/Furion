@@ -2,7 +2,8 @@ import { BigNumber } from "@ethersproject/bignumber";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import hre from "hardhat";
+
+import { mineBlocks } from "../../utils";
 
 function mantissa(amount: string): BigNumber {
   return ethers.utils.parseUnits(amount, 18);
@@ -40,7 +41,7 @@ export function repayTest(): void {
       newBorrowBalance = borrowAmount.mul(newBorrowIndex).div(oldBorrowIndex);
 
       // Mine 2102399 blocks
-      await hre.network.provider.send("hardhat_mine", [ethers.utils.hexValue(2102399)]);
+      await mineBlocks(2102399);
     });
 
     it("should succeed with repayer being borrower", async function () {
@@ -50,7 +51,7 @@ export function repayTest(): void {
         .to.emit(this.feth, "RepayBorrow")
         .withArgs(bob.address, bob.address, repayAmount, 0, 0);
 
-      expect(await this.feth.borrowBalanceStored(bob.address)).to.equal(0);
+      expect(await this.feth.borrowBalanceCurrent(bob.address)).to.equal(0);
       expect(await this.feth.totalBorrows()).to.equal(0);
     });
 
@@ -61,7 +62,7 @@ export function repayTest(): void {
         .to.emit(this.feth, "RepayBorrow")
         .withArgs(alice.address, bob.address, repayAmount, 0, 0);
 
-      expect(await this.feth.borrowBalanceStored(bob.address)).to.equal(0);
+      expect(await this.feth.borrowBalanceCurrent(bob.address)).to.equal(0);
       expect(await this.feth.totalBorrows()).to.equal(0);
     });
 
@@ -73,7 +74,7 @@ export function repayTest(): void {
         .to.emit(this.feth, "RepayBorrow")
         .withArgs(bob.address, bob.address, repayAmount, borrowBalanceAfterRepay, borrowBalanceAfterRepay);
 
-      expect(await this.feth.borrowBalanceStored(bob.address)).to.equal(borrowBalanceAfterRepay);
+      expect(await this.feth.borrowBalanceCurrent(bob.address)).to.equal(borrowBalanceAfterRepay);
       expect(await this.feth.totalBorrows()).to.equal(borrowBalanceAfterRepay);
     });
   });

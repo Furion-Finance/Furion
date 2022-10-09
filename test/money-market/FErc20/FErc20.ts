@@ -13,7 +13,8 @@ describe("FErc20", function () {
   });
 
   beforeEach(async function () {
-    const { sp, spo, rm, nirm, feth, ferc } = await this.loadFixture(deployFErcFixture);
+    const { checker, sp, spo, rm, nirm, feth, ferc } = await this.loadFixture(deployFErcFixture);
+    this.checker = checker;
     this.sp = sp;
     this.spo = spo;
     this.rm = rm;

@@ -4,6 +4,8 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import hre from "hardhat";
 
+import { mineBlocks } from "../../utils";
+
 function mantissa(amount: string): BigNumber {
   return ethers.utils.parseUnits(amount, 18);
 }
@@ -28,9 +30,9 @@ export function repayTest(): void {
     let newBorrowBalance: BigNumber;
 
     beforeEach(async function () {
-      // Supply 5 ETH before each test
+      // Supply 3000 F-NFT before each test
       await this.ferc.connect(bob).supply(spSupplied);
-      // Borrow 1 ETH before each test
+      // Borrow 500 F-NFT before each test
       await this.ferc.connect(bob).borrow(borrowAmount);
       spBalanceBob = await this.sp.balanceOf(bob.address);
 
@@ -44,7 +46,7 @@ export function repayTest(): void {
       newBorrowBalance = borrowAmount.mul(newBorrowIndex).div(oldBorrowIndex);
 
       // Mine 2102399 blocks
-      await hre.network.provider.send("hardhat_mine", [ethers.utils.hexValue(2102399)]);
+      await mineBlocks(2102399);
     });
 
     it("should succeed with repayer being borrower", async function () {
@@ -55,7 +57,7 @@ export function repayTest(): void {
         .withArgs(bob.address, bob.address, repayAmount, 0, 0);
 
       expect(await this.sp.balanceOf(bob.address)).to.equal(spBalanceBob.sub(repayAmount));
-      expect(await this.ferc.borrowBalanceStored(bob.address)).to.equal(0);
+      expect(await this.ferc.borrowBalanceCurrent(bob.address)).to.equal(0);
       expect(await this.ferc.totalBorrows()).to.equal(0);
     });
 
@@ -67,7 +69,7 @@ export function repayTest(): void {
         .withArgs(alice.address, bob.address, repayAmount, 0, 0);
 
       expect(await this.sp.balanceOf(alice.address)).to.equal(spBalanceAlice.sub(repayAmount));
-      expect(await this.ferc.borrowBalanceStored(bob.address)).to.equal(0);
+      expect(await this.ferc.borrowBalanceCurrent(bob.address)).to.equal(0);
       expect(await this.ferc.totalBorrows()).to.equal(0);
     });
 
@@ -80,7 +82,7 @@ export function repayTest(): void {
         .withArgs(bob.address, bob.address, repayAmount, borrowBalanceAfterRepay, borrowBalanceAfterRepay);
 
       expect(await this.sp.balanceOf(bob.address)).to.equal(spBalanceBob.sub(repayAmount));
-      expect(await this.ferc.borrowBalanceStored(bob.address)).to.equal(borrowBalanceAfterRepay);
+      expect(await this.ferc.borrowBalanceCurrent(bob.address)).to.equal(borrowBalanceAfterRepay);
       expect(await this.ferc.totalBorrows()).to.equal(borrowBalanceAfterRepay);
     });
   });

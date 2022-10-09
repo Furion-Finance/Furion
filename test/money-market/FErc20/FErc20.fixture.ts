@@ -3,25 +3,7 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signe
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
 
-import type { Checker } from "../../../src/types/contracts/Checker";
-import type { FErc20 } from "../../../src/types/contracts/money-market/FErc20";
-import type { FEther } from "../../../src/types/contracts/money-market/FEther";
-import type { NormalInterestRateModel } from "../../../src/types/contracts/money-market/NormalInterestRateModel";
-import type { RiskManager } from "../../../src/types/contracts/money-market/RiskManager";
-import type { SimplePriceOracle } from "../../../src/types/contracts/money-market/SimplePriceOracle";
-import type { SeparatePool } from "../../../src/types/contracts/separate-pool/SeparatePool";
-import type { SeparatePoolFactory } from "../../../src/types/contracts/separate-pool/SeparatePoolFactory";
-import type { FurionTokenTest } from "../../../src/types/contracts/test-only/FurionTokenTest";
-import type { NFTest } from "../../../src/types/contracts/test-only/NFTest";
-import type { Checker__factory } from "../../../src/types/factories/contracts/Checker__factory";
-import type { FErc20__factory } from "../../../src/types/factories/contracts/money-market/FErc20__factory";
-import type { FEther__factory } from "../../../src/types/factories/contracts/money-market/FEther__factory";
-import type { NormalInterestRateModel__factory } from "../../../src/types/factories/contracts/money-market/NormalInterestRateModel__factory";
-import type { RiskManager__factory } from "../../../src/types/factories/contracts/money-market/RiskManager__factory";
-import type { SimplePriceOracle__factory } from "../../../src/types/factories/contracts/money-market/SimplePriceOracle__factory";
-import type { SeparatePoolFactory__factory } from "../../../src/types/factories/contracts/separate-pool/SeparatePoolFactory__factory";
-import type { FurionTokenTest__factory } from "../../../src/types/factories/contracts/test-only/FurionTokenTest__factory";
-import type { NFTest__factory } from "../../../src/types/factories/contracts/test-only/NFTest__factory";
+import { deploy, deployUpgradeable } from "../../utils";
 
 function mantissa(amount: string): BigNumber {
   return ethers.utils.parseUnits(amount, 18);
@@ -32,6 +14,7 @@ function mantissa(amount: string): BigNumber {
 // alice: two NFT (4, 5)
 
 export async function deployFErcFixture(): Promise<{
+  checker: Checker;
   sp: SeparatePool;
   spo: SimplePriceOracle;
   rm: RiskManager;
@@ -45,28 +28,21 @@ export async function deployFErcFixture(): Promise<{
   const alice: SignerWithAddress = signers[2];
 
   // Deploy dummy NFT
-  const nftFactory = await ethers.getContractFactory("NFTest");
-  const nft = <NFTest>(
-    await nftFactory
-      .connect(admin)
-      .deploy([bob.address, bob.address, bob.address, bob.address, alice.address, alice.address])
-  );
-  await nft.deployed();
+  const nft = await deploy("NFTest", [
+    [bob.address, bob.address, bob.address, bob.address, alice.address, alice.address],
+  ]);
 
   // Deploy FUR
-  const furTFactory = await ethers.getContractFactory("FurionTokenTest");
-  const furT = <FurionTokenTest>await furTFactory.connect(admin).deploy([admin.address, bob.address, alice.address]);
-  await furT.deployed();
+  const fur = await deploy("FurionTokenTest", [[admin.address, bob.address, alice.address]]);
+
+  // Deploy veFUR
+  const veFur = await deployUpgradeable("VoteEscrowedFurion", [fur.address]);
 
   // Deploy checker
-  const checkerFactory = await ethers.getContractFactory("Checker");
-  const checker = <Checker>await checkerFactory.connect(admin).deploy();
-  await checker.deployed();
+  const checker = await deploy("Checker", []);
 
   // Deploy separate pool factory
-  const spfFactory = await ethers.getContractFactory("SeparatePoolFactory");
-  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(checker.address, furT.address);
-  await spf.deployed();
+  const spf = await deploy("SeparatePoolFactory", [admin.address, checker.address, fur.address]);
 
   // Set factory
   await checker.connect(admin).setSPFactory(spf.address);
@@ -77,50 +53,33 @@ export async function deployFErcFixture(): Promise<{
   const sp = <SeparatePool>await ethers.getContractAt("SeparatePool", poolAddress);
 
   // Deploy price oracle
-  const spoFactory: SimplePriceOracle__factory = await ethers.getContractFactory("SimplePriceOracle");
-  const spo = <SimplePriceOracle>await spoFactory.connect(admin).deploy();
-  await spo.deployed();
+  const spo = await deploy("SimplePriceOracle", []);
 
   // Deploy risk manager
-  const rmFactory: RiskManager__factory = await ethers.getContractFactory("RiskManager");
-  const rm = <RiskManager>await upgrades.deployProxy(rmFactory, [spo.address]);
-  await rm.deployed();
+  const rm = await deployUpgradeable("RiskManager", [spo.address]);
 
   // Deploy interest rate model
-  const nirmFactory: NormalInterestRateModel__factory = await ethers.getContractFactory("NormalInterestRateModel");
-  const nirm = <NormalInterestRateModel>await nirmFactory.connect(admin).deploy(mantissa("0.03"), mantissa("0.2"));
-  await nirm.deployed();
+  const nirm = await deploy("NormalInterestRateModel", [mantissa("0.03"), mantissa("0.2")]);
 
   // Deploy FEther
-  const fethFactory = await ethers.getContractFactory("FEther");
-  const feth = <FEther>await upgrades.deployProxy(fethFactory, [rm.address, nirm.address, spo.address]);
-  await feth.deployed();
+  const feth = await deployUpgradeable("FEther", [rm.address, nirm.address, spo.address, checker.address]);
 
   // Deploy FErc20 (fF-NFT market)
-  const fercFactory = await ethers.getContractFactory("FErc20");
-  const ferc = <FErc20>(
-    await upgrades.deployProxy(fercFactory, [
-      sp.address,
-      rm.address,
-      nirm.address,
-      spo.address,
-      "Furion F-NFT",
-      "fF-NFT",
-    ])
-  );
-  await ferc.deployed();
+  const ferc = await deployUpgradeable("FErc20", [
+    sp.address,
+    rm.address,
+    nirm.address,
+    spo.address,
+    checker.address,
+    "Furion F-NFT",
+    "fF-NFT",
+  ]);
 
   // Sell NFT to get F-NFT
-  await nft.connect(bob).approve(sp.address, 0);
-  await nft.connect(bob).approve(sp.address, 1);
-  await nft.connect(bob).approve(sp.address, 2);
-  await nft.connect(bob).approve(sp.address, 3);
-  await nft.connect(alice).approve(sp.address, 4);
-  await nft.connect(alice).approve(sp.address, 5);
-  await sp.connect(bob)["sell(uint256[])"]([0, 1, 2, 3]);
-  expect(await sp.balanceOf(bob.address)).to.equal(mantissa("4000"));
-  await sp.connect(alice)["sell(uint256[])"]([4, 5]);
-  expect(await sp.balanceOf(alice.address)).to.equal(mantissa("2000"));
+  await nft.connect(bob).setApprovalForAll(sp.address, true);
+  await nft.connect(alice).setApprovalForAll(sp.address, true);
+  await sp.connect(bob).sellBatch([0, 1, 2, 3]);
+  await sp.connect(alice).sellBatch([4, 5]);
 
   // Approve F-NFT spending
   await sp.connect(bob).approve(ferc.address, mantissa("10000"));
@@ -130,16 +89,18 @@ export async function deployFErcFixture(): Promise<{
 
   // Set close factor
   await rm.connect(admin).setCloseFactor(mantissa("0.5"));
+  // Set veFUR for Risk Manager
+  await rm.connect(admin).setVeToken(veFur.address);
 
   // Set fETH market underlying price
-  await spo.connect(admin).setUnderlyingPrice(feth.address, mantissa("1"));
-  // Set fF-NFT market underlying price (1 fF-NFT = 0.01 ETH)
-  await spo.connect(admin).setUnderlyingPrice(ferc.address, mantissa("0.01"));
+  await spo.connect(admin).setUnderlyingPrice(feth.address, mantissa("1700"), mantissa("1"));
+  // Set fF-NFT market underlying price (1000 F-NFT = 10 ETH)
+  await spo.connect(admin).setUnderlyingPrice(ferc.address, mantissa("17"), mantissa("1"));
 
   // List fETH market
   await rm.connect(admin).supportMarket(feth.address, mantissa("0.85"), 1);
   // List fF-NFT market (cross-tier)
-  await rm.connect(admin).supportMarket(ferc.address, mantissa("0.4"), 2);
+  await rm.connect(admin).supportMarket(ferc.address, mantissa("0.6"), 2);
 
-  return { sp, spo, rm, nirm, feth, ferc };
+  return { checker, sp, spo, rm, nirm, feth, ferc };
 }

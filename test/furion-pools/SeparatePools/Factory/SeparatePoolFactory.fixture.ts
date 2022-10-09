@@ -32,8 +32,6 @@ function su(amount: string): BigNumber {
 export async function deploySPFFixture(): Promise<{
   nft: NFTest;
   nft1: NFTest1;
-  furT: FurionTokenTest;
-  checker: Checker;
   spf: SeparatePoolFactory;
 }> {
   const signers: SignerWithAddress[] = await ethers.getSigners();
@@ -71,9 +69,6 @@ export async function deploySPFFixture(): Promise<{
   const furTFactory = await ethers.getContractFactory("FurionTokenTest");
   const furT = <FurionTokenTest>await furTFactory.connect(admin).deploy([admin.address, bob.address, alice.address]);
   await furT.deployed();
-  expect(await furT.balanceOf(admin.address)).to.equal(su("1000"));
-  expect(await furT.balanceOf(bob.address)).to.equal(su("1000"));
-  expect(await furT.balanceOf(alice.address)).to.equal(su("1000"));
 
   // Deploy checker
   const checkerFactory = await ethers.getContractFactory("Checker");
@@ -81,11 +76,11 @@ export async function deploySPFFixture(): Promise<{
   await checker.deployed();
 
   const spfFactory = await ethers.getContractFactory("SeparatePoolFactory");
-  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(checker.address, furT.address);
+  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(admin.address, checker.address, furT.address);
   await spf.deployed();
 
   // Set factory
   await checker.connect(admin).setSPFactory(spf.address);
 
-  return { nft, nft1, furT, checker, spf };
+  return { nft, nft1, spf };
 }

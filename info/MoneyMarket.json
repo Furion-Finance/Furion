@@ -1,6 +1,19 @@
 {
   "localhost": [],
-  "rinkeby": [],
+  "rinkeby": [
+    {
+      "name": "fETH",
+      "address": "0xd497b66EdcA1d4a1EF50Ed9d63743E5EE0DBBDc6"
+    },
+    {
+      "name": "fFUR",
+      "address": "0x31366ddf85b377a67AaDB321aCB88104D5603e94"
+    },
+    {
+      "name": "fUSDC",
+      "address": "0x1A15E5817DAA94D6fae8f91A9f709Aab0E6FFA17"
+    }
+  ],
   "goerli": [
     {
       "name": "fETH",

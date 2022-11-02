@@ -152,21 +152,32 @@
         "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E"
       ]
     },
-    "IncomeSharingVault": {
-      "address": ["0x4adDF5E16F97452cFbDb70d9E44800E533fdaC11"],
+    "PriceOracle": {
+      "address": "0x24BcFF3e6f9ac92f7bbb4cD4A0795eb31f788b2A",
       "args": []
     },
-    "IncomeMaker": {
-      "address": [
-        "0x1D19fedbfb70fBE7531dBa8fd271307e9D6B836E",
-        "0x28369430ea0a034a6267f1bab946036eaef54213",
-        "0x1277d73f140e69f78759E92016a6337dd63a2154",
-        "0xdcE75065EdaA97586a548E6fAEAefd5b3d951bFB"
-      ],
+    "RiskManager": {
+      "address": "0x61b1a4f73f918106b36AA216794C989f57f5A099",
       "args": []
     },
-    "VoteEscrowedFurion": {
-      "address": "0x6a64E59bb8cC095a49b04B3dAFf7d9042fe44CE3",
+    "NormalInterestRateModel": {
+      "address": "0x956cA3EC8396a00E7bB73001F4aA1D9557EbC104",
+      "args": ["30000000000000000", "200000000000000000"]
+    },
+    "JumpInterestRateModel": {
+      "address": "0x9FB9A632d545f842C2d2aAFb3B04C4F2a8b6AAF4",
+      "args": ["0", "50000000000000000", "1090000000000000000", "800000000000000000"]
+    },
+    "fETH": {
+      "address": "0xAa3a1cD707b4fDF0652Db856aAD9d381A9743437",
+      "args": []
+    },
+    "fFUR": {
+      "address": "0xd25739D30BB5883F63D0e662A37DCC6c115Ec96d",
+      "args": []
+    },
+    "fUSDC": {
+      "address": "0xd25739D30BB5883F63D0e662A37DCC6c115Ec96d",
       "args": []
     }
   },

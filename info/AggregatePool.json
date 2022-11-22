@@ -2,8 +2,16 @@
   "localhost": [],
   "goerli": [
     {
-      "name": "Cool Cats",
-      "address": "0x2f5Ab18cbE2f02b3D5e582DF3c870C8b41422754"
+      "name": "BAYC Ecosystem",
+      "address": "0xdA7878D0CF4507C3E11bb49b0a0394cA3c7881e6"
+    },
+    {
+      "name": "Bluechips",
+      "address": "0xD5Eb2ae2dDbC0B796D0f80659f7fa1C3e1b22f0F"
+    },
+    {
+      "name": "Dark Horse",
+      "address": "0x058C61eb0Df50818E890fdD16Ea70bc2Df7C4405"
     }
   ]
 }

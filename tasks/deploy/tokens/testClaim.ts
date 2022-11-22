@@ -12,11 +12,10 @@ task("deploy:TestClaim", "Deploy TestClaim contract").setAction(async function (
   const network = getNetwork();
   const addressList = readAddressList();
 
-  const args = [addressList[network].FurionToken, addressList[network].MockUSD, addressList[network].CoolCats];
-  const testClaim = await deploy(ethers, "TestClaim", args);
+  const testClaim = await deploy(ethers, "TestClaim", []);
 
   console.log();
   console.log(`TestClaim deployed to: ${testClaim.address} on ${network}`);
 
-  writeDeployment(network, "TestClaim", testClaim.address, args);
+  writeDeployment(network, "TestClaim", testClaim.address, []);
 });

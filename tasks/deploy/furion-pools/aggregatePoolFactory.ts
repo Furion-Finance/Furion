@@ -17,7 +17,6 @@ task("deploy:AggregatePoolFactory", "Deploy aggregate pool factory contract").se
     addressList[network].Checker,
     addressList[network].FurionToken,
     addressList[network].FurionPricingOracle,
-    addressList[network].SeparatePoolFactory,
   ];
   const apf = await deploy(ethers, "AggregatePoolFactory", args);
 

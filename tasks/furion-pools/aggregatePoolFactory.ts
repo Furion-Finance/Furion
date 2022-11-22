@@ -5,16 +5,16 @@ import { readAddressList, readSeparatePoolList } from "../../scripts/contractAdd
 import { getNetwork, writeAggregatePool } from "../helpers";
 
 task("create:AggregatePool", "Create aggregate pool")
-  .addParam("pools", "Addresses of separate pools to be included in the pool")
-  .addParam("name", "Name of the pool / FFT token")
-  .addParam("symbol", "Symbol of the pool / FFT token")
+  .addVariadicPositionalParam("nfts", "Addresses of separate pools to be included in the pool")
+  .addParam("name", "Name of the FFT token")
+  .addParam("symbol", "Symbol of FFT token")
   .setAction(async function (taskArguments: TaskArguments, { ethers }) {
     const network = getNetwork();
     const addressList = readAddressList();
 
     const apf = await ethers.getContractAt("AggregatePoolFactory", addressList[network].AggregatePoolFactory);
-    const poolAddress = await apf.callStatic.createPool(taskArguments.pools, taskArguments.name, taskArguments.symbol);
-    const tx = await apf.createPool(taskArguments.pools, taskArguments.name, taskArguments.symbol);
+    const poolAddress = await apf.callStatic.createPool(taskArguments.nfts, taskArguments.name, taskArguments.symbol);
+    const tx = await apf.createPool(taskArguments.nfts, taskArguments.name, taskArguments.symbol);
     await tx.wait();
     console.log();
     console.log(`Aggregate pool deployed to ${poolAddress} on ${network}`);
@@ -25,11 +25,11 @@ task("create:AggregatePool", "Create aggregate pool")
     const indexOfSpace = poolName.indexOf(" ");
     const signers = await ethers.getSigners();
     const args = [
+      addressList[network].IncomeMaker,
       addressList[network].FurionToken,
       addressList[network].FurionPricingOracle,
-      addressList[network].SeparatePoolFactory,
       signers[0].address,
-      task.taskArguments.pools,
+      taskArguments.nfts,
       poolName,
       poolSymbol,
     ];

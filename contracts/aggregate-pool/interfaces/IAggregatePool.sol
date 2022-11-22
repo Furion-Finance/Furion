@@ -11,15 +11,15 @@ interface IAggregatePool {
 
     function setFur(address _newFur) external;
 
-    function stake(
-        address _tokenAddress,
-        uint256 _amount,
-        uint256 _price
-    ) external;
+    function store(address _collection, uint256 _id) external;
 
-    function unstake(
-        address _tokenAddress,
-        uint256 _amount,
-        uint256 _price
-    ) external;
+    function storeBatch(address _collection, uint256[] calldata _ids) external;
+
+    function buy(address _collection, uint256 _id) external;
+
+    function buyBatch(address _collection, uint256[] calldata _ids) external;
+
+    function lock(address _collection, uint256 _id) external;
+
+    function unlock(address _colelction, uint256 _id) external;
 }

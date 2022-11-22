@@ -3,6 +3,7 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signe
 import type { Checker } from "../typechain/contracts/Checker";
 import type { AggregatePool } from "../typechain/contracts/aggregate-pool/AggregatePool";
 import type { AggregatePoolFactory } from "../typechain/contracts/aggregate-pool/AggregatePoolFactory";
+import type { FractionalAggregatePool } from "../typechain/contracts/aggregate-pool/FractionalAggregatePool";
 import type { FErc20 } from "../typechain/contracts/money-market/FErc20";
 import type { FEther } from "../typechain/contracts/money-market/FEther";
 import type { JumpInterestRateModel } from "../typechain/contracts/money-market/JumpInterestRateModel";
@@ -28,6 +29,7 @@ declare module "mocha" {
     apf: AggregatePoolFactory;
     ap: AggregatePool;
     ap1: AggregatePool;
+    fap: FractionalAggregatePool;
     checker: Checker;
     fur: FurionToken;
     furT: FurionTokenTest;

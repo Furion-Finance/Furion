@@ -1,4 +1,4 @@
-import { BigNumberish } from "@ethersproject/bignumber";
+import { BigNumber } from "@ethersproject/bignumber";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { expect } from "chai";
@@ -7,17 +7,12 @@ import { ethers } from "hardhat";
 import { Signers } from "../../../types";
 import { deployAPFixture } from "./AggregatePool.fixture";
 
-// Initial NFT balances: (id)
-// admin: three NFT (0, 1, 2), one NFT1 (0)
-// bob: two NFT (3, 4), one NFT1 (1)
-// alice: one NFT (5), one NFT1 (2)
+// Convert to smallest unit (10^18)
+function su(amount: string): BigNumber {
+  return ethers.utils.parseEther(amount);
+}
 
 describe("Aggregate Pool", function () {
-  // Convert to smallest unit (10^18)
-  function su(amount: string): BigNumberish {
-    return ethers.utils.parseEther(amount);
-  }
-
   // Signers declaration
   before(async function () {
     this.signers = {} as Signers;
@@ -31,91 +26,96 @@ describe("Aggregate Pool", function () {
   });
 
   beforeEach(async function () {
-    const { nft, furT, sp, sp1, ap, fpo } = await this.loadFixture(deployAPFixture);
+    const { nft, nft1, ap, fpo } = await this.loadFixture(deployAPFixture);
     this.nft = nft;
-    this.furT = furT;
-    this.sp = sp;
-    this.sp1 = sp1;
+    this.nft1 = nft1;
     this.ap = ap;
     this.fpo = fpo;
   });
 
-  context("Staking", async function () {
-    it("should stake F-* tokens to get FFT with 0.01 ETH being the ref price of FFT for the first stake", async function () {
-      // Bob stakes all F-NFT
-      await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"));
+  const nftPrice = su("2");
+  const nftPriceChanged = su("2.5");
+  const nft1Price = su("1.5");
+  const fftInitialPrice = su("0.01");
+  const mantissa = 1e18;
 
-      // F-NFT in aggregate pool
-      expect(await this.sp.balanceOf(this.ap.address)).to.equal(su("2000"));
-      // Bob gets ((15 / 1000) * 2000) / 0.01 = 3000 FFT-SING, based on the assumption that
-      // the NFT now is worth 15 ETH and FFT-SING has a ref price of 0.01 ETH for the first stake
-      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su("3000"));
-      // 1000 - 100 = 900 FUR
-      expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("900"));
+  context("Storing", async function () {
+    it("should succeed with one NFT stored", async function () {
+      // Store one NFT
+      await this.ap.connect(this.signers.bob).store(this.nft.address, 3);
+
+      expect(await this.nft.ownerOf(3)).to.equal(this.ap.address);
+      const fftBalance = nftPrice / fftInitialPrice;
+      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su(String(fftBalance)));
     });
 
-    it("should stake F-* tokens to get FFT with ref price of FFT correctly calculated", async function () {
-      // Bob stakes 1000 F-NFT first
-      await this.ap.connect(this.signers.bob).stake(this.sp.address, su("1000"));
+    it("should succeed with multiple NFTs of the same collection stored", async function () {
+      // Store multiple NFTs in one tx
+      await this.ap.connect(this.signers.bob).storeBatch(this.nft.address, [3, 4]);
 
-      // Bob gets ((15 / 1000) * 1000) / 0.01 = 1500 FFT-SING, based on the assumption that
-      // the NFT now is worth 15 ETH and FFT-SING has a ref price of 0.01 ETH for the first stake
-      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su("1500"));
-
-      // Bob stakes remaining 1000 F-NFT, when price of NFT increases to 18 ETH
-      await this.fpo.connect(this.signers.admin).updatePrice(this.nft.address, 0, su("18"));
-      await this.ap.connect(this.signers.bob).stake(this.sp.address, su("1000"));
-
-      // FFT ref price = sum / circulating supply = ((18 / 1000) * 1000) / 1500 = 0.012 ETH
-      // Bob gets ((18 / 1000) * 1000) / 0.012 = 1500 FFT-SING
-      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su("3000"));
-      // 1000 - 200 = 800 FUR
-      expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
-      expect(await this.sp.balanceOf(this.ap.address)).to.equal(su("2000"));
+      expect(await this.nft.ownerOf(3)).to.equal(this.ap.address);
+      expect(await this.nft.ownerOf(4)).to.equal(this.ap.address);
+      const fftBalance = (nftPrice * 2) / fftInitialPrice;
+      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su(String(fftBalance)));
     });
 
-    it("should not allow staking of unregistered tokens", async function () {
-      // Bob tries to stake F-NFT1 which is not registered to the aggregate pool
-      await expect(this.ap.connect(this.signers.bob).stake(this.sp1.address, su("1000"))).to.be.revertedWith(
-        "AggregatePool: Token not accepted in this pool.",
-      );
+    it("should succeed with NFTs of different collections stored", async function () {
+      // Store one NFT
+      await this.ap.connect(this.signers.bob).store(this.nft.address, 3);
+      let fftBalance = nftPrice / fftInitialPrice;
+      let fftPrice = nftPrice / fftBalance;
+
+      // Store one NFT1
+      await this.ap.connect(this.signers.bob).store(this.nft1.address, 1);
+      fftBalance += nft1Price / fftPrice;
+      fftPrice = (nftPrice + nft1Price) / fftBalance;
+
+      expect(await this.nft.ownerOf(3)).to.equal(this.ap.address);
+      expect(await this.nft1.ownerOf(1)).to.equal(this.ap.address);
+      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su(String(fftBalance)));
     });
   });
 
-  context("Unstaking", async function () {
-    it("should unstake with correct calculations given no NFT price changes", async function () {
-      // Bob stakes all F-NFT, gets 3000 FFT-SING
-      await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"));
+  context("Buying", async function () {
+    it("should succeed with one NFT bought", async function () {
+      // Store one NFT
+      await this.ap.connect(this.signers.bob).store(this.nft.address, 3);
+      // Buy one NFT
+      await this.ap.connect(this.signers.bob).buy(this.nft.address, 3);
 
-      // Bob unstakes with 3000 FFT-SING
-      await this.ap.connect(this.signers.bob).unstake(this.sp.address, su("3000"));
-      // Bob gets 3000 * (30 / 3000) / 0.015 = 2000 F-NFT
-      expect(await this.sp.balanceOf(this.signers.bob.address)).to.equal(su("2000"));
-      // 1000 - 200 = 800 FUR
-      expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
+      expect(await this.nft.ownerOf(3)).to.equal(this.signers.bob.address);
+      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(0);
     });
 
-    it("should unstake with correct calculations given NFT price changes", async function () {
-      // Bob stakes all F-NFT, gets 3000 FFT-SING
-      await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"));
+    it("should succeed with multiple NFTs bought", async function () {
+      // Store multiple NFTs
+      await this.ap.connect(this.signers.bob).storeBatch(this.nft.address, [3, 4]);
 
-      // Bob unstakes with 3000 FFT-SING
-      await this.ap.connect(this.signers.bob).unstake(this.sp.address, su("3000"));
-      // Price of NFT increases to 18 ETH
-      // Bob gets 3000 * (36 / 3000) / 0.018 = 2000 F-NFT
-      expect(await this.sp.balanceOf(this.signers.bob.address)).to.equal(su("2000"));
-      // 1000 - 200 = 800 FUR
-      expect(await this.furT.balanceOf(this.signers.bob.address)).to.equal(su("800"));
+      // Buy multiple NFTs
+      await this.ap.connect(this.signers.bob).buyBatch(this.nft.address, [3, 4]);
+
+      expect(await this.nft.ownerOf(3)).to.equal(this.signers.bob.address);
+      expect(await this.nft.ownerOf(4)).to.equal(this.signers.bob.address);
+      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(0);
     });
 
-    it("should not allow unstaking of unregistered tokens", async function () {
-      // Bob stakes all F-NFT, gets 3000 FFT-SING
-      await this.ap.connect(this.signers.bob).stake(this.sp.address, su("2000"));
+    it("should succeed with correct FFT burn amount when there is change in NFT price", async function () {
+      // Store multiple NFTs
+      await this.ap.connect(this.signers.bob).storeBatch(this.nft.address, [3, 4]);
+      const fftBalanceBeforeBuy = (nftPrice * 2) / fftInitialPrice;
+      let fftPrice = (nftPrice * 2) / fftBalanceBeforeBuy;
 
-      // Bob tries to unstake with 3000 FFT-SING to get F-NFT1 which is unregistered
-      await expect(this.ap.connect(this.signers.bob).unstake(this.sp1.address, su("3000"))).to.be.revertedWith(
-        "AggregatePool: Token not accepted in this pool.",
-      );
+      // Price of NFT increases to 2.5 ETH
+      await this.fpo.connect(this.signers.admin).updatePrice(this.nft.address, 0, nftPriceChanged);
+
+      // Buy one NFT
+      fftPrice = (nftPriceChanged * 2) / fftBalanceBeforeBuy;
+      const burnAmount = nftPriceChanged / fftPrice;
+      await this.ap.connect(this.signers.bob).buy(this.nft.address, 3);
+
+      expect(await this.nft.ownerOf(3)).to.equal(this.signers.bob.address);
+      const fftBalanceAfterBuy = fftBalanceBeforeBuy - burnAmount;
+      expect(await this.ap.balanceOf(this.signers.bob.address)).to.equal(su(String(fftBalanceAfterBuy)));
     });
   });
 });

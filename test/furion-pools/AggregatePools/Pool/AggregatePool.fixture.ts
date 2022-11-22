@@ -1,23 +1,8 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { ethers } from "hardhat";
 
-import type { Checker } from "../../../../typechain/contracts/Checker";
-import type { AggregatePool } from "../../../../typechain/contracts/aggregate-pool/AggregatePool";
-import type { AggregatePoolFactory } from "../../../../typechain/contracts/aggregate-pool/AggregatePoolFactory";
-import type { FurionPricingOracle } from "../../../../typechain/contracts/aggregate-pool/FurionPricingOracle";
-import type { SeparatePool } from "../../../../typechain/contracts/separate-pool/SeparatePool";
-import type { SeparatePoolFactory } from "../../../../typechain/contracts/separate-pool/SeparatePoolFactory";
-import type { FurionTokenTest } from "../../../../typechain/contracts/test-only/FurionTokenTest";
-import type { NFTest } from "../../../../typechain/contracts/test-only/NFTest";
-import type { NFTest1 } from "../../../../typechain/contracts/test-only/NFTest1";
-import type { Checker__factory } from "../../../../typechain/factories/contracts/Checker__factory";
-import type { AggregatePoolFactory__factory } from "../../../../typechain/factories/contracts/aggregate-pool/AggregatePoolFactory__factory";
-import type { FurionPricingOracle__factory } from "../../../../typechain/factories/contracts/aggregate-pool/FurionPricingOracle__factory";
-import type { SeparatePoolFactory__factory } from "../../../../typechain/factories/contracts/separate-pool/SeparatePoolFactory__factory";
-import type { SeparatePool__factory } from "../../../../typechain/factories/contracts/separate-pool/SeparatePool__factory";
-import type { FurionTokenTest__factory } from "../../../../typechain/factories/contracts/test-only/FurionTokenTest__factory";
-import type { NFTest1__factory } from "../../../../typechain/factories/contracts/test-only/NFTest1__factory";
-import type { NFTest__factory } from "../../../../typechain/factories/contracts/test-only/NFTest__factory";
+import type { AggregatePool, FurionPricingOracle, FurionTokenTest, NFTest, NFTest1 } from "../../../../typechain";
+import { deploy } from "../../../utils";
 
 // Initial NFT balances: (id)
 // admin: three NFT (0, 1, 2), one NFT1 (0)
@@ -35,10 +20,9 @@ function su(amount: string): BigNumberish {
 
 export async function deployAPFixture(): Promise<{
   nft: NFTest;
-  furT: FurionTokenTest;
-  sp: SeparatePool;
-  sp1: SeparatePool;
-  ap: AggregatePool;
+  nft1: NFTest1;
+  fur: FurionTokenTest;
+  ap: FractionalAggregatePool;
   fpo: FurionPricingOracle;
 }> {
   const signers: SignerWithAddress[] = await ethers.getSigners();
@@ -46,74 +30,50 @@ export async function deployAPFixture(): Promise<{
   const bob: SignerWithAddress = signers[1];
   const alice: SignerWithAddress = signers[2];
 
-  const nftFactory = await ethers.getContractFactory("NFTest");
-  const nft = <NFTest>(
-    await nftFactory
-      .connect(admin)
-      .deploy([admin.address, admin.address, admin.address, bob.address, bob.address, alice.address])
-  );
-  await nft.deployed();
+  const nft = await deploy("NFTest", [
+    [admin.address, admin.address, admin.address, bob.address, bob.address, alice.address],
+  ]);
 
-  const nft1Factory = await ethers.getContractFactory("NFTest1");
-  const nft1 = <NFTest1>await nft1Factory.connect(admin).deploy([admin.address, bob.address, alice.address]);
-  await nft1.deployed();
+  const nft1 = await deploy("NFTest1", [[admin.address, bob.address, alice.address]]);
 
   // Deploy FUR
-  const furTFactory = await ethers.getContractFactory("FurionTokenTest");
-  const furT = <FurionTokenTest>await furTFactory.connect(admin).deploy([admin.address, bob.address, alice.address]);
-  await furT.deployed();
+  const fur = await deploy("FurionTokenTest", [[admin.address, bob.address, alice.address]]);
 
   // Deploy checker
-  const checkerFactory = await ethers.getContractFactory("Checker");
-  const checker = <Checker>await checkerFactory.connect(admin).deploy();
-  await checker.deployed();
+  const checker = await deploy("Checker", []);
 
   // Deploy Furion Pricing Oracle
-  const fpoFactory = await ethers.getContractFactory("FurionPricingOracle");
-  const fpo = <FurionPricingOracle>await fpoFactory.connect(admin).deploy();
-  await fpo.deployed();
+  const fpo = await deploy("FurionPricingOracle", []);
 
-  // Set initial NFT price (15 ETH)
+  // Set initial NFT & NFT1 prices (2 ETH & 1.5 ETH)
   await fpo.connect(admin).initPrice(nft.address, 1);
-  await fpo.connect(admin).updatePrice(nft.address, 0, su("15"));
+  await fpo.connect(admin).updatePrice(nft.address, 0, su("2"));
+  await fpo.connect(admin).initPrice(nft1.address, 1);
+  await fpo.connect(admin).updatePrice(nft1.address, 0, su("1.5"));
 
   // Deploy factories
-  const spfFactory = await ethers.getContractFactory("SeparatePoolFactory");
-  const spf = <SeparatePoolFactory>await spfFactory.connect(admin).deploy(admin.address, checker.address, furT.address);
-  await spf.deployed();
-
-  const apfFactory = await ethers.getContractFactory("AggregatePoolFactory");
-  const apf = <AggregatePoolFactory>(
-    await apfFactory.connect(admin).deploy(admin.address, checker.address, furT.address, fpo.address, spf.address)
-  );
-  await apf.deployed();
+  const apf = await deploy("AggregatePoolFactory", [admin.address, checker.address, fur.address, fpo.address]);
 
   // Set factory
-  await checker.connect(admin).setSPFactory(spf.address);
   await checker.connect(admin).setAPFactory(apf.address);
 
-  // Create project pools
-  const spAddress = await spf.callStatic.createPool(nft.address);
-  await spf.createPool(nft.address);
-  const spAddress1 = await spf.callStatic.createPool(nft1.address);
-  await spf.createPool(nft1.address);
-  const sp = <SeparatePool>await ethers.getContractAt("SeparatePool", spAddress);
-  const sp1 = <SeparatePool>await ethers.getContractAt("SeparatePool", spAddress1);
-
-  // Bob sells NFT to project pools to get tokens (2000 F-NFT, 1000 F-NFT1)
-  await nft.connect(bob).setApprovalForAll(sp.address, true);
-  await sp.connect(bob).sellBatch([3, 4]);
-  await nft1.connect(bob).setApprovalForAll(sp1.address, true);
-  await sp1.connect(bob).sell(1);
-
-  // Create aggregate pool for F-NFT, token is FFT-SING
-  const apAddress = await apf.callStatic.createPool([sp.address], "Single", "SING");
-  await apf.createPool([sp.address], "Single", "SING");
+  // Create aggregate pool, token is FFT-ANML
+  const apAddress = await apf.callStatic.createPool([nft.address, nft1.address], "ANIMAL", "ANML");
+  await apf.createPool([nft.address, nft1.address], "ANIMAL", "ANML");
   const ap = <AggregatePool>await ethers.getContractAt("AggregatePool", apAddress);
 
-  // Approve spending of F-NFT & FUR by agregate pool
-  await sp.connect(bob).approve(ap.address, su("2000"));
-  await furT.connect(bob).approve(ap.address, su("1000"));
+  // Approve spending of FUR by aggregate pool
+  await fur.connect(admin).approve(ap.address, su("1000"));
+  await fur.connect(bob).approve(ap.address, su("1000"));
+  await fur.connect(alice).approve(ap.address, su("1000"));
 
-  return { nft, furT, sp, sp1, ap, fpo };
+  // Approve spending of NFTs by aggregate pool
+  await nft.connect(admin).setApprovalForAll(ap.address, true);
+  await nft.connect(bob).setApprovalForAll(ap.address, true);
+  await nft.connect(alice).setApprovalForAll(ap.address, true);
+  await nft1.connect(admin).setApprovalForAll(ap.address, true);
+  await nft1.connect(bob).setApprovalForAll(ap.address, true);
+  await nft1.connect(alice).setApprovalForAll(ap.address, true);
+
+  return { nft, nft1, fur, ap, fpo };
 }

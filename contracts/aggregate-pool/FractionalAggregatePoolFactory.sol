@@ -2,19 +2,20 @@
 
 pragma solidity ^0.8.0;
 
-import "./AggregatePool.sol";
-import "./interfaces/IAggregatePool.sol";
+import "./FractionalAggregatePool.sol";
+import "./interfaces/IFractionalAggregatePool.sol";
 import "./interfaces/IAggregatePoolFactory.sol";
 import "../IChecker.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
-contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
+contract FractionalAggregatePoolFactory is Ownable {
     address public fur;
     address public oracle;
     address public immutable incomeMaker;
     address public immutable checker;
+    address public immutable spFactory;
 
     // Starts from 0
     uint256 public nextId;
@@ -31,12 +32,14 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
         address _incomeMaker,
         address _checker,
         address _fur,
-        address _oracle
+        address _oracle,
+        address _spFactory
     ) {
         incomeMaker = _incomeMaker;
         checker = _checker;
         fur = _fur;
         oracle = _oracle;
+        spFactory = _spFactory;
     }
 
     /**
@@ -59,7 +62,7 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
 
         // ID starts from 1
         for (uint256 i; i < nextId; ) {
-            IAggregatePool(getPool[i]).changeOwner(_newOwner);
+            IFractionalAggregatePool(getPool[i]).changeOwner(_newOwner);
 
             unchecked {
                 ++i;
@@ -69,7 +72,7 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
 
     function setFur(address _newFur) public onlyOwner {
         for (uint256 i; i < nextId; ) {
-            IAggregatePool(getPool[i]).setFur(_newFur);
+            IFractionalAggregatePool(getPool[i]).setFur(_newFur);
 
             unchecked {
                 ++i;
@@ -80,10 +83,10 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
     /**
      * @dev Initialize root pool and grant FFT minting and burning permissions
      *
-     * @param _nfts Addresses of project pools / nfts to be included in the aggregate pool
+     * @param _tokens Addresses of seaprate pools to be included in the aggregate pool
      */
     function createPool(
-        address[] memory _nfts,
+        address[] memory _tokens,
         string memory _name,
         string memory _symbol
     ) external returns (address poolAddress) {
@@ -93,18 +96,19 @@ contract AggregatePoolFactory is IAggregatePoolFactory, Ownable {
         );
 
         // Act as identifier for pools to ensure no duplications
-        bytes32 _salt = keccak256(abi.encodePacked(_nfts));
+        bytes32 _salt = keccak256(abi.encodePacked(_tokens));
         /*require(
             !alreadyExist[_salt],
             "AggregatePoolFactory: Root pool for these NFTs already exists."
         );*/
         poolAddress = address(
-            new AggregatePool{salt: _salt}(
+            new FractionalAggregatePool{salt: _salt}(
                 incomeMaker,
                 fur,
                 oracle,
+                spFactory,
                 owner(),
-                _nfts,
+                _tokens,
                 string.concat("FurionFungibleToken ", _name),
                 string.concat("FFT-", _symbol)
             )

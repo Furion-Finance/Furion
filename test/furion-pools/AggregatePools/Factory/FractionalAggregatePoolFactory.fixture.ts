@@ -1,7 +1,7 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { ethers } from "hardhat";
 
-import { AggregatePoolFactory } from "../../../../typechain";
+import { FractionalAggregatePool, SeparatePool } from "../../../../typechain";
 import { deploy } from "../../../utils";
 
 // Initial NFT balances: (id)
@@ -14,8 +14,10 @@ import { deploy } from "../../../utils";
 // bob: 1000
 // alice: 1000
 
-export async function deployAPFFixture(): Promise<{
-  apf: AggregatePoolFactory;
+export async function deployFAPFFixture(): Promise<{
+  fapf: FractionalAggregatePoolFactory;
+  sp: SeparatePool;
+  sp1: SeparatePool;
 }> {
   const signers: SignerWithAddress[] = await ethers.getSigners();
   const admin: SignerWithAddress = signers[0];
@@ -37,10 +39,28 @@ export async function deployAPFFixture(): Promise<{
   // Deploy nft oracle
   const fpo = await deploy("FurionPricingOracle", []);
 
-  const apf = await deploy("AggregatePoolFactory", [admin.address, checker.address, fur.address, fpo.address]);
+  // Deploy factories
+  const spf = await deploy("SeparatePoolFactory", [admin.address, checker.address, fur.address]);
+
+  const fapf = await deploy("FractionalAggregatePoolFactory", [
+    admin.address,
+    checker.address,
+    fur.address,
+    fpo.address,
+    spf.address,
+  ]);
 
   // Set factory
-  await checker.connect(admin).setAPFactory(apf.address);
+  await checker.connect(admin).setSPFactory(spf.address);
+  await checker.connect(admin).setAPFactory(fapf.address);
 
-  return { nft, nft1, apf };
+  // Create project pools
+  const spAddress = await spf.callStatic.createPool(nft.address);
+  await spf.createPool(nft.address);
+  const spAddress1 = await spf.callStatic.createPool(nft1.address);
+  await spf.createPool(nft1.address);
+  const sp = <SeparatePool>await ethers.getContractAt("SeparatePool", spAddress);
+  const sp1 = <SeparatePool>await ethers.getContractAt("SeparatePool", spAddress1);
+
+  return { fapf, sp, sp1 };
 }

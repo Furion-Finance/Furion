@@ -1,26 +1,47 @@
 {
-  "localhost": [],
-  "goerli": [
-    {
-      "token0": "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
-      "token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
-      "name0": "FUR",
-      "name1": "ETH",
-      "pair": "0x32f59273A81A1db248dcd2ffE1E566e0e2531b93"
-    },
-    {
-      "token0": "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
-      "token1": "0x62d3B764626A52FDe2D868b7e093863bEAe4336b",
-      "name0": "FUR",
-      "name1": "USDT",
-      "pair": "0x625Ef1669D989E5D1dF2AB5623d31083FdB3ef9b"
-    },
-    {
-      "token0": "0x62d3B764626A52FDe2D868b7e093863bEAe4336b",
-      "token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
-      "name0": "USDT",
-      "name1": "ETH",
-      "pair": "0x78A6583630a9389AD575A7934524a6015207Ea65"
-    }
-  ]
+	"localhost": [],
+	"goerli": [
+		{
+			"token0": "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
+			"token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
+			"name0": "FUR",
+			"name1": "ETH",
+			"pair": "0x32f59273A81A1db248dcd2ffE1E566e0e2531b93"
+		},
+		{
+			"token0": "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
+			"token1": "0x62d3B764626A52FDe2D868b7e093863bEAe4336b",
+			"name0": "FUR",
+			"name1": "USDT",
+			"pair": "0x625Ef1669D989E5D1dF2AB5623d31083FdB3ef9b"
+		},
+		{
+			"token0": "0x62d3B764626A52FDe2D868b7e093863bEAe4336b",
+			"token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
+			"name0": "USDT",
+			"name1": "ETH",
+			"pair": "0x78A6583630a9389AD575A7934524a6015207Ea65"
+		},
+		{
+			"token0": "0xdA7878D0CF4507C3E11bb49b0a0394cA3c7881e6",
+			"token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
+			"name0": "FFT-YUGA",
+			"name1": "ETH",
+			"pair": "0xfa45a45960FD1e4558D586D020823953665CA15b"
+		},
+		{
+			"token0": "0xD5Eb2ae2dDbC0B796D0f80659f7fa1C3e1b22f0F",
+			"token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
+			"name0": "FFT-BLUECHIP",
+			"name1": "ETH",
+			"pair": "0x11E8394733213Dc73F46Ff548D9C671Fd67eD524"
+		},
+		{
+			"token0": "0x058C61eb0Df50818E890fdD16Ea70bc2Df7C4405",
+			"token1": "0x175940b39014cD3a9c87cd6b1d7616a097db958E",
+			"name0": "FFT-DARKHORSE",
+			"name1": "ETH",
+			"pair": "0x787248C3B522DD1dEfF16cE5eA86403C7D32756C"
+		}
+	]
 }

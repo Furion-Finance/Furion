@@ -266,7 +266,7 @@
       "args": []
     },
     "AggregatePoolFactory": {
-      "address": "0x4AC9F74D4265A8260e3221A5273D7Dc96c0691fd",
+      "address": "0x43C6930f307561A87F6A2C770487b8D45B3cfDc4",
       "args": [
         "0xDb80Fe2d03a89FA9e8F8575CEA5da8DB6b945e24",
         "0x552b2907e17627Fee4e4dD894417ce5fBC14150F",
@@ -315,7 +315,7 @@
       "args": []
     },
     "BAYC Ecosystem Aggregate Pool": {
-      "address": "0xdA7878D0CF4507C3E11bb49b0a0394cA3c7881e6",
+      "address": "0x40Ca6FA86cd53C75Ab6837A70D4bB94B5EEfdd65",
       "args": [
         "0xDb80Fe2d03a89FA9e8F8575CEA5da8DB6b945e24",
         "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
@@ -332,7 +332,7 @@
       ]
     },
     "Bluechips Aggregate Pool": {
-      "address": "0xD5Eb2ae2dDbC0B796D0f80659f7fa1C3e1b22f0F",
+      "address": "0x328a02643b1197411401E03f14413398C8001E70",
       "args": [
         "0xDb80Fe2d03a89FA9e8F8575CEA5da8DB6b945e24",
         "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
@@ -349,8 +349,8 @@
         "FFT-BLUECHIP"
       ]
     },
-    "Dark Horse Aggregate Pool": {
-      "address": "0x058C61eb0Df50818E890fdD16Ea70bc2Df7C4405",
+    "Dark Horses Aggregate Pool": {
+      "address": "0xDa23D99DDB4B175FFEA9756d82bFb781555C2D91",
       "args": [
         "0xDb80Fe2d03a89FA9e8F8575CEA5da8DB6b945e24",
         "0xCD989B3af99DaD62aEc047a50cDE5EEd051e3202",
@@ -361,7 +361,7 @@
           "0x611acdb027e6DC31ead00C63310b24ABDa8a6e38",
           "0x868B41A59Bb5A80d62b0153fBE53c7be2BEC798A"
         ],
-        "FurionFungibleToken Dark Horse",
+        "FurionFungibleToken Dark Horses",
         "FFT-DARKHORSE"
       ]
     }

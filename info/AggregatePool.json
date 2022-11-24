@@ -3,15 +3,18 @@
   "goerli": [
     {
       "name": "BAYC Ecosystem",
-      "address": "0xdA7878D0CF4507C3E11bb49b0a0394cA3c7881e6"
+      "symbol": "FFT-YUGA",
+      "address": "0x40Ca6FA86cd53C75Ab6837A70D4bB94B5EEfdd65"
     },
     {
       "name": "Bluechips",
-      "address": "0xD5Eb2ae2dDbC0B796D0f80659f7fa1C3e1b22f0F"
+      "symbol": "FFT-BLUECHIP",
+      "address": "0x328a02643b1197411401E03f14413398C8001E70"
     },
     {
-      "name": "Dark Horse",
-      "address": "0x058C61eb0Df50818E890fdD16Ea70bc2Df7C4405"
+      "name": "Dark Horses",
+      "symbol": "FFT-DARKHORSE",
+      "address": "0xDa23D99DDB4B175FFEA9756d82bFb781555C2D91"
     }
   ]
 }

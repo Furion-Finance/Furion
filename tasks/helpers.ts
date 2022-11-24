@@ -59,9 +59,15 @@ export const writeSeparatePool = (network: string, _name: string, _address: stri
   storeArgs(argsList);
 };
 
-export const writeAggregatePool = (network: string, _name: string, _address: string, _args: Array<any>) => {
+export const writeAggregatePool = (
+  network: string,
+  _name: string,
+  _symbol: string,
+  _address: string,
+  _args: Array<any>,
+) => {
   const apList = readAggregatePoolList();
-  apList[network].push({ name: _name, address: _address });
+  apList[network].push({ name: _name, symbol: _symbol, address: _address });
   storeAggregatePoolList(apList);
 
   const argsList = readArgs();

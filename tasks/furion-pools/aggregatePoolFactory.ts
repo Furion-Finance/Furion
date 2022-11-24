@@ -33,7 +33,7 @@ task("create:AggregatePool", "Create aggregate pool")
       poolName,
       poolSymbol,
     ];
-    writeAggregatePool(network, poolName.substring(indexOfSpace + 1), poolAddress, args);
+    writeAggregatePool(network, poolName.substring(indexOfSpace + 1), poolSymbol, poolAddress, args);
   });
 
 task("create:CoolAggregatePool", "Create Cool Cats aggregate pool").setAction(async function (

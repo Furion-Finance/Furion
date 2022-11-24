@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 
 contract TransferNFT {
     address constant KITTIES = 0x06012c8cf97BEaD5deAe237070F9587f8E7A266d;
-    address constant PUNKS = 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB;
+    address constant PUNKS = 0x90bD8a7d20534a896d057a1F4eA1B574f15F16d5;
 
     function _transferInNFT(address _nft, uint256 _id) internal {
         bytes memory data;

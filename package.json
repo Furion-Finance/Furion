@@ -48,7 +48,6 @@
     "hardhat-deploy": "^0.11.12",
     "hardhat-gas-reporter": "^1.0.8",
     "hardhat-spdx-license-identifier": "^2.0.3",
-    "husky": "^8.0.1",
     "lint-staged": "^13.0.1",
     "lodash": "^4.17.21",
     "mocha": "^10.0.0",

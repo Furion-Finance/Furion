@@ -118,3 +118,21 @@ task("mintUSD", "mint mock USD token")
 
     console.log("\n Successfully mint mock USD to", taskArgs.address, "\n");
   });
+
+task("mint:MockNFT", "Mint mock NFT collection to admin address")
+  .addParam("name", "NFT collection name")
+  .addParam("amount", "Amount to mint")
+  .setAction(async function (taskArgs, { ethers }) {
+    const addressList = readAddressList()[getNetwork()];
+
+    if (!addressList[taskArgs.name]) {
+      console.log("NFT collection does not exist");
+      return;
+    }
+
+    const contract = await ethers.getContractAt("MockERC721", addressList[taskArgs.name]);
+    const admin = (await ethers.getSigners())[0];
+    console.log(admin.address);
+    await contract.mint(admin.address, taskArgs.amount);
+    console.log(`Minted ${taskArgs.amount} ${taskArgs.name}`);
+  });

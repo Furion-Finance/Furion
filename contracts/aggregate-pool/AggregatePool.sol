@@ -286,7 +286,11 @@ contract AggregatePool is
         }
     }
 
-    function unlock(address _nft, uint256 _id) external unlockable(_nft, _id) {
+    function unlock(address _nft, uint256 _id)
+        external
+        nftRegistered(_nft)
+        unlockable(_nft, _id)
+    {
         bytes32 fId = getFurionId(_nft, _id);
 
         uint256 nftPrice = oracle.getNFTPrice(_nft, _id);
@@ -307,6 +311,7 @@ contract AggregatePool is
     function release(address _nft, uint256 _id)
         external
         onlyOwner
+        nftRegistered(_nft)
         releasable(_nft, _id)
     {
         bytes32 fId = getFurionId(_nft, _id);
@@ -324,7 +329,7 @@ contract AggregatePool is
      * @notice Lockers can only extend release time once
      * @dev EXTENDS release time by one month
      */
-    function payFee(address _nft, uint256 _id) external {
+    function payFee(address _nft, uint256 _id) external nftRegistered(_nft) {
         bytes32 fId = getFurionId(_nft, _id);
 
         LockInfo memory li = lockInfo[fId];
@@ -347,7 +352,7 @@ contract AggregatePool is
         address _nft,
         uint256 _id,
         bool _updateNow
-    ) private {
+    ) private nftRegistered(_nft) {
         uint256 nftPrice = oracle.getNFTPrice(_nft, _id);
         uint256 fftPrice = refPricePerFFT();
         uint256 mintAmount = (nftPrice * 1e18) / fftPrice;
@@ -363,7 +368,7 @@ contract AggregatePool is
         address _nft,
         uint256 _id,
         bool _updateNow
-    ) private returns (uint256) {
+    ) private nftRegistered(_nft) returns (uint256) {
         _transferInNFT(_nft, _id);
 
         uint256 nftPrice = oracle.getNFTPrice(_nft, _id);
@@ -388,7 +393,7 @@ contract AggregatePool is
         address _nft,
         uint256 _id,
         bool _updateNow
-    ) private {
+    ) private nftRegistered(_nft) {
         if (_updateNow) {
             _collectFee(buyFee);
 

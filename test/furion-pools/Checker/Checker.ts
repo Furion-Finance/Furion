@@ -20,9 +20,9 @@ describe("Checker", async function () {
   });
 
   beforeEach(async function () {
-    const { nft, furT, checker, spf, apf } = await this.loadFixture(deployCheckerFixture);
+    const { nft, fur, checker, spf, apf } = await this.loadFixture(deployCheckerFixture);
     this.nft = nft;
-    this.furT = furT;
+    this.fur = fur;
     this.checker = checker;
     this.spf = spf;
     this.apf = apf;
@@ -46,11 +46,11 @@ describe("Checker", async function () {
     await this.checker.connect(this.signers.admin).setSPFactory(this.spf.address);
     await this.checker.connect(this.signers.admin).setAPFactory(this.apf.address);
 
-    await expect(this.checker.connect(this.signers.bob).addToken(this.furT.address)).to.be.revertedWith(
+    await expect(this.checker.connect(this.signers.bob).addToken(this.fur.address)).to.be.revertedWith(
       "Checker: Not permitted to call.",
     );
-    await this.checker.connect(this.signers.admin).addToken(this.furT.address);
-    expect(await this.checker.isFurionToken(this.furT.address)).to.equal(true);
+    await this.checker.connect(this.signers.admin).addToken(this.fur.address);
+    expect(await this.checker.isFurionToken(this.fur.address)).to.equal(true);
 
     const spAddress = await this.spf.callStatic.createPool(this.nft.address);
     await this.spf.createPool(this.nft.address);

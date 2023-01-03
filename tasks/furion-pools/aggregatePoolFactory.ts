@@ -36,34 +36,36 @@ task("create:AggregatePool", "Create aggregate pool")
     writeAggregatePool(network, poolName.substring(indexOfSpace + 1), poolSymbol, poolAddress, args);
   });
 
-task("create:CoolAggregatePool", "Create Cool Cats aggregate pool").setAction(async function (
-  taskArguments: TaskArguments,
-  { ethers },
-) {
+const addresses = readAddressList()["goerli"];
+const poolInfo = [
+  {
+    nfts: [addresses.BAYC, addresses.MAYC, addresses.Otherdeed, addresses.BAKC],
+    name: "BAYC Ecosystem",
+    symbol: "BAYC",
+  },
+  {
+    nfts: [addresses.CryptoPunks, addresses.Azuki, addresses.Doodles, addresses.BAYC, addresses.Meebits],
+    name: "Bluechips",
+    symbol: "BLUECHIP",
+  },
+  {
+    nfts: [addresses["Weirdo Ghost Gang"], addresses.Catddle, addresses["Mimic Shhans"]],
+    name: "Dark Horses",
+    symbol: "DARKHORSE",
+  },
+];
+
+task("create:TestnetAggregatePools", "Create all 3 aggregate pools for testnet").setAction(async function () {
+  const hre = require("hardhat");
   const network = getNetwork();
-  const addressList = readAddressList();
-  const separatePoolList = readSeparatePoolList();
 
-  const apf = await ethers.getContractAt("AggregatePoolFactory", addressList[network].AggregatePoolFactory);
-  const poolAddress = await apf.callStatic.createPool([separatePoolList[network]["0"].address], "Cool Cats", "COOL");
-  const tx = await apf.createPool([separatePoolList[network]["0"].address], "Cool Cats", "COOL");
-  await tx.wait();
-  console.log();
-  console.log(`Cool Cats aggregate pool deployed to ${poolAddress} on ${network}`);
-
-  const ap = await ethers.getContractAt("AggregatePool", poolAddress);
-  const poolSymbol = await ap.symbol();
-  const poolName = await ap.name();
-  const indexOfSpace = poolName.indexOf(" ");
-  const signers = await ethers.getSigners();
-  const args = [
-    addressList[network].FurionToken,
-    addressList[network].FurionPricingOracle,
-    addressList[network].SeparatePoolFactory,
-    signers[0].address,
-    [separatePoolList[network]["0"].address],
-    poolName,
-    poolSymbol,
-  ];
-  writeAggregatePool(network, poolName.substring(indexOfSpace + 1), poolAddress, args);
+  for (let pool of poolInfo) {
+    if (pool.name != "BAYC Ecosystem") {
+      await hre.run("create:AggregatePool", {
+        nfts: pool.nfts,
+        name: pool.name,
+        symbol: pool.symbol,
+      });
+    }
+  }
 });

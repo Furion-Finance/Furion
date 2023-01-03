@@ -19,6 +19,7 @@ const upgradeRiskManager = require("./upgrade/money-market/riskManager");
 const checker = require("./furion-pools/checker");
 const createSeparatePool = require("./furion-pools/separatePoolFactory");
 const createAggregatePool = require("./furion-pools/aggregatePoolFactory");
+const setNftPrice = require("./furion-pools/furionPricingOracle");
 const riskManager = require("./money-market/riskManager");
 const priceOracle = require("./money-market/priceOracle");
 
@@ -106,4 +107,5 @@ export {
   deployTestIncomeSharing,
   incomeSharingVaultFunctions,
   incomeMakerFunctions,
+  setNftPrice,
 };

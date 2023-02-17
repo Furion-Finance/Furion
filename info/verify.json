@@ -129,7 +129,7 @@
       "args": []
     },
     "fUSDC": {
-      "address": "0xB4250e6D5a97e2fe8fBAD53b833CEBBfcf55A886",
+      "address": "0xCE8e1b9944c3930f8ccAb54B8F8e43f72A6FA309",
       "args": []
     },
     "BAYC Ecosystem Aggregate Pool": {
@@ -210,6 +210,18 @@
     "Pudgy Penguins": {
       "address": "0xF461002BdF4803007E753Fa55Ba303FC0abF1DA3",
       "args": ["Pudgy Penguins", "PPG", "", 0, 8888]
+    },
+    "USDC": {
+      "address": "0x400BD531a530309A37dCC2379b364bB56890eC05",
+      "args": ["USD Coin", "USDC"]
+    },
+    "USDT": {
+      "address": "0x4D125790d23a01f834ea7F8b3Dccf1043416C148",
+      "args": ["USD Tether", "USDT"]
+    },
+    "fUSDT": {
+      "address": "0xCE8e1b9944c3930f8ccAb54B8F8e43f72A6FA309",
+      "args": []
     }
   }
 }

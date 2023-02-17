@@ -4,20 +4,14 @@ import type { TaskArguments } from "hardhat/types";
 import { readAddressList } from "../../../scripts/contractAddress";
 import { deploy, getNetwork, writeDeployment } from "../../helpers";
 
+// [name, symbol, uri, start ID, total supply]
 let args = [
-  ["BAYC", "BAYC", "", 0, 10000],
-  ["MAYC", "MAYC", "", 0, 19431],
-  ["Otherdeed", "OTHR", "", 0, 100000],
-  ["BAKC", "BAKC", "", 0, 9602],
-  ["Azuki", "AZUKI", "", 0, 10000],
-  ["Doodles", "DOODLE", "", 0, 10000],
-  ["Meebits", "Meebits", "", 1, 20000],
-  ["Weirdo Ghost Gang", "GHOST", "", 0, 5556],
-  ["Catddle", "CAT", "", 1, 2048],
-  ["Mimic Shhans", "SHHANS", "", 1, 10020],
+  ["Cool Cats", "COOL", "", 0, 9960],
+  ["mfer", "MFER", "", 0, 10021],
+  ["Pudgy Penguins", "PPG", "", 0, 8888],
 ];
 
-task("deploy:MockNFTs", "Deploy 11 mock NFT collections").setAction(async function (
+task("deploy:MockNFTs", "Deploy defined mock NFT collections").setAction(async function (
   taskArguments: TaskArguments,
   { ethers },
 ) {
@@ -30,7 +24,7 @@ task("deploy:MockNFTs", "Deploy 11 mock NFT collections").setAction(async functi
   }
 });
 
-task("verify:MockNFTs", "Verify all 11 mock NFT collections").setAction(async function (
+task("verify:MockNFTs", "Verify all defined mock NFT collections").setAction(async function (
   taskArguments: TaskArguments,
   { ethers },
 ) {

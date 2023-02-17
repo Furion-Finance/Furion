@@ -8,11 +8,11 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @notice This is the MockUSD for test
  */
 contract MockUSD is ERC20 {
-    uint256 public constant INITIAL_SUPPLY = 100000 * 1e6;
-
-    constructor() ERC20("MOCKUSD", "USDC") {
+    constructor(string memory _name, string memory _symbol)
+        ERC20(_name, _symbol)
+    {
         // When first deployed, give the owner some coins
-        _mint(msg.sender, INITIAL_SUPPLY);
+        _mint(msg.sender, 100000 * 1e6);
     }
 
     // Everyone can mint

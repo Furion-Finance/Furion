@@ -26,3 +26,19 @@ task("deploy:MockToken", "Deploy mock token contracts").setAction(async function
 
   writeDeployment(network, "WETH", weth.address, []);
 });
+
+task("deploy:MockUSD", "Deploy mock stablecoin contracts")
+  .addParam("name", "Name of stablecoin")
+  .addParam("symbol", "Symbol of stablecoin")
+  .setAction(async function (taskArguments: TaskArguments, { ethers }) {
+    const hre = require("hardhat");
+    const network = getNetwork();
+
+    const args = [taskArguments.name, taskArguments.symbol];
+    const mockUSD = await deploy(ethers, "MockUSD", args);
+
+    console.log();
+    console.log(`${args[1]} deployed to: ${mockUSD.address} on ${network}`);
+
+    writeDeployment(network, args[1], mockUSD.address, args);
+  });

@@ -14,18 +14,18 @@ task("RM:SupportMarket", "Support given market")
     const addressList = readAddressList();
     const marketList = readMarketList();
 
-    for (let i = 0; i < marketList[network].counter; i++) {
-      if (taskArguments.market.localeCompare(marketList[network][i].address)) {
+    for (let market of marketList[network]) {
+      if (taskArguments.market == market.address) {
         const rm = await ethers.getContractAt("RiskManager", addressList[network].RiskManager);
         await rm.supportMarket(
-          marketList[network][i].address,
+          market.address,
           ethers.utils.parseUnits(taskArguments.collateralfactor, 18),
           taskArguments.tier,
         );
 
-        marketList[network][i].tier = taskArguments.tier;
+        market.tier = taskArguments.tier;
         storeMarketList(marketList);
-        console.log(`${marketList[network][i].symbol} is now supported`);
+        console.log(`${market.name} is now supported`);
 
         return;
       }

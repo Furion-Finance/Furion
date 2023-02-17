@@ -14,16 +14,16 @@ task("PO:SetUnderlyingPrice", "Set price of underlying asset of a market")
     const addressList = readAddressList();
     const marketList = readMarketList();
 
-    for (let i = 0; i < marketList[network].counter; i++) {
-      if (taskArguments.market.localeCompare(marketList[network][i].address)) {
+    for (let market of marketList[network]) {
+      if (taskArguments.market == market.address) {
         const po = await ethers.getContractAt("SimplePriceOracle", addressList[network].PriceOracle);
         await po.setUnderlyingPrice(
-          marketList[network][i].address,
+          market.address,
           ethers.utils.parseUnits(taskArguments.price, 18),
           ethers.utils.parseUnits("1", taskArguments.decimals),
         );
 
-        console.log(`Price of ${marketList[network][i].symbol.substring(1)} set`);
+        console.log(`Price of ${market.name.substring(1)} set`);
 
         return;
       }
